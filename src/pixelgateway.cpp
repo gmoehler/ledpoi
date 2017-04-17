@@ -26,11 +26,11 @@ uint8_t MAX_COLOR_VAL = 200; // Limits brightness
 rgbVal pixelMap[NUM_PIXELS][NUM_SCENES][NUM_FRAMES];
 rgbVal pixels[NUM_PIXELS];
 
-// WiFi credentials.
-const char* WIFI_SSID;
-const char* WIFI_PASS;
+// WiFi credentials (defined in WiFiCredentials.h)
+extern const char* WIFI_SSID;
+extern const char* WIFI_PASS;
 
-int keyIndex = 0;                 // your network key Index number (needed only for WEP)
+int keyIndex = 0;    // your network key Index number (needed only for WEP)
 
 int status = WL_IDLE_STATUS;
 int on;
@@ -76,7 +76,6 @@ void printWifiStatus() {
   Serial.print(rssi);
   Serial.println(" dBm");
 }
-
 
 void requestURL(const char * host, uint8_t port)
 {
@@ -194,26 +193,31 @@ void rainbow(unsigned long delay_ms, unsigned long timeout_ms)
         if (color.g >= anim_max)
         stepVal++;
         break;
+
         case 1:
         color.r -= anim_step;
         if (color.r == 0)
         stepVal++;
         break;
+
         case 2:
         color.b += anim_step;
         if (color.b >= anim_max)
         stepVal++;
         break;
+
         case 3:
         color.g -= anim_step;
         if (color.g == 0)
         stepVal++;
         break;
+
         case 4:
         color.r += anim_step;
         if (color.r >= anim_max)
         stepVal++;
         break;
+
         case 5:
         color.b -= anim_step;
         if (color.b == 0)
@@ -273,6 +277,8 @@ void saveProg(){}  //TODO
 
 void IRAM_ATTR timer0_intr()  // Interrupt im [ms]-Takt
 {
+  Serial.print("Interrupt ");
+  Serial.println(millis());
   if (prgState){
 
   }
@@ -289,9 +295,9 @@ void IRAM_ATTR timer0_intr()  // Interrupt im [ms]-Takt
 
 void setup()
 {
-  timer0 = timerBegin(0, 80, true);  // divider 80 = 1MHz
-  timerAlarmWrite(timer0, 999, true); // Alarm every 1000 µs, auto-reload
-//  timerAttachInterrupt(timer0, timer0_intr, true); // attach timer0_inter, edge type interrupt  (db) timer macht GURU
+  timer0 = timerBegin(3, 80, true);  // divider 80 = 1MHz
+  timerAlarmWrite(timer0, 20000000, true); // Alarm every 1000 µs, auto-reload
+  timerAttachInterrupt(timer0, &timer0_intr, true); // attach timer0_inter, edge type interrupt  (db) timer macht GURU
   timerAlarmEnable(timer0);
 
   IPAddress myIP(192, 168, 1, 127);
@@ -353,6 +359,7 @@ void setup()
       connectedToWifi=1;
     }
   }
+
 //  printWifiStatus();
   digitalWrite(LED_PIN, LOW); // Turn off LED
   server.begin();    // das hier ist WICHTIG!!
@@ -366,7 +373,7 @@ void loop()
 {
 
   WiFiClient client = server.available();
-  //  Serial.println("starting server");
+  //Serial.println("starting server");
   if (client) {
 //    blink(3);
     digitalWrite(LED_PIN,HIGH);
@@ -381,50 +388,63 @@ void loop()
         else{
           cmd[cmdIndex++]=c;
         }
+
         if (cmdIndex>=6) {
           TCPtimeoutCt=0;
           switch(cmd[0]){
             case 254:
             switch (cmd[1]){  // setAction
               case 0:  // showCurrent
-              ws2812_setColors(NUM_PIXELS, pixels);  // LEDs updaten
+              ws2812_setColors(NUM_PIXELS, pixels);  // update LEDs
+              break;
+
               case 1:  // showStatic
               loadPixels(cmd[2],cmd[3]);
-              ws2812_setColors(NUM_PIXELS, pixels);  // LEDs updaten
+              ws2812_setColors(NUM_PIXELS, pixels);  // update LEDs
               break;
+
               case 2:  // black mit Optionen
-              if (cmd[2]==0) displayOff();  // BlackSofort-Pixel behalten
+              if (cmd[2]==0) displayOff();  // keep BlackSofort-Pixel
               else fadeToBlack();           // fadeToBlack
               break;
+
               case 3:
       //        startProg(cmd[2],cmd[3],cmd[4],cmd[5]);
               break;
+
               case 4:
               pauseProg();
               break;
+
               case 5:
               resetProg(cmd[2]);
               break;
+
               case 6:
               saveProg();
               break;
+
               case 7:
               //savePix(cmd[2],cmd[3]);
               break;
+
               case 8:
               //setIP(cmd[2],cmd[3],cmd[4],cmd[5]);
               break;
+
               case 9:
               //setGW(cmd[2],cmd[3],cmd[4],cmd[5]);
               break;
+
               default:
               break;
             };  // end setAction
             break;
-            case 253:  // Programme definieren.
+
+            case 253:  // define programs
             if (cmd[1]==0){
               progDef[progIx][0]=0;
-              progIx=0;  // danach komt ein neues Programm
+              progIx=0;  // new program follows
             }
             else {
               progDef[progIx][0]=cmd[1];
