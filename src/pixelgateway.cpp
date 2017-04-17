@@ -4,8 +4,6 @@ Komisch: Vivaldi fragt IMMMER zusätzlich das favicon ab (Mozilla nur bei der er
 Vivaldi öffnet nach der eigentlichen Anfrage noch eine TCP Verbindung, die aber nichts sendet, sondern nur die Verbindung offen hält.
 Das freezed den Server, wenn man nicht einen einfachen Timeout implementiert (TCPtimeoutCt)
 
-
-
 */
 
 #include <Arduino.h>
@@ -21,7 +19,7 @@ hw_timer_t *timer0;
 uint32_t timer0_int = 0;
 const int connTimeout=10;
 
-const int DATA_PIN = 23; // war 18 Avoid using any of the strapping pins on the ESP32
+const int DATA_PIN = 23; // was 18 Avoid using any of the strapping pins on the ESP32
 
 uint8_t MAX_COLOR_VAL = 200; // Limits brightness
 

@@ -28,7 +28,7 @@
 *.out
 *.app
 
-
+src/WiFiCredentials.h
 .pioenvs
 .piolibdeps
 .clang_complete
