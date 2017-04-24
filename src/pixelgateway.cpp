@@ -15,6 +15,11 @@ Das freezed den Server, wenn man nicht einen einfachen Timeout implementiert (TC
 #define NUM_SCENES 1
 #define NUM_FRAMES 200
 
+enum PoiState { POI_INIT,           // 0
+                POI_NETWORK_SEARCH, // 1
+                POI_ACTIVE,         // 2
+                NUM_POI_STATES};    // only used for enum size
+
 hw_timer_t *timer0;
 uint32_t timer0_int = 0;
 const int connTimeout=10;
@@ -50,7 +55,11 @@ uint8_t progDef[254][5];
 uint8_t progCurrIx=0;
 uint8_t progLastIx=0;
 uint8_t progState=0;
-int prgState=0;
+
+PoiState poiState = POI_INIT;
+PoiState nextPoiState = POI_INIT;
+
+
 
 void printLine()
 {
@@ -277,9 +286,9 @@ void saveProg(){}  //TODO
 
 void IRAM_ATTR timer0_intr()  // Interrupt im [ms]-Takt
 {
-  Serial.print("Interrupt ");
+  Serial.print("Interrupt at ");
   Serial.println(millis());
-  if (prgState){
+  if (poiState){
 
   }
 /*  timer0_int++;
@@ -293,16 +302,68 @@ void IRAM_ATTR timer0_intr()  // Interrupt im [ms]-Takt
 
 }
 
-void setup()
-{
+
+void timer_init(){
   timer0 = timerBegin(3, 80, true);  // divider 80 = 1MHz
   timerAlarmWrite(timer0, 20000000, true); // Alarm every 1000 µs, auto-reload
+}
+
+void timer_start(){
   timerAttachInterrupt(timer0, &timer0_intr, true); // attach timer0_inter, edge type interrupt  (db) timer macht GURU
   timerAlarmEnable(timer0);
+}
+
+void timer_stop(){
+  timerDetachInterrupt(timer0);
+  timerAlarmDisable(timer0);
+}
+
+void wifi_connect(){
 
   IPAddress myIP(192, 168, 1, 127);
   IPAddress gateway(192, 168, 1, 1);
   IPAddress subnet(255, 255, 255, 0);
+
+  Serial.println();
+  Serial.println();
+  Serial.print("Connecting to ");
+  Serial.println(WIFI_SSID);
+
+  // Set WiFi to station mode and disconnect from an AP if it was previously connected
+  WiFi.mode(WIFI_STA);
+  WiFi.disconnect();
+  delay(100);
+
+  bool connectedToWifi=false;
+  WiFi.config(myIP,gateway,subnet);
+   while (!connectedToWifi){
+     WiFi.begin(WIFI_SSID, WIFI_PASS);
+     Serial.println("Connecting...");
+
+     while (WiFi.status() != WL_CONNECTED) {
+       // Check to see if connecting failed.
+       // This is due to incorrect credentials
+       delay(500);
+     }
+     if (WiFi.status() == WL_CONNECT_FAILED) {
+       Serial.println("Connection Failed. Retrying...");
+       blink(1);
+     }
+     else {
+       blink(10);
+       connectedToWifi=1;
+       Serial.println("Connected.");
+     }
+   }
+
+ //  printWifiStatus();
+   digitalWrite(LED_PIN, LOW); // Turn off LED
+   server.begin();    // das hier ist WICHTIG!!
+}
+
+
+void setup()
+{
   //  pinMode(BUTTON_PIN, INPUT_PULLUP);
   pinMode(LED_PIN, OUTPUT);
   //  blink(5);
@@ -328,50 +389,97 @@ void setup()
   displayOff();
   blink(2);
 
-
-  // Connect to Wifi.
-  Serial.println();
-  Serial.println();
-  Serial.print("Connecting to ");
-  Serial.println(WIFI_SSID);
-
-  // Set WiFi to station mode and disconnect from an AP if it was previously connected
-  WiFi.mode(WIFI_STA);
-  WiFi.disconnect();
-  delay(100);
- bool connectedToWifi=0;
- WiFi.config(myIP,gateway,subnet);
-  while (!connectedToWifi){
-    WiFi.begin(WIFI_SSID, WIFI_PASS);
-    Serial.println("Connecting...");
-
-    while (WiFi.status() != WL_CONNECTED) {
-      // Check to see if connecting failed.
-      // This is due to incorrect credentials
-      delay(500);
-    }
-    if (WiFi.status() == WL_CONNECT_FAILED) {
-      Serial.println("Nö");
-      blink(1);
-    }
-    else {
-      blink(10);
-      connectedToWifi=1;
-    }
-  }
-
-//  printWifiStatus();
-  digitalWrite(LED_PIN, LOW); // Turn off LED
-  server.begin();    // das hier ist WICHTIG!!
+  timer_init();
 }
 
-// ===============================================
-// ====  LOOP ====================================
-// ===============================================
+void receive_data(char c) {
+  TCPtimeoutCt=0;
+  if (c==255) {
+    cmdIndex=0;
+    for (int ix=0;ix<7;ix++) cmd[ix]=0;
+  }
+  else {
+    cmd[cmdIndex++]=c;
+  }
 
-void loop()
-{
+  if (cmdIndex>=6) {
+    TCPtimeoutCt=0;
+    switch(cmd[0]){
+      case 254:
+      switch (cmd[1]){  // setAction
+        case 0:  // showCurrent
+        ws2812_setColors(NUM_PIXELS, pixels);  // update LEDs
+        break;
 
+        case 1:  // showStatic
+        loadPixels(cmd[2],cmd[3]);
+        ws2812_setColors(NUM_PIXELS, pixels);  // update LEDs
+        break;
+
+        case 2:  // black mit Optionen
+        if (cmd[2]==0) displayOff();  // keep BlackSofort-Pixel
+        else fadeToBlack();           // fadeToBlack
+        break;
+
+        case 3:
+//        startProg(cmd[2],cmd[3],cmd[4],cmd[5]);
+        break;
+
+        case 4:
+        pauseProg();
+        break;
+
+        case 5:
+        resetProg(cmd[2]);
+        break;
+
+        case 6:
+        saveProg();
+        break;
+
+        case 7:
+        //savePix(cmd[2],cmd[3]);
+        break;
+
+        case 8:
+        //setIP(cmd[2],cmd[3],cmd[4],cmd[5]);
+        break;
+
+        case 9:
+        //setGW(cmd[2],cmd[3],cmd[4],cmd[5]);
+        break;
+
+        default:
+        break;
+      };  // end setAction
+      break;
+
+      case 253:  // define programs
+      if (cmd[1]==0){
+        progDef[progIx][0]=0;
+        progIx=0;  // new program follows
+      }
+      else {
+        progDef[progIx][0]=cmd[1];
+        progDef[progIx][1]=cmd[2];
+        progDef[progIx][2]=cmd[3];
+        progDef[progIx][3]=cmd[4];
+        progDef[progIx][4]=cmd[5];
+        progIx++;
+      }
+      break;
+      case 252: playScene(cmd[1],cmd[2],cmd[3],cmd[4],cmd[5]);
+      break;
+
+      default:
+//      Serial.print(cmd[1]);
+      pixelMap[constrain(cmd[0],0,NUM_PIXELS-1)][constrain(cmd[1],0,NUM_SCENES-1)][constrain(cmd[2],0,NUM_FRAMES-1)]=makeRGBVal(cmd[3],cmd[4],cmd[5]);
+      break;
+    }
+  }
+}
+
+void wifi_read_and_act(){
   WiFiClient client = server.available();
   //Serial.println("starting server");
   if (client) {
@@ -380,89 +488,7 @@ void loop()
     while (client.connected()) {
       if (client.available() ) {
         char c = client.read();
-        TCPtimeoutCt=0;
-        if (c==255) {
-          cmdIndex=0;
-          for (int ix=0;ix<7;ix++) cmd[ix]=0;
-        }
-        else{
-          cmd[cmdIndex++]=c;
-        }
-
-        if (cmdIndex>=6) {
-          TCPtimeoutCt=0;
-          switch(cmd[0]){
-            case 254:
-            switch (cmd[1]){  // setAction
-              case 0:  // showCurrent
-              ws2812_setColors(NUM_PIXELS, pixels);  // update LEDs
-              break;
-
-              case 1:  // showStatic
-              loadPixels(cmd[2],cmd[3]);
-              ws2812_setColors(NUM_PIXELS, pixels);  // update LEDs
-              break;
-
-              case 2:  // black mit Optionen
-              if (cmd[2]==0) displayOff();  // keep BlackSofort-Pixel
-              else fadeToBlack();           // fadeToBlack
-              break;
-
-              case 3:
-      //        startProg(cmd[2],cmd[3],cmd[4],cmd[5]);
-              break;
-
-              case 4:
-              pauseProg();
-              break;
-
-              case 5:
-              resetProg(cmd[2]);
-              break;
-
-              case 6:
-              saveProg();
-              break;
-
-              case 7:
-              //savePix(cmd[2],cmd[3]);
-              break;
-
-              case 8:
-              //setIP(cmd[2],cmd[3],cmd[4],cmd[5]);
-              break;
-
-              case 9:
-              //setGW(cmd[2],cmd[3],cmd[4],cmd[5]);
-              break;
-
-              default:
-              break;
-            };  // end setAction
-            break;
-
-            case 253:  // define programs
-            if (cmd[1]==0){
-              progDef[progIx][0]=0;
-              progIx=0;  // new program follows
-            }
-            else {
-              progDef[progIx][0]=cmd[1];
-              progDef[progIx][1]=cmd[2];
-              progDef[progIx][2]=cmd[3];
-              progDef[progIx][3]=cmd[4];
-              progDef[progIx][4]=cmd[5];
-              progIx++;
-            }
-            break;
-            case 252: playScene(cmd[1],cmd[2],cmd[3],cmd[4],cmd[5]);
-            break;
-            default:
-      //      Serial.print(cmd[1]);
-            pixelMap[constrain(cmd[0],0,NUM_PIXELS-1)][constrain(cmd[1],0,NUM_SCENES-1)][constrain(cmd[2],0,NUM_FRAMES-1)]=makeRGBVal(cmd[3],cmd[4],cmd[5]);
-            break;
-          }
-        }
+        receive_data(c);
       }
       else {  //timeout-trick... ab und zu connected ein dienst automatisch, der nichts sagt... da muss man ausbrechen
         TCPtimeoutCt++;
@@ -477,5 +503,68 @@ void loop()
       }
     }
     digitalWrite(LED_PIN,LOW);
+  }
+
+  else if (WiFi.status() != WL_CONNECTED){
+    timer_stop();
+    poiState = POI_NETWORK_SEARCH;
+    return;
+  }
+}
+
+// ===============================================
+// ====  LOOP ====================================
+// ===============================================
+
+// state machine with entry actions, state actions and exit actions
+void loop()
+{
+
+  bool state_changed = nextPoiState != poiState;
+
+  // exit actions
+  if (state_changed){
+    switch(poiState){
+      case POI_INIT:
+      break;
+
+      case POI_NETWORK_SEARCH:
+        timer_stop();
+      break;
+
+      case POI_ACTIVE:
+      break;
+
+      default:
+      break;
+    }
+  }
+
+  // update state
+  poiState = nextPoiState;
+
+  switch (poiState){
+
+    case POI_INIT:
+      // proceed to next state
+      nextPoiState = POI_NETWORK_SEARCH;
+    break;
+
+    case POI_NETWORK_SEARCH:
+      wifi_connect();
+      nextPoiState = POI_ACTIVE;
+    break;
+
+    case POI_ACTIVE:
+      // entry action
+      if (state_changed){
+        timer_start();
+      }
+      wifi_read_and_act();
+    break;
+
+    default:
+    break;
+
   }
 }
