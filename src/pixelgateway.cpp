@@ -260,8 +260,8 @@ void setup()
 }
 
 void receive_data(char c) {
-	
-	
+
+
   if (c==255) {
   	// command follows after this byte
     cmdIndex=0;
@@ -361,9 +361,9 @@ void wifi_read_and_act(){
     digitalWrite(LED_PIN,HIGH);
     while (client.connected()) {
       if (client.available() ) {
-    	TCPtimeoutCt=0
-        char c = client.read();
-        receive_data(c);
+    	   TCPtimeoutCt=0;
+         char c = client.read();
+         receive_data(c);
       }
       else {
         // some conncted clients don't speak...get out of here after some timeout
