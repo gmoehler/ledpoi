@@ -264,15 +264,23 @@ void setup()
 }
 
 void receive_data(char c) {
+	
+	
   if (c==255) {
+  	// command follows after this byte
     cmdIndex=0;
     for (int ix=0;ix<7;ix++) cmd[ix]=0;
+  }
+  else if (cmdIndex >=  7){
+  	Serial.println("Error! More than 6 bytes transmitted.");
+      return;
   }
   else {
     cmd[cmdIndex++]=c;
   }
 
-  if (cmdIndex>=6) {
+  // word complete
+  if (cmdIndex==6) {
     switch(cmd[0]){
       case 254:
       switch (cmd[1]){  // setAction
@@ -340,6 +348,7 @@ void receive_data(char c) {
       case 252: playScene(cmd[1],cmd[2],cmd[3],cmd[4],cmd[5]);
       break;
 
+       // 0...200
       default:
 //      Serial.print(cmd[1]);
       pixelMap[constrain(cmd[0],0,NUM_PIXELS-1)][constrain(cmd[1],0,NUM_SCENES-1)][constrain(cmd[2],0,NUM_FRAMES-1)]=makeRGBVal(cmd[3],cmd[4],cmd[5]);
