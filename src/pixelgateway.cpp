@@ -264,7 +264,6 @@ void setup()
 }
 
 void receive_data(char c) {
-  TCPtimeoutCt=0;
   if (c==255) {
     cmdIndex=0;
     for (int ix=0;ix<7;ix++) cmd[ix]=0;
@@ -274,7 +273,6 @@ void receive_data(char c) {
   }
 
   if (cmdIndex>=6) {
-    TCPtimeoutCt=0;
     switch(cmd[0]){
       case 254:
       switch (cmd[1]){  // setAction
@@ -358,10 +356,12 @@ void wifi_read_and_act(){
     digitalWrite(LED_PIN,HIGH);
     while (client.connected()) {
       if (client.available() ) {
+    	TCPtimeoutCt=0
         char c = client.read();
         receive_data(c);
       }
-      else {  //timeout-trick... ab und zu connected ein dienst automatisch, der nichts sagt... da muss man ausbrechen
+      else {
+        // some conncted clients don't speak...get out of here after some timeout
         TCPtimeoutCt++;
         delay(1);
       }
