@@ -17,7 +17,8 @@ Das freezed den Server, wenn man nicht einen einfachen Timeout implementiert (TC
 
 enum PoiState { POI_INIT,           // 0
                 POI_NETWORK_SEARCH, // 1
-                POI_ACTIVE,         // 2
+                POI_RECEIVE_DATA, //1
+                POI_ACTIVE,         // 3
                 NUM_POI_STATES};    // only used for enum size
 
 hw_timer_t *timer0;
@@ -25,6 +26,7 @@ uint32_t timer0_int = 0;
 const int connTimeout=10;
 
 const int DATA_PIN = 23; // was 18 Avoid using any of the strapping pins on the ESP32
+const int LED_PIN = 2;
 
 uint8_t MAX_COLOR_VAL = 200; // Limits brightness
 
@@ -35,16 +37,10 @@ rgbVal pixels[NUM_PIXELS];
 extern const char* WIFI_SSID;
 extern const char* WIFI_PASS;
 
-int keyIndex = 0;    // your network key Index number (needed only for WEP)
-
-int status = WL_IDLE_STATUS;
-int on;
 int TCPtimeoutCt=0;
 
 WiFiServer server(1110);
 IPAddress clientIP;
-
-const int LED_PIN = 2;
 
 int cmdIndex=0;
 char cmd[7];
