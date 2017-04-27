@@ -15,11 +15,20 @@ Das freezed den Server, wenn man nicht einen einfachen Timeout implementiert (TC
 #define NUM_SCENES 1
 #define NUM_FRAMES 200
 
-enum PoiState { POI_INIT,           // 0
-                POI_NETWORK_SEARCH, // 1
-                POI_RECEIVE_DATA, //1
-                POI_ACTIVE,         // 3
-                NUM_POI_STATES};    // only used for enum size
+enum PoiState { POI_INIT,               // 0
+                POI_NETWORK_SEARCH,     // 1
+                POI_CLIENT_CONNECTING,  // 2
+                POI_AWAITING_DATA,      // 3
+                POI_RECEIVING_DATA,     // 4
+                POI_ACTIVE,             // 5
+                NUM_POI_STATES};        // only used for enum size
+
+const char* POI_INIT_STR = "POI_INIT";
+const char* POI_NETWORK_SEARCH_STR = "POI_NETWORK_SEARCH";
+const char* POI_CLIENT_CONNECTING_STR = "POI_CLIENT_CONNECTING";
+const char* POI_AWAITING_DATA_STR = "POI_AWAITING_DATA";
+const char* POI_RECEIVING_DATA_STR = "POI_RECEIVING_DATA";
+const char* POI_ACTIVE_STR = "POI_ACTIVE";
 
 hw_timer_t *timer0;
 uint32_t timer0_int = 0;
@@ -40,6 +49,7 @@ extern const char* WIFI_PASS;
 int TCPtimeoutCt=0;
 
 WiFiServer server(1110);
+WiFiClient client;
 IPAddress clientIP;
 
 int cmdIndex=0;
@@ -121,6 +131,7 @@ void loadPixels(uint8_t scene, uint8_t frame){
 }
 
 void playScene(uint8_t scene, uint8_t frameStart,uint8_t frameEnd, uint8_t speed, uint8_t loops){
+  printf("Playing Scene: %d start frame: %d %d %d %d \n", scene, frameStart, frameEnd, speed, loops);
   for (uint8_t runner=0;runner<loops;runner++){
     for (int i=frameStart;i<frameEnd;i++){
       loadPixels(scene,i);
@@ -226,6 +237,8 @@ void wifi_connect(){
  //  printWifiStatus();
    digitalWrite(LED_PIN, LOW); // Turn off LED
    server.begin();    // important
+
+   nextPoiState = POI_CLIENT_CONNECTING;
 }
 
 
@@ -259,8 +272,126 @@ void setup()
   timer_init();
 }
 
-void receive_data(char c) {
 
+void protocoll_detect_start(){
+  if (!client.available()){
+    nextPoiState = POI_CLIENT_CONNECTING;
+    return;
+  }
+  char c = client.read();
+  if (c== 255) {
+    // received start byte -> continue
+    nextPoiState = POI_RECEIVING_DATA;
+  }
+}
+
+void protocoll_clean_data(){
+  cmdIndex=0;
+  for (int ix=0;ix<7;ix++) cmd[ix]=0;
+}
+
+bool protocoll_cmd_complete(){
+  return (cmdIndex >= 6);
+}
+
+void protocoll_receive_data(){
+  if (!client.available()){
+    nextPoiState = POI_CLIENT_CONNECTING;
+    return;
+  }
+  char c = client.read();
+  if (cmdIndex >  6){
+    Serial.println("Error! More than 6 bytes transmitted.");
+    return;
+  }
+  cmd[cmdIndex++]=c;
+  if (cmdIndex >= 6){
+    nextPoiState = POI_ACTIVE;
+  }
+}
+
+void print_cmd(){
+  printf("%d %d %d %d %d %d\n", cmd[0], cmd[1], cmd[2], cmd[3], cmd[4], cmd[5]);
+}
+
+void cmd_run(){
+
+  switch(cmd[0]){
+    case 254:
+    switch (cmd[1]){  // setAction
+      case 0:  // showCurrent
+      ws2812_setColors(NUM_PIXELS, pixels);  // update LEDs
+      break;
+
+      case 1:  // showStatic
+      loadPixels(cmd[2],cmd[3]);
+      ws2812_setColors(NUM_PIXELS, pixels);  // update LEDs
+      break;
+
+      case 2:  // black mit Optionen
+      if (cmd[2]==0) displayOff();  // keep BlackSofort-Pixel
+      else fadeToBlack();           // fadeToBlack
+      break;
+
+      case 3:
+//        startProg(cmd[2],cmd[3],cmd[4],cmd[5]);
+      break;
+
+      case 4:
+      pauseProg();
+      break;
+
+      case 5:
+      resetProg(cmd[2]);
+      break;
+
+      case 6:
+      saveProg();
+      break;
+
+      case 7:
+      //savePix(cmd[2],cmd[3]);
+      break;
+
+      case 8:
+      //setIP(cmd[2],cmd[3],cmd[4],cmd[5]);
+      break;
+
+      case 9:
+      //setGW(cmd[2],cmd[3],cmd[4],cmd[5]);
+      break;
+
+      default:
+      break;
+    };  // end setAction
+    break;
+
+    case 253:  // define programs
+    if (cmd[1]==0){
+      progDef[progIx][0]=0;
+      progIx=0;  // new program follows
+    }
+    else {
+      progDef[progIx][0]=cmd[1];
+      progDef[progIx][1]=cmd[2];
+      progDef[progIx][2]=cmd[3];
+      progDef[progIx][3]=cmd[4];
+      progDef[progIx][4]=cmd[5];
+      progIx++;
+    }
+    break;
+    case 252: playScene(cmd[1],cmd[2],cmd[3],cmd[4],cmd[5]);
+    break;
+
+     // 0...200
+    default:
+//      Serial.print(cmd[1]);
+    pixelMap[constrain(cmd[0],0,NUM_PIXELS-1)][constrain(cmd[1],0,NUM_SCENES-1)][constrain(cmd[2],0,NUM_FRAMES-1)]=makeRGBVal(cmd[3],cmd[4],cmd[5]);
+    break;
+  }
+}
+
+void receive_data(char c){
 
   if (c==255) {
   	// command follows after this byte
@@ -354,10 +485,12 @@ void receive_data(char c) {
 }
 
 void wifi_read_and_act(){
-  WiFiClient client = server.available();
+
   //Serial.println("starting server");
-  if (client) {
-//    blink(3);
+  client = server.available();
+
+//  if (client) {
+    //blink(3);
     digitalWrite(LED_PIN,HIGH);
     while (client.connected()) {
       if (client.available() ) {
@@ -367,6 +500,7 @@ void wifi_read_and_act(){
       }
       else {
         // some conncted clients don't speak...get out of here after some timeout
+        //Serial.print("-");
         TCPtimeoutCt++;
         delay(1);
       }
@@ -379,12 +513,66 @@ void wifi_read_and_act(){
       }
     }
     digitalWrite(LED_PIN,LOW);
-  }
+/*  }
 
   else if (WiFi.status() != WL_CONNECTED){
     timer_stop();
     poiState = POI_NETWORK_SEARCH;
     return;
+  }*/
+}
+
+void client_connect(){
+    // it might be connected but not available
+    if (!client.connected()){
+      TCPtimeoutCt=0;
+      client = server.available();
+    }
+
+    if (client.connected()){
+      if (client.available()){
+        digitalWrite(LED_PIN,HIGH);
+        nextPoiState = POI_AWAITING_DATA;
+      }
+      else {
+        // some conncted clients don't speak...get out of here after some timeout
+        // TODO: investigate this further
+        TCPtimeoutCt++;
+        delay(1);
+      }
+
+      if (TCPtimeoutCt>connTimeout*1000){
+        // close the connection:
+        client.stop();
+          digitalWrite(LED_PIN,LOW);
+        Serial.println("Client disonnected.");
+      }
+    }
+}
+
+const char* getPoiStateName(int state){
+
+  switch(poiState){
+    case POI_INIT:
+    return POI_INIT_STR;
+
+    case POI_NETWORK_SEARCH:
+    return POI_NETWORK_SEARCH_STR;
+
+    case POI_CLIENT_CONNECTING:
+    return POI_CLIENT_CONNECTING_STR;
+
+    case POI_AWAITING_DATA:
+    return POI_AWAITING_DATA_STR;
+
+    case POI_RECEIVING_DATA:
+    return POI_RECEIVING_DATA_STR;
+
+    case POI_ACTIVE:
+    return POI_ACTIVE_STR;
+
+    default:
+    return POI_INIT_STR;
   }
 }
 
@@ -400,15 +588,26 @@ void loop()
 
   // exit actions
   if (state_changed){
+    printf("State changed: %d -> %d\n", (poiState), (nextPoiState));
+    printf("State changed: %s -> %s\n", getPoiStateName(poiState), getPoiStateName(nextPoiState));
     switch(poiState){
       case POI_INIT:
       break;
 
       case POI_NETWORK_SEARCH:
-        timer_stop();
+      break;
+
+      case POI_CLIENT_CONNECTING:
+      break;
+
+      case POI_AWAITING_DATA:
+      break;
+
+      case POI_RECEIVING_DATA:
       break;
 
       case POI_ACTIVE:
+          timer_stop();
       break;
 
       default:
@@ -428,15 +627,31 @@ void loop()
 
     case POI_NETWORK_SEARCH:
       wifi_connect();
-      nextPoiState = POI_ACTIVE;
+    break;
+
+    case POI_CLIENT_CONNECTING:
+      if (state_changed){
+        digitalWrite(LED_PIN,LOW);
+      }
+      client_connect();
+    break;
+
+    case POI_AWAITING_DATA:
+      protocoll_detect_start();
+    break;
+
+    case POI_RECEIVING_DATA:
+       protocoll_receive_data();
     break;
 
     case POI_ACTIVE:
       // entry action
       if (state_changed){
         timer_start();
+        print_cmd();
       }
-      wifi_read_and_act();
+      //wifi_read_and_act();
+      cmd_run();
     break;
 
     default:
