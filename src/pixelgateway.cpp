@@ -65,6 +65,8 @@ uint8_t progState=0;
 PoiState poiState = POI_INIT;
 PoiState nextPoiState = POI_INIT;
 
+bool muteLog = false;
+
 void printLine()
 {
   Serial.println();
@@ -272,7 +274,7 @@ void setup()
   timer_init();
 }
 
-void cmd_run(){
+void realize_cmd(){
 
   switch(cmd[0]){
     case 254:
@@ -343,7 +345,10 @@ void cmd_run(){
 
      // 0...200
     default:
-//      Serial.print(cmd[1]);
+    if (!muteLog){
+      printf("Reading data: %d\n", cmd[1]);
+    }
+    muteLog = true;
     pixelMap[constrain(cmd[0],0,NUM_PIXELS-1)][constrain(cmd[1],0,NUM_SCENES-1)][constrain(cmd[2],0,NUM_FRAMES-1)]=makeRGBVal(cmd[3],cmd[4],cmd[5]);
     break;
   }
@@ -372,10 +377,12 @@ void protocoll_detect_start(){
     // if we have not received data for connTimeout seconds, lets disconnect
     // to avoid clients that do not talk to us
     TCPtimeoutCt++;
+    muteLog = false;
     if (TCPtimeoutCt>connTimeout*1000){
       // close the client connection
       client.stop();
       Serial.println("Client disonnected.");
+      resetTimeout();
       nextPoiState = POI_CLIENT_CONNECTING;
     }
     else {
@@ -387,7 +394,9 @@ void protocoll_detect_start(){
   // data available
   char c = client.read();
   if (c== 255) {
-    printf("Start byte detected.\n");
+    if (!muteLog){
+        printf("Start byte detected.\n");
+    }
     resetTimeout();
     // received start byte -> continue
     nextPoiState = POI_RECEIVING_DATA;
@@ -422,10 +431,6 @@ void protocoll_receive_data(){
   }
   cmd[cmdIndex++]=c;
 
-  if (protocoll_cmd_complete()){
-    print_cmd();
-    nextPoiState = POI_AWAITING_DATA;
-  }
 }
 
 // ===============================================
@@ -440,7 +445,9 @@ void loop()
 
   // exit actions
   if (state_changed){
-    printf("State changed: %d -> %d\n", (poiState), (nextPoiState));
+    if (!muteLog){
+      printf("State changed: %d -> %d\n", (poiState), (nextPoiState));
+    }
 
     switch(poiState){
       case POI_INIT:
@@ -478,6 +485,7 @@ void loop()
   int prevPoiState = poiState;
   poiState = nextPoiState;
 
+  // entry and state actions of state machine
   switch (poiState){
 
     case POI_INIT:
@@ -515,16 +523,26 @@ void loop()
       protocoll_clean_cmd();
     }
     protocoll_receive_data();
+    if (protocoll_cmd_complete()){
+      if (!muteLog){
+        print_cmd();
+      }
+      else {
+        Serial.print(".");
+      }
+      // carry out command
+      realize_cmd();
+      nextPoiState = POI_AWAITING_DATA;
+    }
     break;
 
-    case POI_ACTIVE:
-      // entry action
+    /*case POI_ACTIVE:
       if (state_changed){
         timer_start();
         print_cmd();
       }
       cmd_run();
-    break;
+    break;*/
 
     default:
     break;
