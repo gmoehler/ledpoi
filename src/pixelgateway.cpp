@@ -273,46 +273,7 @@ void setup()
 }
 
 
-void protocoll_detect_start(){
-  if (!client.available()){
-    nextPoiState = POI_CLIENT_CONNECTING;
-    return;
-  }
-  char c = client.read();
-  if (c== 255) {
-    // received start byte -> continue
-    nextPoiState = POI_RECEIVING_DATA;
-  }
-}
 
-void protocoll_clean_data(){
-  cmdIndex=0;
-  for (int ix=0;ix<7;ix++) cmd[ix]=0;
-}
-
-bool protocoll_cmd_complete(){
-  return (cmdIndex >= 6);
-}
-
-void protocoll_receive_data(){
-  if (!client.available()){
-    nextPoiState = POI_CLIENT_CONNECTING;
-    return;
-  }
-  char c = client.read();
-  if (cmdIndex >  6){
-    Serial.println("Error! More than 6 bytes transmitted.");
-    return;
-  }
-  cmd[cmdIndex++]=c;
-  if (cmdIndex >= 6){
-    nextPoiState = POI_ACTIVE;
-  }
-}
-
-void print_cmd(){
-  printf("%d %d %d %d %d %d\n", cmd[0], cmd[1], cmd[2], cmd[3], cmd[4], cmd[5]);
-}
 
 void cmd_run(){
 
@@ -391,188 +352,82 @@ void cmd_run(){
   }
 }
 
-void receive_data(char c){
-
-  if (c==255) {
-  	// command follows after this byte
-    cmdIndex=0;
-    for (int ix=0;ix<7;ix++) cmd[ix]=0;
-  }
-  else if (cmdIndex >=  7){
-  	Serial.println("Error! More than 6 bytes transmitted.");
-      return;
-  }
-  else {
-    cmd[cmdIndex++]=c;
-  }
-
-  // word complete
-  if (cmdIndex==6) {
-    switch(cmd[0]){
-      case 254:
-      switch (cmd[1]){  // setAction
-        case 0:  // showCurrent
-        ws2812_setColors(NUM_PIXELS, pixels);  // update LEDs
-        break;
-
-        case 1:  // showStatic
-        loadPixels(cmd[2],cmd[3]);
-        ws2812_setColors(NUM_PIXELS, pixels);  // update LEDs
-        break;
-
-        case 2:  // black mit Optionen
-        if (cmd[2]==0) displayOff();  // keep BlackSofort-Pixel
-        else fadeToBlack();           // fadeToBlack
-        break;
-
-        case 3:
-//        startProg(cmd[2],cmd[3],cmd[4],cmd[5]);
-        break;
-
-        case 4:
-        pauseProg();
-        break;
-
-        case 5:
-        resetProg(cmd[2]);
-        break;
-
-        case 6:
-        saveProg();
-        break;
-
-        case 7:
-        //savePix(cmd[2],cmd[3]);
-        break;
-
-        case 8:
-        //setIP(cmd[2],cmd[3],cmd[4],cmd[5]);
-        break;
-
-        case 9:
-        //setGW(cmd[2],cmd[3],cmd[4],cmd[5]);
-        break;
-
-        default:
-        break;
-      };  // end setAction
-      break;
-
-      case 253:  // define programs
-      if (cmd[1]==0){
-        progDef[progIx][0]=0;
-        progIx=0;  // new program follows
-      }
-      else {
-        progDef[progIx][0]=cmd[1];
-        progDef[progIx][1]=cmd[2];
-        progDef[progIx][2]=cmd[3];
-        progDef[progIx][3]=cmd[4];
-        progDef[progIx][4]=cmd[5];
-        progIx++;
-      }
-      break;
-      case 252: playScene(cmd[1],cmd[2],cmd[3],cmd[4],cmd[5]);
-      break;
-
-       // 0...200
-      default:
-//      Serial.print(cmd[1]);
-      pixelMap[constrain(cmd[0],0,NUM_PIXELS-1)][constrain(cmd[1],0,NUM_SCENES-1)][constrain(cmd[2],0,NUM_FRAMES-1)]=makeRGBVal(cmd[3],cmd[4],cmd[5]);
-      break;
-    }
-  }
-}
-
-void wifi_read_and_act(){
-
-  //Serial.println("starting server");
+void client_connect(){
   client = server.available();
 
-//  if (client) {
-    //blink(3);
-    digitalWrite(LED_PIN,HIGH);
-    while (client.connected()) {
-      if (client.available() ) {
-    	   TCPtimeoutCt=0;
-         char c = client.read();
-         receive_data(c);
-      }
-      else {
-        // some conncted clients don't speak...get out of here after some timeout
-        //Serial.print("-");
-        TCPtimeoutCt++;
-        delay(1);
-      }
+  if (client.connected()){
+    nextPoiState = POI_AWAITING_DATA;
+  }
+  else {
+    printf("Client connection could not be established.\n" );
+    delay(100);
+  }
+}
 
-      if (TCPtimeoutCt>connTimeout*1000){
-        // close the connection:
-        client.stop();
-        TCPtimeoutCt=0;
-        Serial.println("client disonnected");
-      }
+void resetTimeout(){
+  TCPtimeoutCt=0;
+}
+
+void protocoll_detect_start(){
+  if (!client.available()){
+    // no data available
+
+    // if we have not received data for connTimeout seconds, lets disconnect
+    // to avoid clients that do not talk to us
+    TCPtimeoutCt++;
+    if (TCPtimeoutCt>connTimeout*1000){
+      // close the client connection
+      client.stop();
+      Serial.println("Client disonnected.");
+      nextPoiState = POI_CLIENT_CONNECTING;
     }
-    digitalWrite(LED_PIN,LOW);
-/*  }
-
-  else if (WiFi.status() != WL_CONNECTED){
-    timer_stop();
-    poiState = POI_NETWORK_SEARCH;
+    else {
+      delay(1);
+    }
     return;
-  }*/
+  }
+
+  // data available
+  char c = client.read();
+  if (c== 255) {
+    printf("Start byte detected.\n");
+    resetTimeout();
+    // received start byte -> continue
+    nextPoiState = POI_RECEIVING_DATA;
+  }
+  else {
+      printf("Unknown data found while waiting for start byte: %d.\n", cmd[0]);
+  }
 }
 
-void client_connect(){
-    // it might be connected but not available
-    if (!client.connected()){
-      TCPtimeoutCt=0;
-      client = server.available();
-    }
-
-    if (client.connected()){
-      if (client.available()){
-        digitalWrite(LED_PIN,HIGH);
-        nextPoiState = POI_AWAITING_DATA;
-      }
-      else {
-        // some conncted clients don't speak...get out of here after some timeout
-        // TODO: investigate this further
-        TCPtimeoutCt++;
-        delay(1);
-      }
-
-      if (TCPtimeoutCt>connTimeout*1000){
-        // close the connection:
-        client.stop();
-          digitalWrite(LED_PIN,LOW);
-        Serial.println("Client disonnected.");
-      }
-    }
+void protocoll_clean_cmd(){
+  cmdIndex=0;
+  for (int ix=0;ix<7;ix++) cmd[ix]=0;
 }
 
-const char* getPoiStateName(int state){
+bool protocoll_cmd_complete(){
+  return (cmdIndex >= 6);
+}
 
-  switch(poiState){
-    case POI_INIT:
-    return POI_INIT_STR;
+void print_cmd(){
+  printf("CMD: %d %d %d %d %d %d\n", cmd[0], cmd[1], cmd[2], cmd[3], cmd[4], cmd[5]);
+}
 
-    case POI_NETWORK_SEARCH:
-    return POI_NETWORK_SEARCH_STR;
+void protocoll_receive_data(){
+  if (!client.available()){
+    nextPoiState = POI_CLIENT_CONNECTING;
+    return;
+  }
+  char c = client.read();
+  if (cmdIndex >  6){
+    Serial.println("Error! More than 6 bytes transmitted.");
+    return;
+  }
+  cmd[cmdIndex++]=c;
 
-    case POI_CLIENT_CONNECTING:
-    return POI_CLIENT_CONNECTING_STR;
-
-    case POI_AWAITING_DATA:
-    return POI_AWAITING_DATA_STR;
-
-    case POI_RECEIVING_DATA:
-    return POI_RECEIVING_DATA_STR;
-
-    case POI_ACTIVE:
-    return POI_ACTIVE_STR;
-
-    default:
-    return POI_INIT_STR;
+  if (protocoll_cmd_complete()){
+    print_cmd();
+    nextPoiState = POI_AWAITING_DATA;
   }
 }
 
@@ -589,7 +444,7 @@ void loop()
   // exit actions
   if (state_changed){
     printf("State changed: %d -> %d\n", (poiState), (nextPoiState));
-    printf("State changed: %s -> %s\n", getPoiStateName(poiState), getPoiStateName(nextPoiState));
+
     switch(poiState){
       case POI_INIT:
       break;
@@ -601,9 +456,15 @@ void loop()
       break;
 
       case POI_AWAITING_DATA:
+      // switch off led if we leave this state
+      if (nextPoiState != POI_RECEIVING_DATA)
+        digitalWrite(LED_PIN,LOW);
       break;
 
       case POI_RECEIVING_DATA:
+      // switch off led if we leave this state
+      if (nextPoiState != POI_AWAITING_DATA)
+        digitalWrite(LED_PIN,LOW);
       break;
 
       case POI_ACTIVE:
@@ -616,6 +477,8 @@ void loop()
   }
 
   // update state
+  // need to do this here since these functions may set nextPoiState
+  int prevPoiState = poiState;
   poiState = nextPoiState;
 
   switch (poiState){
@@ -626,22 +489,34 @@ void loop()
     break;
 
     case POI_NETWORK_SEARCH:
+    if (state_changed){
+      digitalWrite(LED_PIN,LOW);
+    }
       wifi_connect();
     break;
 
     case POI_CLIENT_CONNECTING:
-      if (state_changed){
-        digitalWrite(LED_PIN,LOW);
-      }
-      client_connect();
+    if (state_changed){
+      resetTimeout();
+    }
+    client_connect();
     break;
 
     case POI_AWAITING_DATA:
-      protocoll_detect_start();
+    if (state_changed && prevPoiState != POI_RECEIVING_DATA){
+      digitalWrite(LED_PIN,HIGH);
+    }
+    protocoll_detect_start();
     break;
 
     case POI_RECEIVING_DATA:
-       protocoll_receive_data();
+    if (state_changed){
+      if (prevPoiState != POI_AWAITING_DATA) {
+        digitalWrite(LED_PIN,HIGH);
+      }
+      protocoll_clean_cmd();
+    }
+    protocoll_receive_data();
     break;
 
     case POI_ACTIVE:
@@ -650,12 +525,10 @@ void loop()
         timer_start();
         print_cmd();
       }
-      //wifi_read_and_act();
       cmd_run();
     break;
 
     default:
     break;
-
   }
 }
