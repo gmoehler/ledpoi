@@ -272,9 +272,6 @@ void setup()
   timer_init();
 }
 
-
-
-
 void cmd_run(){
 
   switch(cmd[0]){
@@ -356,10 +353,10 @@ void client_connect(){
   client = server.available();
 
   if (client.connected()){
+    printf("Client connected.\n" );
     nextPoiState = POI_AWAITING_DATA;
   }
   else {
-    printf("Client connection could not be established.\n" );
     delay(100);
   }
 }
@@ -396,7 +393,7 @@ void protocoll_detect_start(){
     nextPoiState = POI_RECEIVING_DATA;
   }
   else {
-      printf("Unknown data found while waiting for start byte: %d.\n", cmd[0]);
+      printf("Warning! Unknown data found while waiting for start byte: %d.\n", cmd[0]);
   }
 }
 
@@ -498,6 +495,7 @@ void loop()
     case POI_CLIENT_CONNECTING:
     if (state_changed){
       resetTimeout();
+      printf("Waiting for client...\n");
     }
     client_connect();
     break;
