@@ -10,6 +10,7 @@ Das freezed den Server, wenn man nicht einen einfachen Timeout implementiert (TC
 #include <ws2812.h>
 #include "WiFi.h"
 #include "WiFiCredentials.h"
+#include "PoiProgram.h"
 
 #define NUM_PIXELS 60
 #define NUM_SCENES 1
@@ -39,7 +40,7 @@ const int LED_PIN = 2;
 
 uint8_t MAX_COLOR_VAL = 200; // Limits brightness
 
-rgbVal pixelMap[NUM_PIXELS][NUM_SCENES][NUM_FRAMES];
+//rgbVal pixelMap[NUM_PIXELS][NUM_SCENES][NUM_FRAMES];
 rgbVal pixels[NUM_PIXELS];
 
 // WiFi credentials (defined in WiFiCredentials.h)
@@ -64,6 +65,8 @@ uint8_t progState=0;
 
 PoiState poiState = POI_INIT;
 PoiState nextPoiState = POI_INIT;
+
+PoiProgram program;
 
 bool muteLog = false;
 
@@ -129,11 +132,12 @@ void blink(int m){
 
 void loadPixels(uint8_t scene, uint8_t frame){
   for (int i=0;i<NUM_PIXELS;i++)
-    pixels[i]=pixelMap[i][constrain(scene,0,NUM_SCENES-1)][frame];
+  //pixels[i]=pixelMap[i][constrain(scene,0,NUM_SCENES-1)][frame];
+  pixels[i] = program.getPixel(scene,frame, i);
 }
 
 void playScene(uint8_t scene, uint8_t frameStart,uint8_t frameEnd, uint8_t speed, uint8_t loops){
-  printf("Playing Scene: %d start frame: %d %d %d %d \n", scene, frameStart, frameEnd, speed, loops);
+  printf("Playing Scene: %d frames: [%d,%d] delay: %d loops:%d \n", scene, frameStart, frameEnd, speed, loops);
   for (uint8_t runner=0;runner<loops;runner++){
     for (int i=frameStart;i<frameEnd;i++){
       loadPixels(scene,i);
@@ -162,10 +166,11 @@ void resetProg(uint8_t index){
 
 void saveProg(){}  //TODO
 
-void IRAM_ATTR timer0_intr()  // Interrupt im [ms]-Takt
+// Interrupt at each milli second
+void IRAM_ATTR timer0_intr()
 {
-  Serial.print("Interrupt at ");
-  Serial.println(millis());
+  //Serial.print("Interrupt at ");
+  //Serial.println(millis());
   if (poiState){
 
   }
@@ -183,7 +188,7 @@ void IRAM_ATTR timer0_intr()  // Interrupt im [ms]-Takt
 
 void timer_init(){
   timer0 = timerBegin(3, 80, true);  // divider 80 = 1MHz
-  timerAlarmWrite(timer0, 20000000, true); // Alarm every 1000 µs, auto-reload
+  timerAlarmWrite(timer0, 10000, true); // Alarm every 1000 µs, auto-reload
 }
 
 void timer_start(){
@@ -346,10 +351,15 @@ void realize_cmd(){
      // 0...200
     default:
     if (!muteLog){
-      printf("Reading data: %d\n", cmd[1]);
+      printf("Reading data... \n");
     }
     muteLog = true;
-    pixelMap[constrain(cmd[0],0,NUM_PIXELS-1)][constrain(cmd[1],0,NUM_SCENES-1)][constrain(cmd[2],0,NUM_FRAMES-1)]=makeRGBVal(cmd[3],cmd[4],cmd[5]);
+    uint8_t pixel_idx = constrain(cmd[0],0,NUM_PIXELS-1);
+    uint8_t scene_idx = constrain(cmd[1],0,NUM_SCENES-1);
+    uint8_t frame_idx = constrain(cmd[2],0,NUM_FRAMES-1);
+    rgbVal pixel = makeRGBVal(cmd[3],cmd[4],cmd[5]);
+    //pixelMap[pixel_idx][scene_idx][frame_idx]= pixel;
+    program.setPixel(scene_idx,frame_idx,pixel_idx, pixel);
     break;
   }
 }
@@ -454,6 +464,7 @@ void loop()
       break;
 
       case POI_NETWORK_SEARCH:
+      timer_start();
       break;
 
       case POI_CLIENT_CONNECTING:
@@ -469,10 +480,6 @@ void loop()
       // switch off led if we leave this state
       if (nextPoiState != POI_AWAITING_DATA)
         digitalWrite(LED_PIN,LOW);
-      break;
-
-      case POI_ACTIVE:
-          timer_stop();
       break;
 
       default:
@@ -496,6 +503,7 @@ void loop()
     case POI_NETWORK_SEARCH:
     if (state_changed){
       digitalWrite(LED_PIN,LOW);
+      timer_stop();
     }
       wifi_connect();
     break;
@@ -527,22 +535,11 @@ void loop()
       if (!muteLog){
         print_cmd();
       }
-      else {
-        Serial.print(".");
-      }
       // carry out command
       realize_cmd();
       nextPoiState = POI_AWAITING_DATA;
     }
     break;
-
-    /*case POI_ACTIVE:
-      if (state_changed){
-        timer_start();
-        print_cmd();
-      }
-      cmd_run();
-    break;*/
 
     default:
     break;
