@@ -10,7 +10,7 @@ Das freezed den Server, wenn man nicht einen einfachen Timeout implementiert (TC
 #include <ws2812.h>
 #include "WiFi.h"
 #include "WiFiCredentials.h"
-#include "PoiProgram.h"
+#include "PoiProgramRunner.h"
 
 #define NUM_PIXELS 60
 #define NUM_SCENES 1
@@ -21,7 +21,6 @@ enum PoiState { POI_INIT,               // 0
                 POI_CLIENT_CONNECTING,  // 2
                 POI_AWAITING_DATA,      // 3
                 POI_RECEIVING_DATA,     // 4
-                POI_ACTIVE,             // 5
                 NUM_POI_STATES};        // only used for enum size
 
 const char* POI_INIT_STR = "POI_INIT";
@@ -40,7 +39,6 @@ const int LED_PIN = 2;
 
 uint8_t MAX_COLOR_VAL = 200; // Limits brightness
 
-//rgbVal pixelMap[NUM_PIXELS][NUM_SCENES][NUM_FRAMES];
 rgbVal pixels[NUM_PIXELS];
 
 // WiFi credentials (defined in WiFiCredentials.h)
@@ -66,7 +64,7 @@ uint8_t progState=0;
 PoiState poiState = POI_INIT;
 PoiState nextPoiState = POI_INIT;
 
-PoiProgram program;
+PoiProgramRunner runner;
 
 bool muteLog = false;
 
@@ -93,14 +91,6 @@ void printWifiStatus() {
   Serial.print("signal strength (RSSI):");
   Serial.print(rssi);
   Serial.println(" dBm");
-}
-
-void displayOff() {
-  for (int i = 0; i < NUM_PIXELS; i++) {
-    pixels[i] = makeRGBVal(0, 0, 0);
-  }
-  ws2812_setColors(NUM_PIXELS, pixels);
-  //ws2812_setColors(NUM_PIXELS, pixels);
 }
 
 void displayTest() {
@@ -130,23 +120,6 @@ void blink(int m){
   }
 }
 
-void loadPixels(uint8_t scene, uint8_t frame){
-  for (int i=0;i<NUM_PIXELS;i++)
-  //pixels[i]=pixelMap[i][constrain(scene,0,NUM_SCENES-1)][frame];
-  pixels[i] = program.getPixel(scene,frame, i);
-}
-
-void playScene(uint8_t scene, uint8_t frameStart,uint8_t frameEnd, uint8_t speed, uint8_t loops){
-  printf("Playing Scene: %d frames: [%d,%d] delay: %d loops:%d \n", scene, frameStart, frameEnd, speed, loops);
-  for (uint8_t runner=0;runner<loops;runner++){
-    for (int i=frameStart;i<frameEnd;i++){
-      loadPixels(scene,i);
-      ws2812_setColors(NUM_PIXELS, pixels);  // LEDs updaten
-      delay(speed);
-    }
-  }
-}
-
 void fadeToBlack(){  //TODO
 
 }
@@ -169,26 +142,18 @@ void saveProg(){}  //TODO
 // Interrupt at each milli second
 void IRAM_ATTR timer0_intr()
 {
-  //Serial.print("Interrupt at ");
-  //Serial.println(millis());
-  if (poiState){
+  Serial.print("Interrupt at ");
+  Serial.println(millis());
 
-  }
-/*  timer0_int++;
-  switch (playState){
-    case PSreset:
-      PScurrentFrame=PSstartframe;
-      break;
-    case PSplay:
-
-  } */
-
+  // do what needs to be done for the current program
+  runner.loop();
+  Serial.println("Done.");
 }
 
 
 void timer_init(){
   timer0 = timerBegin(3, 80, true);  // divider 80 = 1MHz
-  timerAlarmWrite(timer0, 10000, true); // Alarm every 1000 µs, auto-reload
+  timerAlarmWrite(timer0, 1000000, true); // Alarm every 1000 µs, auto-reload
 }
 
 void timer_start(){
@@ -267,13 +232,13 @@ void setup()
   dumpDebugBuffer(-2, ws2812_debugBuffer);
   #endif
 //  pixels = (rgbVal*)malloc(sizeof(rgbVal) * NUM_PIXELS*256*256);  //[pixel][scene][frame]
-  displayOff();
+  runner.displayOff();
   #if DEBUG_WS2812_DRIVER
   dumpDebugBuffer(-1, ws2812_debugBuffer);
   #endif
   Serial.println("Init LEDs complete");
 
-  displayOff();
+  runner.displayOff();
   blink(2);
 
   timer_init();
@@ -289,12 +254,11 @@ void realize_cmd(){
       break;
 
       case 1:  // showStatic
-      loadPixels(cmd[2],cmd[3]);
-      ws2812_setColors(NUM_PIXELS, pixels);  // update LEDs
+      runner.showFrame(cmd[2],cmd[3]);
       break;
 
       case 2:  // black mit Optionen
-      if (cmd[2]==0) displayOff();  // keep BlackSofort-Pixel
+      if (cmd[2]==0) runner.displayOff();  // keep BlackSofort-Pixel
       else fadeToBlack();           // fadeToBlack
       break;
 
@@ -345,7 +309,8 @@ void realize_cmd(){
       progIx++;
     }
     break;
-    case 252: playScene(cmd[1],cmd[2],cmd[3],cmd[4],cmd[5]);
+    case 252:
+    runner.playScene(cmd[1],cmd[2],cmd[3],cmd[4],cmd[5]);
     break;
 
      // 0...200
@@ -354,12 +319,8 @@ void realize_cmd(){
       printf("Reading data... \n");
     }
     muteLog = true;
-    uint8_t pixel_idx = constrain(cmd[0],0,NUM_PIXELS-1);
-    uint8_t scene_idx = constrain(cmd[1],0,NUM_SCENES-1);
-    uint8_t frame_idx = constrain(cmd[2],0,NUM_FRAMES-1);
     rgbVal pixel = makeRGBVal(cmd[3],cmd[4],cmd[5]);
-    //pixelMap[pixel_idx][scene_idx][frame_idx]= pixel;
-    program.setPixel(scene_idx,frame_idx,pixel_idx, pixel);
+    runner.setPixel(cmd[1],cmd[2],cmd[0], pixel);
     break;
   }
 }
