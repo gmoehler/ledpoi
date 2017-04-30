@@ -8,24 +8,27 @@ rgbVal PoiProgramRunner::getPixel(uint8_t scene_idx, uint8_t frame_idx, uint8_t 
   return _pixelMap[constrain(scene_idx,0,N_SCENES-1)][constrain(frame_idx,0,N_FRAMES-1)][constrain(pixel_idx,0,N_PIXELS-1)];
 }
 
-void PoiProgramRunner::playScene(uint8_t scene, uint8_t startFrame, uint8_t endFrame, uint8_t speed, uint8_t loops){
+void PoiProgramRunner::playScene(uint8_t scene, uint8_t startFrame, uint8_t endFrame, uint8_t speed, uint8_t loops, OperationMode mode){
   printf("Playing Scene: %d frames: [%d,%d] delay: %d loops:%d \n", scene, startFrame, endFrame, speed, loops);
-  _currentProgram = PLAY_SCENE;
-  _scene = scene;
-  _startFrame = startFrame;
-  _endFrame = endFrame;
-  _delay = speed;
-  _loops = loops;
+  if (mode == ASYNC){
+    _currentProgram = PLAY_SCENE;
+    _scene = scene;
+    _startFrame = startFrame;
+    _endFrame = endFrame;
+    _delay = speed;
+    _loops = loops;
 
-  _currentFrame = _startFrame;
-
-/*  for (uint8_t runner=0;runner<loops;runner++){
-    for (int i=frameStart;i<frameEnd;i++){
-      rgbVal* pixels = _pixelMap[constrain(scene,0,N_SCENES-1)][i];
-      ws2812_setColors(N_PIXELS, pixels);  // LEDs updaten
-      delay(speed);
+    _currentFrame = _startFrame;
+  }
+  else {
+    for (uint8_t runner=0;runner<loops;runner++){
+      for (int i=startFrame;i<endFrame;i++){
+        rgbVal* pixels = _pixelMap[constrain(scene,0,N_SCENES-1)][i];
+        ws2812_setColors(N_PIXELS, pixels);  // LEDs updaten
+        delay(speed);
+      }
     }
-  }*/
+  }
 }
 
 

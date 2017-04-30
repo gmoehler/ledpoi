@@ -310,7 +310,7 @@ void realize_cmd(){
     }
     break;
     case 252:
-    runner.playScene(cmd[1],cmd[2],cmd[3],cmd[4],cmd[5]);
+    runner.playScene(cmd[1],cmd[2],cmd[3],cmd[4],cmd[5], SYNC);
     break;
 
      // 0...200
