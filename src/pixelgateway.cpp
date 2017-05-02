@@ -12,15 +12,12 @@ Das freezed den Server, wenn man nicht einen einfachen Timeout implementiert (TC
 #include "WiFiCredentials.h"
 #include "PoiProgramRunner.h"
 
-#define NUM_PIXELS 60
-#define NUM_SCENES 1
-#define NUM_FRAMES 200
-
 enum PoiState { POI_INIT,               // 0
                 POI_NETWORK_SEARCH,     // 1
                 POI_CLIENT_CONNECTING,  // 2
                 POI_AWAITING_DATA,      // 3
                 POI_RECEIVING_DATA,     // 4
+                POI_TEST_WITHOUT_WIFI,   // 5
                 NUM_POI_STATES};        // only used for enum size
 
 const char* POI_INIT_STR = "POI_INIT";
@@ -30,43 +27,35 @@ const char* POI_AWAITING_DATA_STR = "POI_AWAITING_DATA";
 const char* POI_RECEIVING_DATA_STR = "POI_RECEIVING_DATA";
 const char* POI_ACTIVE_STR = "POI_ACTIVE";
 
-hw_timer_t *timer0;
-uint32_t timer0_int = 0;
-const int connTimeout=10;
 
 const int DATA_PIN = 23; // was 18 Avoid using any of the strapping pins on the ESP32
 const int LED_PIN = 2;
 
 uint8_t MAX_COLOR_VAL = 200; // Limits brightness
 
-rgbVal pixels[NUM_PIXELS];
-
 // WiFi credentials (defined in WiFiCredentials.h)
 extern const char* WIFI_SSID;
 extern const char* WIFI_PASS;
 
-int TCPtimeoutCt=0;
 
 WiFiServer server(1110);
 WiFiClient client;
 IPAddress clientIP;
 
+PoiProgramRunner runner;
+
+hw_timer_t *timer0;
+uint32_t timer0_int = 0;
+const int connTimeout=10;
+int TCPtimeoutCt=0;
+bool muteLog = false;
 int cmdIndex=0;
 char cmd[7];
 char c;
 
-uint8_t progIx=0;
-uint8_t progDef[254][5];
-uint8_t progCurrIx=0;
-uint8_t progLastIx=0;
-uint8_t progState=0;
-
 PoiState poiState = POI_INIT;
 PoiState nextPoiState = POI_INIT;
-
-PoiProgramRunner runner;
-
-bool muteLog = false;
+OperationMode mode = SYNC;
 
 void printLine()
 {
@@ -76,30 +65,13 @@ void printLine()
   Serial.println();
 }
 
-void printWifiStatus() {
-  // print the SSID of the network you're attached to:
-  Serial.print("SSID: ");
-  Serial.println(WiFi.SSID());
-
-  // print your WiFi shield's IP address:
-  IPAddress ip = WiFi.localIP();
-  Serial.print("IP Address: ");
-  Serial.println(ip);
-
-  // print the received signal strength:
-  long rssi = WiFi.RSSI();
-  Serial.print("signal strength (RSSI):");
-  Serial.print(rssi);
-  Serial.println(" dBm");
-}
-
 void displayTest() {
-  rgbVal pixels[NUM_PIXELS];
-  for (int i = 0; i < NUM_PIXELS; i++) {
+  rgbVal pixels[N_PIXELS];
+  for (int i = 0; i < N_PIXELS; i++) {
     pixels[i] = makeRGBVal(0, 33, 0);
   }
   ws2812_setColors(1, pixels);
-  //ws2812_setColors(NUM_PIXELS, pixels);
+  //ws2812_setColors(N_PIXELS, pixels);
 }
 
 void blink(int m){
@@ -111,25 +83,6 @@ void blink(int m){
   }
 }
 
-void fadeToBlack(){  //TODO
-
-}
-
-void startProg(){
-  progState=1;
-}
-
-void pauseProg(){
-  progState=0;
-}
-
-void resetProg(uint8_t index){
-  progState=0;
-  progCurrIx=index;
-}
-
-void saveProg(){}  //TODO
-
 // Interrupt at each milli second
 void IRAM_ATTR timer0_intr()
 {
@@ -138,6 +91,9 @@ void IRAM_ATTR timer0_intr()
 
   // do what needs to be done for the current program
   runner.loop();
+  if (poiState == POI_TEST_WITHOUT_WIFI){
+    displayTest();
+  }
   Serial.println("Done.");
 }
 
@@ -157,8 +113,24 @@ void timer_stop(){
   timerAlarmDisable(timer0);
 }
 
-void wifi_connect(){
+void printWifiStatus() {
+  // print the SSID of the network you're attached to:
+  Serial.print("SSID: ");
+  Serial.println(WiFi.SSID());
 
+  // print your WiFi shield's IP address:
+  IPAddress ip = WiFi.localIP();
+  Serial.print("IP Address: ");
+  Serial.println(ip);
+
+  // print the received signal strength:
+  long rssi = WiFi.RSSI();
+  Serial.print("signal strength (RSSI):");
+  Serial.print(rssi);
+  Serial.println(" dBm");
+}
+
+void wifi_connect(){
   IPAddress myIP(192, 168, 1, 127);
   IPAddress gateway(192, 168, 1, 1);
   IPAddress subnet(255, 255, 255, 0);
@@ -222,7 +194,7 @@ void setup()
   #if DEBUG_WS2812_DRIVER
   dumpDebugBuffer(-2, ws2812_debugBuffer);
   #endif
-//  pixels = (rgbVal*)malloc(sizeof(rgbVal) * NUM_PIXELS*256*256);  //[pixel][scene][frame]
+  //  pixels = (rgbVal*)malloc(sizeof(rgbVal) * N_PIXELS*256*256);  //[pixel][scene][frame]
   runner.displayOff();
   #if DEBUG_WS2812_DRIVER
   dumpDebugBuffer(-1, ws2812_debugBuffer);
@@ -250,23 +222,23 @@ void realize_cmd(){
 
       case 2:  // black mit Optionen
       if (cmd[2]==0) runner.displayOff();  // keep BlackSofort-Pixel
-      else fadeToBlack();           // fadeToBlack
+      else runner.fadeToBlack();           // fadeToBlack
       break;
 
       case 3:
-//        startProg(cmd[2],cmd[3],cmd[4],cmd[5]);
+//       runner.startProg(cmd[2],cmd[3],cmd[4],cmd[5]);
       break;
 
       case 4:
-      pauseProg();
+      runner.pauseProg();
       break;
 
       case 5:
-      resetProg(cmd[2]);
+      runner.resetProg((PoiProgram) cmd[2]);
       break;
 
       case 6:
-      saveProg();
+      runner.saveProg();
       break;
 
       case 7:
@@ -287,21 +259,12 @@ void realize_cmd(){
     break;
 
     case 253:  // define programs
-    if (cmd[1]==0){
-      progDef[progIx][0]=0;
-      progIx=0;  // new program follows
-    }
-    else {
-      progDef[progIx][0]=cmd[1];
-      progDef[progIx][1]=cmd[2];
-      progDef[progIx][2]=cmd[3];
-      progDef[progIx][3]=cmd[4];
-      progDef[progIx][4]=cmd[5];
-      progIx++;
-    }
+      // orginally this was split between 2 words: first one with program id, second with 6 commands
+      runner.defineProgram((PoiProgram) cmd[2], cmd[3], cmd[4], cmd[5]);
     break;
+
     case 252:
-    runner.playScene(cmd[1],cmd[2],cmd[3],cmd[4],cmd[5], SYNC);
+    runner.playScene(cmd[1],cmd[2],cmd[3],cmd[4],cmd[5], mode);
     break;
 
      // 0...200
@@ -434,6 +397,10 @@ void loop()
         digitalWrite(LED_PIN,LOW);
       break;
 
+      case POI_TEST_WITHOUT_WIFI:
+      timer_start();
+      break;
+
       default:
       break;
     }
@@ -450,6 +417,7 @@ void loop()
     case POI_INIT:
       // proceed to next state
       nextPoiState = POI_NETWORK_SEARCH;
+      //nextPoiState = POI_TEST_WITHOUT_WIFI;
     break;
 
     case POI_NETWORK_SEARCH:
@@ -490,6 +458,12 @@ void loop()
       // carry out command
       realize_cmd();
       nextPoiState = POI_AWAITING_DATA;
+    }
+    break;
+
+    case POI_TEST_WITHOUT_WIFI:
+    if (state_changed){
+        timer_start();
     }
     break;
 

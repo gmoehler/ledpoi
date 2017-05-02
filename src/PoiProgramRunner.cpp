@@ -56,17 +56,48 @@ void PoiProgramRunner::displayTest() {
 
 void PoiProgramRunner::statusIO() {
   _pixels[0] = makeRGBVal(0, 33, 0);
-  ws2812_setColors(1, pixels);
+  ws2812_setColors(1, _pixels);
 }
 
 void PoiProgramRunner::statusNIO() {
   _pixels[0] = makeRGBVal(33, 0, 0);
-  ws2812_setColors(1, pixels);
+  ws2812_setColors(1, _pixels);
 }
 
 void PoiProgramRunner::showCurrent(){
   ws2812_setColors(N_PIXELS, _pixels);  // update LEDs
 }
+
+void PoiProgramRunner::fadeToBlack(){
+  //TODO
+}
+
+void PoiProgramRunner::setProgram(PoiProgram prog_id){
+  _currentProgram = prog_id;
+  // more TODO
+}
+
+void PoiProgramRunner::defineProgram(PoiProgram prog_id, uint8_t cmd0, uint8_t cmd1, uint8_t cmd2){
+    // TODO
+}
+
+void PoiProgramRunner::startProg(){
+  //TODO
+}
+
+void PoiProgramRunner::pauseProg(){
+  // TODO
+}
+
+void PoiProgramRunner::saveProg(){
+  // TODO
+}
+
+void PoiProgramRunner::resetProg(PoiProgram prog_id) {
+  _currentProgram = prog_id;
+  // more TODO
+}
+
 
 void PoiProgramRunner::loop(){
 

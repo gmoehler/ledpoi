@@ -28,8 +28,15 @@ public:
   void statusIO();
   void statusNIO();
   void showCurrent();
-  
+  void fadeToBlack();
+
   void setProgram(PoiProgram prog_id);
+  void defineProgram(PoiProgram prog_id, uint8_t cmd0, uint8_t cmd1, uint8_t cmd2);
+  void startProg();
+  void pauseProg();
+  void resetProg(PoiProgram prog_id);
+  void saveProg();
+
   void loop();
 
 private:
@@ -40,6 +47,15 @@ private:
   uint8_t _endFrame = 0;
   uint8_t _delay = 10;
   uint8_t _loops = 1;
+
+/* original program variables
+  uint8_t progIx=0;
+  uint8_t progDef[254][5];
+  uint8_t progCurrIx=0;
+  uint8_t progLastIx=0;
+  uint8_t progState=0;
+*/
+
 
   uint32_t _currentFrame = 0;
 
