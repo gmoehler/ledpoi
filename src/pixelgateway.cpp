@@ -10,17 +10,14 @@ Das freezed den Server, wenn man nicht einen einfachen Timeout implementiert (TC
 #include <ws2812.h>
 #include "WiFi.h"
 #include "WiFiCredentials.h"
-
-#define NUM_PIXELS 60
-#define NUM_SCENES 1
-#define NUM_FRAMES 200
+#include "PoiProgramRunner.h"
 
 enum PoiState { POI_INIT,               // 0
                 POI_NETWORK_SEARCH,     // 1
                 POI_CLIENT_CONNECTING,  // 2
                 POI_AWAITING_DATA,      // 3
                 POI_RECEIVING_DATA,     // 4
-                POI_ACTIVE,             // 5
+                POI_TEST_WITHOUT_WIFI,   // 5
                 NUM_POI_STATES};        // only used for enum size
 
 const char* POI_INIT_STR = "POI_INIT";
@@ -30,42 +27,35 @@ const char* POI_AWAITING_DATA_STR = "POI_AWAITING_DATA";
 const char* POI_RECEIVING_DATA_STR = "POI_RECEIVING_DATA";
 const char* POI_ACTIVE_STR = "POI_ACTIVE";
 
-hw_timer_t *timer0;
-uint32_t timer0_int = 0;
-const int connTimeout=10;
 
 const int DATA_PIN = 23; // was 18 Avoid using any of the strapping pins on the ESP32
 const int LED_PIN = 2;
 
 uint8_t MAX_COLOR_VAL = 200; // Limits brightness
 
-rgbVal pixelMap[NUM_PIXELS][NUM_SCENES][NUM_FRAMES];
-rgbVal pixels[NUM_PIXELS];
-
 // WiFi credentials (defined in WiFiCredentials.h)
 extern const char* WIFI_SSID;
 extern const char* WIFI_PASS;
 
-int TCPtimeoutCt=0;
 
 WiFiServer server(1110);
 WiFiClient client;
 IPAddress clientIP;
 
+PoiProgramRunner runner;
+
+hw_timer_t *timer0;
+uint32_t timer0_int = 0;
+const int connTimeout=10;
+int TCPtimeoutCt=0;
+bool muteLog = false;
 int cmdIndex=0;
 char cmd[7];
 char c;
 
-uint8_t progIx=0;
-uint8_t progDef[254][5];
-uint8_t progCurrIx=0;
-uint8_t progLastIx=0;
-uint8_t progState=0;
-
 PoiState poiState = POI_INIT;
 PoiState nextPoiState = POI_INIT;
-
-bool muteLog = false;
+OperationMode mode = SYNC;
 
 void printLine()
 {
@@ -73,6 +63,54 @@ void printLine()
   for (int i=0; i<30; i++)
   Serial.print("-");
   Serial.println();
+}
+
+void displayTest() {
+  rgbVal pixels[N_PIXELS];
+  for (int i = 0; i < N_PIXELS; i++) {
+    pixels[i] = makeRGBVal(0, 33, 0);
+  }
+  ws2812_setColors(1, pixels);
+  //ws2812_setColors(N_PIXELS, pixels);
+}
+
+void blink(int m){
+  for (int n=0;n<m;n++){
+    digitalWrite(LED_PIN,HIGH);
+    delay(50);
+    digitalWrite(LED_PIN,LOW);
+    delay(50);
+  }
+}
+
+// Interrupt at each milli second
+void IRAM_ATTR timer0_intr()
+{
+  Serial.print("Interrupt at ");
+  Serial.println(millis());
+
+  // do what needs to be done for the current program
+  runner.loop();
+  if (poiState == POI_TEST_WITHOUT_WIFI){
+    displayTest();
+  }
+  Serial.println("Done.");
+}
+
+
+void timer_init(){
+  timer0 = timerBegin(3, 80, true);  // divider 80 = 1MHz
+  timerAlarmWrite(timer0, 1000000, true); // Alarm every 1000 µs, auto-reload
+}
+
+void timer_start(){
+  timerAttachInterrupt(timer0, &timer0_intr, true); // attach timer0_inter, edge type interrupt  (db) timer macht GURU
+  timerAlarmEnable(timer0);
+}
+
+void timer_stop(){
+  timerDetachInterrupt(timer0);
+  timerAlarmDisable(timer0);
 }
 
 void printWifiStatus() {
@@ -92,112 +130,7 @@ void printWifiStatus() {
   Serial.println(" dBm");
 }
 
-void displayOff() {
-  for (int i = 0; i < NUM_PIXELS; i++) {
-    pixels[i] = makeRGBVal(0, 0, 0);
-  }
-  ws2812_setColors(NUM_PIXELS, pixels);
-  //ws2812_setColors(NUM_PIXELS, pixels);
-}
-
-void displayTest() {
-  for (int i = 0; i < NUM_PIXELS; i++) {
-    pixels[i] = makeRGBVal(0, 33, 0);
-  }
-  ws2812_setColors(1, pixels);
-  //ws2812_setColors(NUM_PIXELS, pixels);
-}
-
-void statusIO() {
-  pixels[0] = makeRGBVal(0, 33, 0);
-  ws2812_setColors(1, pixels);
-}
-
-void statusNIO() {
-  pixels[0] = makeRGBVal(33, 0, 0);
-  ws2812_setColors(1, pixels);
-}
-
-void blink(int m){
-  for (int n=0;n<m;n++){
-    digitalWrite(LED_PIN,HIGH);
-    delay(50);
-    digitalWrite(LED_PIN,LOW);
-    delay(50);
-  }
-}
-
-void loadPixels(uint8_t scene, uint8_t frame){
-  for (int i=0;i<NUM_PIXELS;i++)
-    pixels[i]=pixelMap[i][constrain(scene,0,NUM_SCENES-1)][frame];
-}
-
-void playScene(uint8_t scene, uint8_t frameStart,uint8_t frameEnd, uint8_t speed, uint8_t loops){
-  printf("Playing Scene: %d start frame: %d %d %d %d \n", scene, frameStart, frameEnd, speed, loops);
-  for (uint8_t runner=0;runner<loops;runner++){
-    for (int i=frameStart;i<frameEnd;i++){
-      loadPixels(scene,i);
-      ws2812_setColors(NUM_PIXELS, pixels);  // LEDs updaten
-      delay(speed);
-    }
-  }
-}
-
-void fadeToBlack(){  //TODO
-
-}
-
-void startProg(){
-  progState=1;
-}
-
-void pauseProg(){
-  progState=0;
-}
-
-void resetProg(uint8_t index){
-  progState=0;
-  progCurrIx=index;
-}
-
-void saveProg(){}  //TODO
-
-void IRAM_ATTR timer0_intr()  // Interrupt im [ms]-Takt
-{
-  Serial.print("Interrupt at ");
-  Serial.println(millis());
-  if (poiState){
-
-  }
-/*  timer0_int++;
-  switch (playState){
-    case PSreset:
-      PScurrentFrame=PSstartframe;
-      break;
-    case PSplay:
-
-  } */
-
-}
-
-
-void timer_init(){
-  timer0 = timerBegin(3, 80, true);  // divider 80 = 1MHz
-  timerAlarmWrite(timer0, 20000000, true); // Alarm every 1000 µs, auto-reload
-}
-
-void timer_start(){
-  timerAttachInterrupt(timer0, &timer0_intr, true); // attach timer0_inter, edge type interrupt  (db) timer macht GURU
-  timerAlarmEnable(timer0);
-}
-
-void timer_stop(){
-  timerDetachInterrupt(timer0);
-  timerAlarmDisable(timer0);
-}
-
 void wifi_connect(){
-
   IPAddress myIP(192, 168, 1, 127);
   IPAddress gateway(192, 168, 1, 1);
   IPAddress subnet(255, 255, 255, 0);
@@ -261,14 +194,14 @@ void setup()
   #if DEBUG_WS2812_DRIVER
   dumpDebugBuffer(-2, ws2812_debugBuffer);
   #endif
-//  pixels = (rgbVal*)malloc(sizeof(rgbVal) * NUM_PIXELS*256*256);  //[pixel][scene][frame]
-  displayOff();
+  //  pixels = (rgbVal*)malloc(sizeof(rgbVal) * N_PIXELS*256*256);  //[pixel][scene][frame]
+  runner.displayOff();
   #if DEBUG_WS2812_DRIVER
   dumpDebugBuffer(-1, ws2812_debugBuffer);
   #endif
   Serial.println("Init LEDs complete");
 
-  displayOff();
+  runner.displayOff();
   blink(2);
 
   timer_init();
@@ -280,33 +213,32 @@ void realize_cmd(){
     case 254:
     switch (cmd[1]){  // setAction
       case 0:  // showCurrent
-      ws2812_setColors(NUM_PIXELS, pixels);  // update LEDs
+      runner.showCurrent();
       break;
 
       case 1:  // showStatic
-      loadPixels(cmd[2],cmd[3]);
-      ws2812_setColors(NUM_PIXELS, pixels);  // update LEDs
+      runner.showFrame(cmd[2],cmd[3]);
       break;
 
       case 2:  // black mit Optionen
-      if (cmd[2]==0) displayOff();  // keep BlackSofort-Pixel
-      else fadeToBlack();           // fadeToBlack
+      if (cmd[2]==0) runner.displayOff();  // keep BlackSofort-Pixel
+      else runner.fadeToBlack();           // fadeToBlack
       break;
 
       case 3:
-//        startProg(cmd[2],cmd[3],cmd[4],cmd[5]);
+//       runner.startProg(cmd[2],cmd[3],cmd[4],cmd[5]);
       break;
 
       case 4:
-      pauseProg();
+      runner.pauseProg();
       break;
 
       case 5:
-      resetProg(cmd[2]);
+      runner.resetProg((PoiProgram) cmd[2]);
       break;
 
       case 6:
-      saveProg();
+      runner.saveProg();
       break;
 
       case 7:
@@ -327,29 +259,22 @@ void realize_cmd(){
     break;
 
     case 253:  // define programs
-    if (cmd[1]==0){
-      progDef[progIx][0]=0;
-      progIx=0;  // new program follows
-    }
-    else {
-      progDef[progIx][0]=cmd[1];
-      progDef[progIx][1]=cmd[2];
-      progDef[progIx][2]=cmd[3];
-      progDef[progIx][3]=cmd[4];
-      progDef[progIx][4]=cmd[5];
-      progIx++;
-    }
+      // orginally this was split between 2 words: first one with program id, second with 6 commands
+      runner.defineProgram((PoiProgram) cmd[2], cmd[3], cmd[4], cmd[5]);
     break;
-    case 252: playScene(cmd[1],cmd[2],cmd[3],cmd[4],cmd[5]);
+
+    case 252:
+    runner.playScene(cmd[1],cmd[2],cmd[3],cmd[4],cmd[5], mode);
     break;
 
      // 0...200
     default:
     if (!muteLog){
-      printf("Reading data: %d\n", cmd[1]);
+      printf("Reading data... \n");
     }
     muteLog = true;
-    pixelMap[constrain(cmd[0],0,NUM_PIXELS-1)][constrain(cmd[1],0,NUM_SCENES-1)][constrain(cmd[2],0,NUM_FRAMES-1)]=makeRGBVal(cmd[3],cmd[4],cmd[5]);
+    rgbVal pixel = makeRGBVal(cmd[3],cmd[4],cmd[5]);
+    runner.setPixel(cmd[1],cmd[2],cmd[0], pixel);
     break;
   }
 }
@@ -454,6 +379,7 @@ void loop()
       break;
 
       case POI_NETWORK_SEARCH:
+      timer_start();
       break;
 
       case POI_CLIENT_CONNECTING:
@@ -471,8 +397,8 @@ void loop()
         digitalWrite(LED_PIN,LOW);
       break;
 
-      case POI_ACTIVE:
-          timer_stop();
+      case POI_TEST_WITHOUT_WIFI:
+      timer_start();
       break;
 
       default:
@@ -491,11 +417,13 @@ void loop()
     case POI_INIT:
       // proceed to next state
       nextPoiState = POI_NETWORK_SEARCH;
+      //nextPoiState = POI_TEST_WITHOUT_WIFI;
     break;
 
     case POI_NETWORK_SEARCH:
     if (state_changed){
       digitalWrite(LED_PIN,LOW);
+      timer_stop();
     }
       wifi_connect();
     break;
@@ -527,22 +455,17 @@ void loop()
       if (!muteLog){
         print_cmd();
       }
-      else {
-        Serial.print(".");
-      }
       // carry out command
       realize_cmd();
       nextPoiState = POI_AWAITING_DATA;
     }
     break;
 
-    /*case POI_ACTIVE:
-      if (state_changed){
+    case POI_TEST_WITHOUT_WIFI:
+    if (state_changed){
         timer_start();
-        print_cmd();
-      }
-      cmd_run();
-    break;*/
+    }
+    break;
 
     default:
     break;
