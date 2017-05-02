@@ -54,9 +54,21 @@ void PoiProgramRunner::displayTest() {
   //ws2812_setColors(NUM_PIXELS, _pixels);
 }
 
+void PoiProgramRunner::statusIO() {
+  _pixels[0] = makeRGBVal(0, 33, 0);
+  ws2812_setColors(1, pixels);
+}
+
+void PoiProgramRunner::statusNIO() {
+  _pixels[0] = makeRGBVal(33, 0, 0);
+  ws2812_setColors(1, pixels);
+}
+
+void PoiProgramRunner::showCurrent(){
+  ws2812_setColors(N_PIXELS, _pixels);  // update LEDs
+}
 
 void PoiProgramRunner::loop(){
-
 
   switch(_currentProgram){
 

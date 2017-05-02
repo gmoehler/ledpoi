@@ -25,7 +25,10 @@ public:
   void showFrame(uint8_t scene, uint8_t frame);
   void displayOff();
   void displayTest();
-
+  void statusIO();
+  void statusNIO();
+  void showCurrent();
+  
   void setProgram(PoiProgram prog_id);
   void loop();
 

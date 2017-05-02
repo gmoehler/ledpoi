@@ -94,21 +94,12 @@ void printWifiStatus() {
 }
 
 void displayTest() {
+  rgbVal pixels[NUM_PIXELS];
   for (int i = 0; i < NUM_PIXELS; i++) {
     pixels[i] = makeRGBVal(0, 33, 0);
   }
   ws2812_setColors(1, pixels);
   //ws2812_setColors(NUM_PIXELS, pixels);
-}
-
-void statusIO() {
-  pixels[0] = makeRGBVal(0, 33, 0);
-  ws2812_setColors(1, pixels);
-}
-
-void statusNIO() {
-  pixels[0] = makeRGBVal(33, 0, 0);
-  ws2812_setColors(1, pixels);
 }
 
 void blink(int m){
@@ -250,7 +241,7 @@ void realize_cmd(){
     case 254:
     switch (cmd[1]){  // setAction
       case 0:  // showCurrent
-      ws2812_setColors(NUM_PIXELS, pixels);  // update LEDs
+      runner.showCurrent();
       break;
 
       case 1:  // showStatic
