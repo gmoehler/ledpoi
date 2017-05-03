@@ -54,7 +54,9 @@ char cmd[7];
 char c;
 
 PoiState poiState = POI_INIT;
+//PoiState = POI_TEST_WITHOUT_WIFI;
 PoiState nextPoiState = POI_INIT;
+//PoiState nextPoiState = POI_TEST_WITHOUT_WIFI;
 OperationMode mode = SYNC;
 
 void printLine()
@@ -417,7 +419,6 @@ void loop()
     case POI_INIT:
       // proceed to next state
       nextPoiState = POI_NETWORK_SEARCH;
-      //nextPoiState = POI_TEST_WITHOUT_WIFI;
     break;
 
     case POI_NETWORK_SEARCH:
