@@ -17,7 +17,7 @@ enum PoiState { POI_INIT,               // 0
                 POI_CLIENT_CONNECTING,  // 2
                 POI_AWAITING_DATA,      // 3
                 POI_RECEIVING_DATA,     // 4
-                POI_TEST_WITHOUT_WIFI,   // 5
+                POI_TEST_WITHOUT_WIFI,  // 5
                 NUM_POI_STATES};        // only used for enum size
 
 const char* POI_INIT_STR = "POI_INIT";
