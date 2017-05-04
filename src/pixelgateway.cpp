@@ -32,11 +32,13 @@ const int DATA_PIN = 23; // was 18 Avoid using any of the strapping pins on the 
 const int LED_PIN = 2;
 
 uint8_t MAX_COLOR_VAL = 200; // Limits brightness
+uint32_t timer0_int = 1000; // interrupt time in ms
+const int connTimeout=10;   // client connection timeout in secs
+bool muteLog = false;       // mute most verbose logs
 
 // WiFi credentials (defined in WiFiCredentials.h)
 extern const char* WIFI_SSID;
 extern const char* WIFI_PASS;
-
 
 WiFiServer server(1110);
 WiFiClient client;
@@ -44,31 +46,20 @@ IPAddress clientIP;
 
 PoiProgramRunner runner;
 
-hw_timer_t *timer0;
-uint32_t timer0_int = 0;
-const int connTimeout=10;
-int TCPtimeoutCt=0;
-bool muteLog = false;
-int cmdIndex=0;
-char cmd[7];
-char c;
-
 PoiState poiState = POI_INIT;
-PoiState nextPoiState = POI_INIT;
+PoiState nextPoiState = poiState;
 OperationMode mode = SYNC;
 
-void printLine()
-{
-  Serial.println();
-  for (int i=0; i<30; i++)
-  Serial.print("-");
-  Serial.println();
-}
+hw_timer_t *timer0;
+int TCPtimeoutCt=0;   // interrupt ms count
+char cmd[7];          // command read from poi
+char c;
+int cmdIndex=0;
 
-void displayTest() {
+void displayTest(uint8_t r, uint8_t g, uint8_t b) {
   rgbVal pixels[N_PIXELS];
   for (int i = 0; i < N_PIXELS; i++) {
-    pixels[i] = makeRGBVal(0, 33, 0);
+    pixels[i] = makeRGBVal(r, g, b);
   }
   ws2812_setColors(1, pixels);
   //ws2812_setColors(N_PIXELS, pixels);
@@ -92,15 +83,15 @@ void IRAM_ATTR timer0_intr()
   // do what needs to be done for the current program
   runner.loop();
   if (poiState == POI_TEST_WITHOUT_WIFI){
-    displayTest();
+    displayTest(0,33,0);
   }
-  Serial.println("Done.");
+  //Serial.println("Done.");
 }
 
 
 void timer_init(){
   timer0 = timerBegin(3, 80, true);  // divider 80 = 1MHz
-  timerAlarmWrite(timer0, 1000000, true); // Alarm every 1000 µs, auto-reload
+  timerAlarmWrite(timer0, 1000 * timer0_int, true); // Alarm every 1000 µs, auto-reload
 }
 
 void timer_start(){
@@ -174,6 +165,18 @@ void wifi_connect(){
    server.begin();    // important
 
    nextPoiState = POI_CLIENT_CONNECTING;
+}
+
+void client_connect(){
+  client = server.available();
+
+  if (client.connected()){
+    printf("Client connected.\n" );
+    nextPoiState = POI_AWAITING_DATA;
+  }
+  else {
+    delay(100);
+  }
 }
 
 
@@ -276,18 +279,6 @@ void realize_cmd(){
     rgbVal pixel = makeRGBVal(cmd[3],cmd[4],cmd[5]);
     runner.setPixel(cmd[1],cmd[2],cmd[0], pixel);
     break;
-  }
-}
-
-void client_connect(){
-  client = server.available();
-
-  if (client.connected()){
-    printf("Client connected.\n" );
-    nextPoiState = POI_AWAITING_DATA;
-  }
-  else {
-    delay(100);
   }
 }
 
