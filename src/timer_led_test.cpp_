@@ -1,0 +1,221 @@
+/*
+07.03.2017: Server funktioniert.
+Komisch: Vivaldi fragt IMMMER zusätzlich das favicon ab (Mozilla nur bei der ersten Verbindung
+Vivaldi öffnet nach der eigentlichen Anfrage noch eine TCP Verbindung, die aber nichts sendet, sondern nur die Verbindung offen hält.
+Das freezed den Server, wenn man nicht einen einfachen Timeout implementiert (TCPtimeoutCt)
+
+*/
+
+#include <Arduino.h>
+#include <ws2812.h>
+
+#define N_PIXELS 200
+
+enum PoiState { POI_INIT,               // 0
+                POI_NETWORK_SEARCH,     // 1
+                POI_CLIENT_CONNECTING,  // 2
+                POI_AWAITING_DATA,      // 3
+                POI_RECEIVING_DATA,     // 4
+                POI_TEST_WITHOUT_WIFI,   // 5
+                NUM_POI_STATES};        // only used for enum size
+
+const char* POI_INIT_STR = "POI_INIT";
+const char* POI_NETWORK_SEARCH_STR = "POI_NETWORK_SEARCH";
+const char* POI_CLIENT_CONNECTING_STR = "POI_CLIENT_CONNECTING";
+const char* POI_AWAITING_DATA_STR = "POI_AWAITING_DATA";
+const char* POI_RECEIVING_DATA_STR = "POI_RECEIVING_DATA";
+const char* POI_ACTIVE_STR = "POI_ACTIVE";
+
+
+const int DATA_PIN = 23; // was 18 Avoid using any of the strapping pins on the ESP32
+const int LED_PIN = 2;
+
+uint8_t MAX_COLOR_VAL = 200; // Limits brightness
+uint32_t timer0_int = 1000; // interrupt time in ms
+const int connTimeout=10;   // client connection timeout in secs
+bool muteLog = false;       // mute most verbose logs
+
+
+
+
+PoiState poiState = POI_TEST_WITHOUT_WIFI;
+PoiState nextPoiState = POI_TEST_WITHOUT_WIFI;
+
+hw_timer_t *timer0;
+int TCPtimeoutCt=0;   // interrupt ms count
+char cmd[7];          // command read from poi
+char c;
+int cmdIndex=0;
+uint32_t cp0_regs[18];
+
+void displayTest(uint8_t r, uint8_t g, uint8_t b) {
+  rgbVal pixels[N_PIXELS];
+  for (int i = 0; i < N_PIXELS; i++) {
+    pixels[i] = makeRGBVal(r, g, b);
+  }
+  ws2812_setColors(1, pixels);
+  //ws2812_setColors(N_PIXELS, pixels);
+}
+
+void blink(int m){
+  for (int n=0;n<m;n++){
+    digitalWrite(LED_PIN,HIGH);
+    delay(50);
+    digitalWrite(LED_PIN,LOW);
+    delay(50);
+  }
+}
+
+// Interrupt at each milli second
+void IRAM_ATTR timer0_intr()
+{
+  Serial.print("Interrupt at ");
+  Serial.println(millis());
+
+  // get FPU state
+   uint32_t cp_state = xthal_get_cpenable();
+
+   if(cp_state) {
+     // Save FPU registers
+     xthal_save_cp0(cp0_regs);
+   } else {
+     // enable FPU
+     xthal_set_cpenable(1);
+   }
+
+  // do what needs to be done for the current program
+  if (poiState == POI_TEST_WITHOUT_WIFI){
+    displayTest(0, 33, 0);
+  }
+
+  if(cp_state) {
+    // Restore FPU registers
+    xthal_restore_cp0(cp0_regs);
+  } else {
+    // turn it back off
+    xthal_set_cpenable(0);
+  }
+
+
+  Serial.println("Done.");
+}
+
+
+void timer_init(){
+  timer0 = timerBegin(3, 80, true);  // divider 80 = 1MHz
+  timerAlarmWrite(timer0, 1000 * timer0_int, true); // Alarm every 1000 µs, auto-reload
+}
+
+void timer_start(){
+  timerAttachInterrupt(timer0, &timer0_intr, true); // attach timer0_inter, edge type interrupt  (db) timer macht GURU
+  timerAlarmEnable(timer0);
+}
+
+void timer_stop(){
+  timerDetachInterrupt(timer0);
+  timerAlarmDisable(timer0);
+}
+
+void setup()
+{
+  //  pinMode(BUTTON_PIN, INPUT_PULLUP);
+  pinMode(LED_PIN, OUTPUT);
+  //  blink(5);
+  delay(500);
+  Serial.begin(115200);
+  Serial.println();
+  Serial.println("Starting...");
+
+  // init LEDs
+  if(ws2812_init(DATA_PIN, LED_WS2812B)) {
+    Serial.println("LED Pixel init error");
+  }
+  #if DEBUG_WS2812_DRIVER
+  dumpDebugBuffer(-2, ws2812_debugBuffer);
+  #endif
+  //  pixels = (rgbVal*)malloc(sizeof(rgbVal) * N_PIXELS*256*256);  //[pixel][scene][frame]
+
+  #if DEBUG_WS2812_DRIVER
+  dumpDebugBuffer(-1, ws2812_debugBuffer);
+  #endif
+  Serial.println("Init LEDs complete");
+
+  blink(2);
+
+  timer_init();
+  timer_start();
+}
+
+
+// ===============================================
+// ====  LOOP ====================================
+// ===============================================
+
+// state machine with entry actions, state actions and exit actions
+void loop()
+{
+
+  bool state_changed = nextPoiState != poiState;
+
+  // exit actions
+  if (state_changed){
+    if (!muteLog){
+      printf("State changed: %d -> %d\n", (poiState), (nextPoiState));
+    }
+
+    switch(poiState){
+      case POI_INIT:
+      break;
+
+      case POI_NETWORK_SEARCH:
+      break;
+
+      case POI_CLIENT_CONNECTING:
+      break;
+
+      case POI_AWAITING_DATA:
+      break;
+
+      case POI_RECEIVING_DATA:
+      break;
+
+      case POI_TEST_WITHOUT_WIFI:
+      break;
+
+      default:
+      break;
+    }
+  }
+
+  // update state
+  // need to do this here since these functions may set nextPoiState
+  int prevPoiState = poiState;
+  poiState = nextPoiState;
+
+  // entry and state actions of state machine
+  switch (poiState){
+
+    case POI_INIT:
+      // proceed to next state
+      nextPoiState = POI_NETWORK_SEARCH;
+    break;
+
+    case POI_NETWORK_SEARCH:
+    break;
+
+    case POI_CLIENT_CONNECTING:
+    break;
+
+    case POI_AWAITING_DATA:
+    break;
+
+    case POI_RECEIVING_DATA:
+    break;
+
+    case POI_TEST_WITHOUT_WIFI:
+    break;
+
+    default:
+    break;
+  }
+}

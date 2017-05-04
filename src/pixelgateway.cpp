@@ -47,9 +47,7 @@ IPAddress clientIP;
 PoiProgramRunner runner;
 
 PoiState poiState = POI_INIT;
-//PoiState = POI_TEST_WITHOUT_WIFI;
-PoiState nextPoiState = POI_INIT;
-//PoiState nextPoiState = POI_TEST_WITHOUT_WIFI;
+PoiState nextPoiState = poiState;
 OperationMode mode = SYNC;
 
 hw_timer_t *timer0;
@@ -85,7 +83,7 @@ void IRAM_ATTR timer0_intr()
   // do what needs to be done for the current program
   runner.loop();
   if (poiState == POI_TEST_WITHOUT_WIFI){
-    displayTest();
+    displayTest(0,33,0);
   }
   //Serial.println("Done.");
 }
@@ -167,6 +165,18 @@ void wifi_connect(){
    server.begin();    // important
 
    nextPoiState = POI_CLIENT_CONNECTING;
+}
+
+void client_connect(){
+  client = server.available();
+
+  if (client.connected()){
+    printf("Client connected.\n" );
+    nextPoiState = POI_AWAITING_DATA;
+  }
+  else {
+    delay(100);
+  }
 }
 
 
@@ -269,18 +279,6 @@ void realize_cmd(){
     rgbVal pixel = makeRGBVal(cmd[3],cmd[4],cmd[5]);
     runner.setPixel(cmd[1],cmd[2],cmd[0], pixel);
     break;
-  }
-}
-
-void client_connect(){
-  client = server.available();
-
-  if (client.connected()){
-    printf("Client connected.\n" );
-    nextPoiState = POI_AWAITING_DATA;
-  }
-  else {
-    delay(100);
   }
 }
 
@@ -410,6 +408,7 @@ void loop()
     case POI_INIT:
       // proceed to next state
       nextPoiState = POI_NETWORK_SEARCH;
+      //nextPoiState = POI_TEST_WITHOUT_WIFI;
     break;
 
     case POI_NETWORK_SEARCH:
