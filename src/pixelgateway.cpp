@@ -32,8 +32,8 @@ const int DATA_PIN = 23; // was 18 Avoid using any of the strapping pins on the 
 const int LED_PIN = 2;
 
 uint8_t MAX_COLOR_VAL = 200; // Limits brightness
-uint32_t timer0_int = 1000; // interrupt time in ms
-const int connTimeout=10;   // client connection timeout in secs
+uint32_t timer0_int = 100000; // interrupt time in ms
+const int connTimeout=20;   // client connection timeout in secs
 bool muteLog = false;       // mute most verbose logs
 
 // WiFi credentials (defined in WiFiCredentials.h)
@@ -179,6 +179,15 @@ void client_connect(){
   }
 }
 
+void resetTimeout(){
+  TCPtimeoutCt=0;
+}
+
+void client_disconnect(){
+  client.stop();
+  Serial.println("Connection closed.");
+  resetTimeout();
+}
 
 void setup()
 {
@@ -256,6 +265,19 @@ void realize_cmd(){
       //setGW(cmd[2],cmd[3],cmd[4],cmd[5]);
       break;
 
+      case 10:
+      Serial.println("Connection close command received.");
+      client_disconnect();
+      nextPoiState = POI_CLIENT_CONNECTING;
+      return;
+
+      case 11:
+      // keep alive signal
+      if (!muteLog) {
+        printf("Staying alive!\n");
+      }
+      break;
+
       default:
       break;
     };  // end setAction
@@ -280,13 +302,18 @@ void realize_cmd(){
     runner.setPixel(cmd[1],cmd[2],cmd[0], pixel);
     break;
   }
-}
 
-void resetTimeout(){
-  TCPtimeoutCt=0;
+  //default: wait for next command
+  nextPoiState = POI_AWAITING_DATA;
 }
 
 void protocoll_detect_start(){
+  if (!client.connected()){
+      client_disconnect();
+      nextPoiState = POI_CLIENT_CONNECTING;
+      return;
+  }
+
   if (!client.available()){
     // no data available
 
@@ -296,9 +323,7 @@ void protocoll_detect_start(){
     muteLog = false;
     if (TCPtimeoutCt>connTimeout*1000){
       // close the client connection
-      client.stop();
-      Serial.println("Client disonnected.");
-      resetTimeout();
+      client_disconnect();
       nextPoiState = POI_CLIENT_CONNECTING;
     }
     else {
@@ -416,7 +441,7 @@ void loop()
       digitalWrite(LED_PIN,LOW);
       timer_stop();
     }
-      wifi_connect();
+    wifi_connect();
     break;
 
     case POI_CLIENT_CONNECTING:
@@ -448,7 +473,6 @@ void loop()
       }
       // carry out command
       realize_cmd();
-      nextPoiState = POI_AWAITING_DATA;
     }
     break;
 
