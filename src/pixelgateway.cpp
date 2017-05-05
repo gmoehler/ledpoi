@@ -296,7 +296,6 @@ void realize_cmd(){
     case 252:
     runner.playScene(cmd[1],cmd[2],cmd[3],cmd[4],cmd[5], mode);
     if (mode == ASYNC){
-      timer_stop();
       timer_set_interval(runner.getDelay()*100);
       timer_start();
     }
