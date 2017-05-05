@@ -140,7 +140,7 @@ void PoiProgramRunner::loop(){
     _currentFrame++;
     if (_currentFrame > _endFrame){
       _currentLoop++;
-      if (_currentLoop > _numLoops){
+      if (_currentLoop > _numLoops - 1){
         _currentProgram = NO_PROGRAM;
         printf("End of program\n");
         return;
