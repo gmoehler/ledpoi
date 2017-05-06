@@ -32,7 +32,7 @@ const int DATA_PIN = 23; // was 18 Avoid using any of the strapping pins on the 
 const int LED_PIN = 2;
 
 uint8_t MAX_COLOR_VAL = 200;  // Limits brightness
-uint32_t timer0_int = 100000; // interrupt time in ms
+uint32_t timer0_int = 1000; // interrupt time in ms
 const int connTimeout=20;     // client connection timeout in secs
 bool muteLog = false;         // mute most verbose logs
 
@@ -44,11 +44,11 @@ WiFiServer server(1110);
 WiFiClient client;
 IPAddress clientIP;
 
-PoiProgramRunner runner;
+PoiProgramRunner runner(timer0_int);
 
 PoiState poiState = POI_INIT;
 PoiState nextPoiState = poiState;
-OperationMode mode = SYNC;
+OperationMode mode = ASYNC;
 
 hw_timer_t *timer0;
 int TCPtimeoutCt=0;   // interrupt ms count
@@ -77,31 +77,38 @@ void blink(int m){
 // Interrupt at each milli second
 void IRAM_ATTR timer0_intr()
 {
-  Serial.print("Interrupt at ");
-  Serial.println(millis());
+  //Serial.print("Interrupt at ");
+  //Serial.println(millis());
 
   // do what needs to be done for the current program
-  runner.loop();
-  if (poiState == POI_TEST_WITHOUT_WIFI){
+  runner.onInterrupt();
+  /*if (poiState == POI_TEST_WITHOUT_WIFI){
     displayTest(0,33,0);
-  }
+  }*/
   //Serial.println("Done.");
 }
 
 
 void timer_init(){
   timer0 = timerBegin(3, 80, true);  // divider 80 = 1MHz
-  timerAlarmWrite(timer0, 1000 * timer0_int, true); // Alarm every 1000 µs, auto-reload
+  timerAttachInterrupt(timer0, &timer0_intr, true); // attach timer0_inter, edge type interrupt  (db) timer macht GURU
 }
 
-void timer_start(){
-  timerAttachInterrupt(timer0, &timer0_intr, true); // attach timer0_inter, edge type interrupt  (db) timer macht GURU
+void timer_set_interval(uint32_t intervalMs){
+  timerAlarmWrite(timer0, 1000 * intervalMs, true); // Alarm every timer0_int milli secs, auto-reload
+}
+
+void timer_enable(){
   timerAlarmEnable(timer0);
 }
 
-void timer_stop(){
-  timerDetachInterrupt(timer0);
+void timer_disable(){
+  //timerDetachInterrupt(timer0);
   timerAlarmDisable(timer0);
+}
+
+void timer_stop(){
+  timerEnd(timer0);
 }
 
 void printWifiStatus() {
@@ -199,6 +206,8 @@ void setup()
   Serial.println();
   Serial.println("Starting...");
 
+  runner.setup();
+
   // init LEDs
   if(ws2812_init(DATA_PIN, LED_WS2812B)) {
     Serial.println("LED Pixel init error");
@@ -289,7 +298,16 @@ void realize_cmd(){
     break;
 
     case 252:
+    if (mode == ASYNC){
+      timer_disable();
+    }
     runner.playScene(cmd[1],cmd[2],cmd[3],cmd[4],cmd[5], mode);
+    if (mode == ASYNC){
+      uint32_t interval = runner.getDelay();
+      printf("Setting timer interval to %d ms\n", interval);
+      timer_set_interval(interval);
+      timer_enable();
+    }
     break;
 
      // 0...200
@@ -395,7 +413,6 @@ void loop()
       break;
 
       case POI_NETWORK_SEARCH:
-      timer_start();
       break;
 
       case POI_CLIENT_CONNECTING:
@@ -414,7 +431,6 @@ void loop()
       break;
 
       case POI_TEST_WITHOUT_WIFI:
-      timer_start();
       break;
 
       default:
@@ -439,7 +455,6 @@ void loop()
     case POI_NETWORK_SEARCH:
     if (state_changed){
       digitalWrite(LED_PIN,LOW);
-      timer_stop();
     }
     wifi_connect();
     break;
@@ -477,12 +492,12 @@ void loop()
     break;
 
     case POI_TEST_WITHOUT_WIFI:
-    if (state_changed){
-        timer_start();
-    }
     break;
 
     default:
     break;
   }
+
+  runner.loop();
+
 }
