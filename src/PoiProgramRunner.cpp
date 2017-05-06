@@ -1,10 +1,9 @@
 #include "PoiProgramRunner.h"
 
-PoiProgramRunner::PoiProgramRunner(uint32_t interruptTimeMs) :
+PoiProgramRunner::PoiProgramRunner() :
     _currentProgram(NO_PROGRAM),
     _scene(0), _frame(0), _startFrame(0), _endFrame(0),
     _delayMs(5), _numLoops(1),
-    _interruptTimeMs(interruptTimeMs),
     _currentFrame(0), _currentLoop(0)
     {}
 

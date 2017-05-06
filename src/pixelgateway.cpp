@@ -32,7 +32,6 @@ const int DATA_PIN = 23; // was 18 Avoid using any of the strapping pins on the 
 const int LED_PIN = 2;
 
 uint8_t MAX_COLOR_VAL = 200;  // Limits brightness
-uint32_t timer0_int = 1000; // interrupt time in ms
 const int connTimeout=20;     // client connection timeout in secs
 bool muteLog = false;         // mute most verbose logs
 
@@ -44,7 +43,7 @@ WiFiServer server(1110);
 WiFiClient client;
 IPAddress clientIP;
 
-PoiProgramRunner runner(timer0_int);
+PoiProgramRunner runner;
 
 PoiState poiState = POI_INIT;
 PoiState nextPoiState = poiState;
