@@ -142,12 +142,12 @@ void PoiProgramRunner::loop(){
       _currentLoop++;
       if (_currentLoop > _numLoops - 1){
         _currentProgram = NO_PROGRAM;
-        printf("End of program\n");
+        printf("End of program PLAY_SCENE.\n");
         return;
       }
       _currentFrame = _startFrame;
     }
-    printf("Playing scene: %d frame: %d\n", _scene, _currentFrame);
+    //printf("Playing scene: %d frame: %d\n", _scene, _currentFrame);
     showFrame(_scene, _currentFrame);
   }
 }

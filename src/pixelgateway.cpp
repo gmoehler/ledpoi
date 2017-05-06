@@ -77,34 +77,38 @@ void blink(int m){
 // Interrupt at each milli second
 void IRAM_ATTR timer0_intr()
 {
-  Serial.print("Interrupt at ");
-  Serial.println(millis());
+  //Serial.print("Interrupt at ");
+  //Serial.println(millis());
 
   // do what needs to be done for the current program
   runner.onInterrupt();
-  if (poiState == POI_TEST_WITHOUT_WIFI){
+  /*if (poiState == POI_TEST_WITHOUT_WIFI){
     displayTest(0,33,0);
-  }
+  }*/
   //Serial.println("Done.");
 }
 
 
 void timer_init(){
   timer0 = timerBegin(3, 80, true);  // divider 80 = 1MHz
+  timerAttachInterrupt(timer0, &timer0_intr, true); // attach timer0_inter, edge type interrupt  (db) timer macht GURU
 }
 
 void timer_set_interval(uint32_t intervalMs){
-  timerAlarmWrite(timer0, 1000 * timer0_int, true); // Alarm every 1000 µs, auto-reload
+  timerAlarmWrite(timer0, 1000 * intervalMs, true); // Alarm every timer0_int milli secs, auto-reload
 }
 
-void timer_start(){
-  timerAttachInterrupt(timer0, &timer0_intr, true); // attach timer0_inter, edge type interrupt  (db) timer macht GURU
+void timer_enable(){
   timerAlarmEnable(timer0);
 }
 
-void timer_stop(){
-  timerDetachInterrupt(timer0);
+void timer_disable(){
+  //timerDetachInterrupt(timer0);
   timerAlarmDisable(timer0);
+}
+
+void timer_stop(){
+  timerEnd(timer0);
 }
 
 void printWifiStatus() {
@@ -294,10 +298,15 @@ void realize_cmd(){
     break;
 
     case 252:
+    if (mode == ASYNC){
+      timer_disable();
+    }
     runner.playScene(cmd[1],cmd[2],cmd[3],cmd[4],cmd[5], mode);
     if (mode == ASYNC){
-      timer_set_interval(runner.getDelay()*100);
-      timer_start();
+      uint32_t interval = runner.getDelay();
+      printf("Setting timer interval to %d ms\n", interval);
+      timer_set_interval(interval);
+      timer_enable();
     }
     break;
 
