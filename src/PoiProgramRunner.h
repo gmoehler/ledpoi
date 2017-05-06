@@ -19,7 +19,7 @@ enum PoiProgram { NO_PROGRAM,
 class PoiProgramRunner
 {
 public:
-  PoiProgramRunner(uint32_t interruptTimeMs);
+  PoiProgramRunner();
   void setPixel(uint8_t scene_idx, uint8_t frame_idx, uint8_t pixel_idx, rgbVal pixel);
   rgbVal getPixel(uint8_t scene_idx, uint8_t frame_idx, uint8_t pixel_idx);
   void playScene(uint8_t scene, uint8_t frameStart,uint8_t frameEnd, uint8_t speed, uint8_t loops, OperationMode mode);
@@ -53,8 +53,6 @@ private:
   volatile uint8_t _delayMs;
   uint8_t _numLoops;
 
-  uint32_t _interruptTimeMs;
-
   volatile SemaphoreHandle_t _timerSemaphore;
   portMUX_TYPE _timerMux;
 
@@ -68,8 +66,8 @@ private:
 */
 
 
-volatile uint32_t _currentFrame;
-volatile uint32_t _currentLoop;
+  uint32_t _currentFrame;
+  uint32_t _currentLoop;
 
   rgbVal _pixels[N_PIXELS];
   rgbVal _pixelMap[N_SCENES][N_FRAMES][N_PIXELS];
