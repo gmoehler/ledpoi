@@ -13,7 +13,7 @@ enum OperationMode {  SYNC,
 
 enum PoiProgram { NO_PROGRAM,
                   PLAY_SCENE,             // 0
-                  NUM_POI_PROGRAMS };      // only used for enum size
+                  NUM_POI_PROGRAMS };     // only used for enum size
 
 
 class PoiProgramRunner

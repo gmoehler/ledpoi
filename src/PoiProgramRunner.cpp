@@ -133,20 +133,23 @@ void PoiProgramRunner::loop(){
   if (xSemaphoreTake(_timerSemaphore, 0) == pdTRUE){
     switch(_currentProgram){
 
-    case PLAY_SCENE:
-    _currentFrame++;
-    if (_currentFrame > _endFrame){
-      _currentLoop++;
-      if (_currentLoop > _numLoops - 1){
-        _currentProgram = NO_PROGRAM;
-        printf("End of program PLAY_SCENE.\n");
-        return;
+      case PLAY_SCENE:
+      _currentFrame++;
+      if (_currentFrame > _endFrame){
+        _currentLoop++;
+        if (_currentLoop > _numLoops - 1){
+          _currentProgram = NO_PROGRAM;
+          printf("End of program PLAY_SCENE.\n");
+          return;
+        }
+        _currentFrame = _startFrame;
       }
-      _currentFrame = _startFrame;
-    }
-    //printf("Playing scene: %d frame: %d\n", _scene, _currentFrame);
-    showFrame(_scene, _currentFrame);
-  }
-}
+      //printf("Playing scene: %d frame: %d\n", _scene, _currentFrame);
+      showFrame(_scene, _currentFrame);
+      break;
 
+      default:
+      break;
+    }
+  }
 }
