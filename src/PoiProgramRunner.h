@@ -19,6 +19,7 @@ enum PoiProgram { NO_PROGRAM,
 class PoiProgramRunner
 {
 public:
+  PoiProgramRunner();
   void setPixel(uint8_t scene_idx, uint8_t frame_idx, uint8_t pixel_idx, rgbVal pixel);
   rgbVal getPixel(uint8_t scene_idx, uint8_t frame_idx, uint8_t pixel_idx);
   void playScene(uint8_t scene, uint8_t frameStart,uint8_t frameEnd, uint8_t speed, uint8_t loops, OperationMode mode);
@@ -37,16 +38,24 @@ public:
   void resetProg(PoiProgram prog_id);
   void saveProg();
 
-  void loop();
+  void setup();         // to be called in setup()
+  void loop();          // to be called in the loop
+  void onInterrupt();   // to be called in the timer interrupt
+
+  uint32_t getDelay();
 
 private:
-  PoiProgram _currentProgram = NO_PROGRAM;
-  uint8_t _scene = 0;
-  uint8_t _frame = 0;
-  uint8_t _startFrame = 0;
-  uint8_t _endFrame = 0;
-  uint8_t _delay = 10;
-  uint8_t _loops = 1;
+  PoiProgram _currentProgram;
+  uint8_t _scene;
+  uint8_t _frame;
+  uint8_t _startFrame;
+  uint8_t _endFrame;
+  volatile uint8_t _delayMs;
+  uint8_t _numLoops;
+
+  volatile SemaphoreHandle_t _timerSemaphore;
+  portMUX_TYPE _timerMux;
+
 
 /* original program variables
   uint8_t progIx=0;
@@ -57,7 +66,8 @@ private:
 */
 
 
-  uint32_t _currentFrame = 0;
+  uint32_t _currentFrame;
+  uint32_t _currentLoop;
 
   rgbVal _pixels[N_PIXELS];
   rgbVal _pixelMap[N_SCENES][N_FRAMES][N_PIXELS];

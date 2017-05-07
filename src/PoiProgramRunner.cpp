@@ -1,5 +1,17 @@
 #include "PoiProgramRunner.h"
 
+PoiProgramRunner::PoiProgramRunner() :
+    _currentProgram(NO_PROGRAM),
+    _scene(0), _frame(0), _startFrame(0), _endFrame(0),
+    _delayMs(5), _numLoops(1),
+    _currentFrame(0), _currentLoop(0)
+    {}
+
+void PoiProgramRunner::setup(){
+  // Create semaphore to inform us when the timer has fired
+  _timerSemaphore = xSemaphoreCreateBinary();
+}
+
 void PoiProgramRunner::setPixel(uint8_t scene_idx, uint8_t frame_idx, uint8_t pixel_idx, rgbVal pixel){
   _pixelMap[constrain(scene_idx,0,N_SCENES-1)][constrain(frame_idx,0,N_FRAMES-1)][constrain(pixel_idx,0,N_PIXELS-1)] = pixel;
 }
@@ -15,10 +27,11 @@ void PoiProgramRunner::playScene(uint8_t scene, uint8_t startFrame, uint8_t endF
     _scene = scene;
     _startFrame = startFrame;
     _endFrame = endFrame;
-    _delay = speed;
-    _loops = loops;
+    _delayMs = speed;
+    _numLoops = loops;
 
     _currentFrame = _startFrame;
+    _currentLoop = 0;
   }
   else {
     for (uint8_t runner=0;runner<loops;runner++){
@@ -98,20 +111,44 @@ void PoiProgramRunner::resetProg(PoiProgram prog_id) {
   // more TODO
 }
 
+uint32_t PoiProgramRunner::getDelay(){
+  return _delayMs;
+}
+
+// no printf in interrupt!
+void PoiProgramRunner::onInterrupt(){
+
+  switch(_currentProgram){
+    case PLAY_SCENE:
+    //Serial.println("play scene  - Next frame");
+    // Give a semaphore that we can check in the loop
+    xSemaphoreGiveFromISR(_timerSemaphore, NULL);
+    break;
+
+    default:
+    break;
+  }
+}
 
 void PoiProgramRunner::loop(){
 
-  switch(_currentProgram){
+  if (xSemaphoreTake(_timerSemaphore, 0) == pdTRUE){
+    switch(_currentProgram){
 
     case PLAY_SCENE:
-    //  printf("Playing scene: %d frame: %d\n", _scene, _currentFrame);
-      displayTest();
-/*      Serial.print("Playing scene at frame ");
-      Serial.println(_currentFrame);
-      showFrame(_scene, _currentFrame++);
-      if (_currentFrame > _endFrame){
-        _currentFrame = _startFrame;
-      }*/
+    _currentFrame++;
+    if (_currentFrame > _endFrame){
+      _currentLoop++;
+      if (_currentLoop > _numLoops - 1){
+        _currentProgram = NO_PROGRAM;
+        printf("End of program PLAY_SCENE.\n");
+        return;
+      }
+      _currentFrame = _startFrame;
+    }
+    //printf("Playing scene: %d frame: %d\n", _scene, _currentFrame);
+    showFrame(_scene, _currentFrame);
   }
+}
 
 }
