@@ -22,7 +22,6 @@ enum PoiState { POI_INIT,               // 0
 const int DATA_PIN = 23; // was 18 Avoid using any of the strapping pins on the ESP32
 const int LED_PIN = 2;
 
-uint8_t MAX_COLOR_VAL = 200;  // Limits brightness
 const int connTimeout=20;     // client connection timeout in secs
 bool muteLog = false;         // mute most verbose logs
 
