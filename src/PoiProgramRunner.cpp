@@ -44,8 +44,6 @@ void PoiProgramRunner::playScene(uint8_t scene, uint8_t startFrame, uint8_t endF
   }
 }
 
-
-
 void PoiProgramRunner::showFrame(uint8_t scene, uint8_t frame){
   //printf("Showing frame: scene %d frame \n", scene, frame);
   rgbVal* pixels = _pixelMap[constrain(scene,0,N_SCENES-1)][constrain(frame,0,N_FRAMES-1)];
@@ -59,9 +57,9 @@ void PoiProgramRunner::displayOff() {
   ws2812_setColors(N_PIXELS, _pixels);
 }
 
-void PoiProgramRunner::displayTest() {
+void PoiProgramRunner::displayTest(uint8_t r, uint8_t g, uint8_t b) {
   for (int i = 0; i < N_PIXELS; i++) {
-    _pixels[i] = makeRGBVal(33, 33, 0);
+    _pixels[i] = makeRGBVal(r, g, b);
   }
   ws2812_setColors(1, _pixels);
   //ws2812_setColors(NUM_PIXELS, _pixels);

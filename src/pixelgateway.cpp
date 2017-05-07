@@ -8,7 +8,7 @@ Das freezed den Server, wenn man nicht einen einfachen Timeout implementiert (TC
 
 #include <Arduino.h>
 #include <ws2812.h>
-#include "WiFi.h"
+#include <WiFi.h>
 #include "WiFiCredentials.h"
 #include "PoiProgramRunner.h"
 
@@ -17,16 +17,7 @@ enum PoiState { POI_INIT,               // 0
                 POI_CLIENT_CONNECTING,  // 2
                 POI_AWAITING_DATA,      // 3
                 POI_RECEIVING_DATA,     // 4
-                POI_TEST_WITHOUT_WIFI,  // 5
                 NUM_POI_STATES};        // only used for enum size
-
-const char* POI_INIT_STR = "POI_INIT";
-const char* POI_NETWORK_SEARCH_STR = "POI_NETWORK_SEARCH";
-const char* POI_CLIENT_CONNECTING_STR = "POI_CLIENT_CONNECTING";
-const char* POI_AWAITING_DATA_STR = "POI_AWAITING_DATA";
-const char* POI_RECEIVING_DATA_STR = "POI_RECEIVING_DATA";
-const char* POI_ACTIVE_STR = "POI_ACTIVE";
-
 
 const int DATA_PIN = 23; // was 18 Avoid using any of the strapping pins on the ESP32
 const int LED_PIN = 2;
@@ -35,7 +26,7 @@ uint8_t MAX_COLOR_VAL = 200;  // Limits brightness
 const int connTimeout=20;     // client connection timeout in secs
 bool muteLog = false;         // mute most verbose logs
 
-// WiFi credentials (defined in WiFiCredentials.h)
+// WiFi credentials (as defined in WiFiCredentials.h)
 extern const char* WIFI_SSID;
 extern const char* WIFI_PASS;
 
@@ -55,15 +46,6 @@ char cmd[7];          // command read from poi
 char c;
 int cmdIndex=0;
 
-void displayTest(uint8_t r, uint8_t g, uint8_t b) {
-  rgbVal pixels[N_PIXELS];
-  for (int i = 0; i < N_PIXELS; i++) {
-    pixels[i] = makeRGBVal(r, g, b);
-  }
-  ws2812_setColors(1, pixels);
-  //ws2812_setColors(N_PIXELS, pixels);
-}
-
 void blink(int m){
   for (int n=0;n<m;n++){
     digitalWrite(LED_PIN,HIGH);
@@ -73,7 +55,7 @@ void blink(int m){
   }
 }
 
-// Interrupt at each milli second
+// Interrupt at interval determined by program
 void IRAM_ATTR timer0_intr()
 {
   //Serial.print("Interrupt at ");
@@ -81,16 +63,12 @@ void IRAM_ATTR timer0_intr()
 
   // do what needs to be done for the current program
   runner.onInterrupt();
-  /*if (poiState == POI_TEST_WITHOUT_WIFI){
-    displayTest(0,33,0);
-  }*/
-  //Serial.println("Done.");
 }
 
 
 void timer_init(){
   timer0 = timerBegin(3, 80, true);  // divider 80 = 1MHz
-  timerAttachInterrupt(timer0, &timer0_intr, true); // attach timer0_inter, edge type interrupt  (db) timer macht GURU
+  timerAttachInterrupt(timer0, &timer0_intr, true); // attach timer0_inter, edge type interrupt
 }
 
 void timer_set_interval(uint32_t intervalMs){
@@ -127,6 +105,7 @@ void printWifiStatus() {
   Serial.println(" dBm");
 }
 
+// synchronous method connecting to wifi
 void wifi_connect(){
   IPAddress myIP(192, 168, 1, 127);
   IPAddress gateway(192, 168, 1, 1);
@@ -214,7 +193,7 @@ void setup()
   #if DEBUG_WS2812_DRIVER
   dumpDebugBuffer(-2, ws2812_debugBuffer);
   #endif
-  //  pixels = (rgbVal*)malloc(sizeof(rgbVal) * N_PIXELS*256*256);  //[pixel][scene][frame]
+
   runner.displayOff();
   #if DEBUG_WS2812_DRIVER
   dumpDebugBuffer(-1, ws2812_debugBuffer);
@@ -429,8 +408,6 @@ void loop()
         digitalWrite(LED_PIN,LOW);
       break;
 
-      case POI_TEST_WITHOUT_WIFI:
-      break;
 
       default:
       break;
@@ -448,7 +425,6 @@ void loop()
     case POI_INIT:
       // proceed to next state
       nextPoiState = POI_NETWORK_SEARCH;
-      //nextPoiState = POI_TEST_WITHOUT_WIFI;
     break;
 
     case POI_NETWORK_SEARCH:
@@ -488,9 +464,6 @@ void loop()
       // carry out command
       realize_cmd();
     }
-    break;
-
-    case POI_TEST_WITHOUT_WIFI:
     break;
 
     default:

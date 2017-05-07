@@ -9,11 +9,11 @@
 #define N_PIXELS 60
 
 enum OperationMode {  SYNC,
-                      ASYNC};
+                      ASYNC };
 
 enum PoiProgram { NO_PROGRAM,
                   PLAY_SCENE,             // 0
-                  NUM_POI_PROGRAMS};        // only used for enum size
+                  NUM_POI_PROGRAMS };      // only used for enum size
 
 
 class PoiProgramRunner
@@ -25,7 +25,7 @@ public:
   void playScene(uint8_t scene, uint8_t frameStart,uint8_t frameEnd, uint8_t speed, uint8_t loops, OperationMode mode);
   void showFrame(uint8_t scene, uint8_t frame);
   void displayOff();
-  void displayTest();
+  void displayTest(uint8_t r, uint8_t g, uint8_t b);
   void statusIO();
   void statusNIO();
   void showCurrent();
@@ -40,8 +40,9 @@ public:
 
   void setup();         // to be called in setup()
   void loop();          // to be called in the loop
-  void onInterrupt();   // to be called in the timer interrupt
+  void onInterrupt();   // to be called during the timer interrupt
 
+  // getters
   uint32_t getDelay();
 
 private:
