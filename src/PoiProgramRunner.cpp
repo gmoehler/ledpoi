@@ -1,10 +1,10 @@
 #include "PoiProgramRunner.h"
 
-PoiProgramRunner::PoiProgramRunner() :
+PoiProgramRunner::PoiProgramRunner(Verbosity logVerbose) :
     _currentProgram(NO_PROGRAM),
     _scene(0), _frame(0), _startFrame(0), _endFrame(0),
     _delayMs(5), _numLoops(1),
-    _currentFrame(0), _currentLoop(0)
+    _currentFrame(0), _currentLoop(0), _logVerbose(logVerbose)
     {}
 
 void PoiProgramRunner::setup(){
@@ -20,31 +20,20 @@ rgbVal PoiProgramRunner::getPixel(uint8_t scene_idx, uint8_t frame_idx, uint8_t 
   return _pixelMap[constrain(scene_idx,0,N_SCENES-1)][constrain(frame_idx,0,N_FRAMES-1)][constrain(pixel_idx,0,N_PIXELS-1)];
 }
 
-void PoiProgramRunner::playScene(uint8_t scene, uint8_t startFrame, uint8_t endFrame, uint8_t speed, uint8_t loops, OperationMode mode){
-  printf("Playing Scene: %d frames: [%d,%d] delay: %d loops:%d \n", scene, startFrame, endFrame, speed, loops);
-  if (mode == ASYNC){
-    _currentProgram = PLAY_SCENE;
-    _scene = scene;
-    _startFrame = startFrame;
-    _endFrame = endFrame;
-    _delayMs = speed;
-    _numLoops = loops;
+void PoiProgramRunner::playScene(uint8_t scene, uint8_t startFrame, uint8_t endFrame, uint8_t speed, uint8_t loops){
+  if (_logVerbose != MUTE) {
+    printf("Playing Scene: %d frames: [%d,%d] delay: %d loops:%d \n", scene, startFrame, endFrame, speed, loops);
+  }
+  _currentProgram = PLAY_SCENE;
+  _scene = scene;
+  _startFrame = startFrame;
+  _endFrame = endFrame;
+  _delayMs = speed;
+  _numLoops = loops;
 
-    _currentFrame = _startFrame;
-    _currentLoop = 0;
-  }
-  else {
-    for (uint8_t runner=0;runner<loops;runner++){
-      for (int i=startFrame;i<endFrame;i++){
-        rgbVal* pixels = _pixelMap[constrain(scene,0,N_SCENES-1)][i];
-        ws2812_setColors(N_PIXELS, pixels);  // LEDs updaten
-        delay(speed);
-      }
-    }
-  }
+  _currentFrame = _startFrame;
+  _currentLoop = 0;
 }
-
-
 
 void PoiProgramRunner::showFrame(uint8_t scene, uint8_t frame){
   //printf("Showing frame: scene %d frame \n", scene, frame);
@@ -59,9 +48,9 @@ void PoiProgramRunner::displayOff() {
   ws2812_setColors(N_PIXELS, _pixels);
 }
 
-void PoiProgramRunner::displayTest() {
+void PoiProgramRunner::displayTest(uint8_t r, uint8_t g, uint8_t b) {
   for (int i = 0; i < N_PIXELS; i++) {
-    _pixels[i] = makeRGBVal(33, 33, 0);
+    _pixels[i] = makeRGBVal(r, g, b);
   }
   ws2812_setColors(1, _pixels);
   //ws2812_setColors(NUM_PIXELS, _pixels);
@@ -135,20 +124,25 @@ void PoiProgramRunner::loop(){
   if (xSemaphoreTake(_timerSemaphore, 0) == pdTRUE){
     switch(_currentProgram){
 
-    case PLAY_SCENE:
-    _currentFrame++;
-    if (_currentFrame > _endFrame){
-      _currentLoop++;
-      if (_currentLoop > _numLoops - 1){
-        _currentProgram = NO_PROGRAM;
-        printf("End of program PLAY_SCENE.\n");
-        return;
+      case PLAY_SCENE:
+      _currentFrame++;
+      if (_currentFrame > _endFrame){
+        _currentLoop++;
+        if (_currentLoop > _numLoops - 1){
+          _currentProgram = NO_PROGRAM;
+          if (_logVerbose != MUTE){
+            printf("End of program PLAY_SCENE.\n");
+          }
+          return;
+        }
+        _currentFrame = _startFrame;
       }
-      _currentFrame = _startFrame;
-    }
-    //printf("Playing scene: %d frame: %d\n", _scene, _currentFrame);
-    showFrame(_scene, _currentFrame);
-  }
-}
+      //printf("Playing scene: %d frame: %d\n", _scene, _currentFrame);
+      showFrame(_scene, _currentFrame);
+      break;
 
+      default:
+      break;
+    }
+  }
 }
