@@ -18,7 +18,7 @@ enum PoiState { POI_INIT,               // 0
                 POI_RECEIVING_DATA,     // 3
                 NUM_POI_STATES};        // only used for enum size
 
-Verbosity logVerbose = QUIET; // CHATTY, QUIET or MUTE 
+Verbosity logVerbose = QUIET; // CHATTY, QUIET or MUTE
 
 const int DATA_PIN = 23; // was 18 Avoid using any of the strapping pins on the ESP32
 const int LED_PIN = 2;
@@ -239,7 +239,7 @@ void realize_cmd(){
     case 254:
     switch (cmd[1]){  // setAction
       case 0:
-      runner.showCurrent();
+      //runner.showCurrent();
       break;
 
       case 1:
@@ -252,19 +252,19 @@ void realize_cmd(){
       break;
 
       case 3:
-//       runner.startProg(cmd[2],cmd[3],cmd[4],cmd[5]);
+      //runner.startProg(cmd[2],cmd[3],cmd[4],cmd[5]);
       break;
 
       case 4:
-      runner.pauseProg();
+      //runner.pauseProg();
       break;
 
       case 5:
-      runner.resetProg((PoiProgram) cmd[2]);
+      //runner.resetProg((PoiProgram) cmd[2]);
       break;
 
       case 6:
-      runner.saveProg();
+      //runner.saveProg();
       break;
 
       case 7:
@@ -304,11 +304,14 @@ void realize_cmd(){
     break;
 
     case 253:  // define programs
-      // orginally this was split between 2 words: first one with program id, second with 6 commands
-      runner.defineProgram((PoiProgram) cmd[2], cmd[3], cmd[4], cmd[5]);
+      // set unset commands bytes to 0
+      for (int i=cmdIndex+1; i<6; i++){
+        cmd[i] = 0;
+      }
+      runner.addToProgram(cmd);
     break;
 
-    case 252: // play scene
+    case 252: // directly play scene
     timer_disable();
     runner.playScene(cmd[1],cmd[2],cmd[3],cmd[4],cmd[5]);
     if (logVerbose != MUTE) {
@@ -337,7 +340,7 @@ bool protocol_is_sendalive(){
 
 void protocoll_clean_cmd(){
   cmdIndex=0;
-  for (int ix=0;ix<7;ix++) cmd[ix]=0;
+  for (int ix=0;ix<6;ix++) cmd[ix]=0;
 }
 
 bool protocoll_cmd_complete(){
