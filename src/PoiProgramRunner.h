@@ -1,6 +1,11 @@
 #ifndef POI_PROGRAM_H
 #define POI_PROGRAM_H
 
+/**
+ * Class responsible for running the poi led program
+ **/
+
+
 #include <Arduino.h>
 #include <ws2812.h>
 
@@ -41,8 +46,6 @@ public:
   void displayOff();
   void displayTest(uint8_t r, uint8_t g, uint8_t b);
 
-  void statusIO();
-  void statusNIO();
   void showCurrent();
   void fadeToBlack();
 
@@ -62,29 +65,21 @@ public:
 
 private:
   PoiProgram _currentProgram;
+
+  // member variables set by the program
   uint8_t _scene;
   uint8_t _frame;
   uint8_t _startFrame;
   uint8_t _endFrame;
   volatile uint8_t _delayMs;
   uint8_t _numLoops;
-  Verbosity _logVerbose;
+
+  // member variables holding the current state of the program
+  uint32_t _currentFrame;
+  uint32_t _currentLoop;
 
   volatile SemaphoreHandle_t _timerSemaphore;
   portMUX_TYPE _timerMux;
-
-
-/* original program variables
-  uint8_t progIx=0;
-  uint8_t progDef[254][5];
-  uint8_t progCurrIx=0;
-  uint8_t progLastIx=0;
-  uint8_t progState=0;
-*/
-
-
-  uint32_t _currentFrame;
-  uint32_t _currentLoop;
 
   rgbVal _pixels[N_PIXELS]; // for temps
   rgbVal _pixelMap[N_SCENES][N_FRAMES][N_PIXELS];
@@ -99,6 +94,8 @@ private:
   uint8_t _numProgSteps;
   uint8_t _currentProgStep;
   uint8_t _prog[N_PROG_STEPS][6];
+
+  Verbosity _logVerbose;
 };
 
 

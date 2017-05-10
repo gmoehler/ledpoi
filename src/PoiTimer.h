@@ -1,6 +1,10 @@
 #ifndef POI_TIMER_H
 #define POI_TIMER_H
 
+/**
+ * Simple timer abstraction for timers that fire interrupts
+ **/
+
 #include <Arduino.h>
 
 class PoiTimer
