@@ -210,28 +210,28 @@ void realize_cmd(){
     case 254:
     switch (cmd[1]){  // setAction
       case 0:
-      //runner.showCurrent();
+      runner.showCurrent();
       break;
 
       case 1:
-      runner.showFrame(cmd[2],cmd[3]);
+      runner.showStaticFrame(cmd[2], cmd[3], cmd[4], cmd[5]);
       break;
 
       case 2:  // black with options
-      if (cmd[2]==0) runner.displayOff();  // keep BlackSofort-Pixel
-      else runner.fadeToBlack();           // fadeToBlack
+      if (cmd[2]==0) runner.displayOff();
+      else runner.fadeToBlack(cmd[2], cmd[3]);
       break;
 
       case 3:
-      //runner.startProg(cmd[2],cmd[3],cmd[4],cmd[5]);
+      runner.startProg();
       break;
 
       case 4:
-      //runner.pauseProg();
+      runner.pauseProg();
       break;
 
       case 5:
-      //runner.resetProg((PoiProgram) cmd[2]);
+      runner.continueProg();
       break;
 
       case 6:

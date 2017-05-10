@@ -13,12 +13,16 @@
 #define N_FRAMES 200
 #define N_PIXELS 60
 
-#define N_PROG_STEPS 20
+#define N_PROG_STEPS 50
+#define N_FADE_STEPS 50
 
 enum PoiProgram { NO_PROGRAM,
-                  PLAY_DIRECT,            // 0
-                  PLAY_PROG,              // 1
-                  PAUSE_PROG,             // 2
+                  PLAY_DIRECT,            
+                  SHOW_CURRENT_FRAME,
+                  SHOW_STATIC_FRAME,
+                  FADE_TO_BLACK,
+                  PLAY_PROG,
+                  PAUSE_PROG,
                   NUM_POI_PROGRAMS };     // only used for enum size
 
 enum Verbosity { CHATTY, QUIET, MUTE};
@@ -42,41 +46,38 @@ public:
 
   // simple play methods
   void playScene(uint8_t scene, uint8_t frameStart,uint8_t frameEnd, uint8_t speed, uint8_t loops);
-  void showFrame(uint8_t scene, uint8_t frame);
+  void showStaticFrame(uint8_t scene, uint8_t frame, uint8_t timeOutMSB, uint8_t timeOutLSB);
   void displayOff();
   void displayTest(uint8_t r, uint8_t g, uint8_t b);
 
   void showCurrent();
-  void fadeToBlack();
+  void fadeToBlack(uint8_t fadeMSB, uint8_t fadeLSB);
 
   void addToProgram(char cmd[7]);
-  bool _checkProgram();
   void startProg();
   void pauseProg();
-  void resetProg(PoiProgram prog_id);
+  void continueProg();
   void saveProg();
 
   void setup();         // to be called in setup()
   void loop();          // to be called in the loop
   void onInterrupt();   // to be called during the timer interrupt
 
-  // getters
-  uint32_t getDelay();
-
 private:
   PoiProgram _currentProgram;
 
   // member variables set by the program
   uint8_t _scene;
-  uint8_t _frame;
   uint8_t _startFrame;
   uint8_t _endFrame;
-  volatile uint8_t _delayMs;
+  volatile uint16_t _delayMs;
   uint8_t _numLoops;
+
 
   // member variables holding the current state of the program
   uint32_t _currentFrame;
   uint32_t _currentLoop;
+  uint16_t _currentFadeStep;
 
   PoiTimer _ptimer;
   volatile SemaphoreHandle_t _timerSemaphore;
@@ -85,6 +86,11 @@ private:
   rgbVal _pixels[N_PIXELS]; // for temps
   rgbVal _pixelMap[N_SCENES][N_FRAMES][N_PIXELS];
 
+  void _displayFrame(uint8_t scene, uint8_t frame);
+  void _displayCurrentFrame();
+  void _displayCachedFrame();
+
+  bool _checkProgram();
   void _nextProgramStep();
   void _clearProgram();
   bool _programFinished();
