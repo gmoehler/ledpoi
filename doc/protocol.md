@@ -2,7 +2,7 @@
 
 
 |Funktion||Byte0|Byte1|Byte2|Byte3|Byte4|Byte5|hacked|Beschreibung|
-|---|---|---|
+|---|---|---|---|---|---|---|---|---|---|
 |**setPixel**||**0..200**|scene|frame|r|g|b|done|Setzt ein Pixel in frame/scene|
 |**setAction**||**254**|actionCMD|action[0]|action[1]|action[2]|action[3]|||
 ||showCurrent||0|||||||
