@@ -11,6 +11,7 @@ Das freezed den Server, wenn man nicht einen einfachen Timeout implementiert (TC
 #include <WiFi.h>
 #include "WiFiCredentials.h"
 #include "PoiProgramRunner.h"
+#include "PoiTimer.h"
 
 enum PoiState { POI_INIT,               // 0
                 POI_NETWORK_SEARCH,     // 1
@@ -40,7 +41,6 @@ PoiState poiState = POI_INIT;
 PoiState nextPoiState = poiState;
 
 PoiTimer ptimer;
-//hw_timer_t *timer0;
 int TCPtimeoutCt=0;   // interrupt ms count
 uint32_t lastSignalTime = 0; // time when last wifi signal was received
 char cmd[7];          // command read from poi
@@ -67,28 +67,6 @@ void IRAM_ATTR timer0_intr()
   // do what needs to be done for the current program
   runner.onInterrupt();
 }
-/*
-void timer_init(){
-  timer0 = timerBegin(3, 80, true);  
-  timerAttachInterrupt(timer0, &timer0_intr, true); 
-}
-
-void timer_set_interval(uint32_t intervalMs){
-  timerAlarmWrite(timer0, 1000 * intervalMs, true); 
-}
-
-void timer_enable(){
-  timerAlarmEnable(timer0);
-}
-
-void timer_disable(){
-  timerAlarmDisable(timer0);
-}
-
-void timer_stop(){
-  timerEnd(timer0);
-}
-*/
 
 void printWifiStatus() {
   // print the SSID of the network you're attached to:
@@ -227,7 +205,6 @@ void setup()
   blink(2);
 
   // init timer
- // timer_init();
   ptimer.init(timer0_intr);
 }
 
@@ -314,15 +291,12 @@ void realize_cmd(){
     break;
 
     case 252: // directly play scene
-   // timer_disable();
     ptimer.disable();
     runner.playScene(cmd[1],cmd[2],cmd[3],cmd[4],cmd[5]);
     if (logVerbose != MUTE) {
       printf("Setting timer interval to %d ms\n", runner.getDelay());
     }
-    //timer_set_interval( runner.getDelay() );
-   // timer_enable();
-    ptimer.set_interval( runner.getDelay() );
+    ptimer.setInterval( runner.getDelay() );
     ptimer.enable();
     break;
 

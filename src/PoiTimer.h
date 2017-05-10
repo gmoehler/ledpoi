@@ -6,15 +6,16 @@
 class PoiTimer
 {
 public:
-PoiTimer();
-~PoiTimer();
+  PoiTimer();
+  ~PoiTimer();
 
-void init(void (*timer_intr_func)(int));
-void setInterval(uint32_t intervalMs);
-void enable();
-void disable();
+  void init(void (*timer_intr_func)());
+  void setInterval(uint32_t intervalMs);
+  void enable();
+  void disable();
 
 private:
-hw_timer_t *_timer;
-}
+  hw_timer_t *_timer;
+};
+
 #endif
