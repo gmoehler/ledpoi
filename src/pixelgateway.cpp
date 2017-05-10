@@ -1,10 +1,3 @@
-/*
-07.03.2017: Server funktioniert.
-Komisch: Vivaldi fragt IMMMER zusätzlich das favicon ab (Mozilla nur bei der ersten Verbindung
-Vivaldi öffnet nach der eigentlichen Anfrage noch eine TCP Verbindung, die aber nichts sendet, sondern nur die Verbindung offen hält.
-Das freezed den Server, wenn man nicht einen einfachen Timeout implementiert (TCPtimeoutCt)
-
-*/
 
 #include <Arduino.h>
 #include <ws2812.h>
@@ -35,18 +28,18 @@ WiFiServer server(1110);
 WiFiClient client;
 IPAddress clientIP;
 
-PoiProgramRunner runner(logVerbose);
-
 PoiState poiState = POI_INIT;
 PoiState nextPoiState = poiState;
 
+PoiProgramRunner runner(logVerbose);
 PoiTimer ptimer;
-int TCPtimeoutCt=0;   // interrupt ms count
-uint32_t lastSignalTime = 0; // time when last wifi signal was received
-char cmd[7];          // command read from poi
+
+uint32_t lastSignalTime = 0; // time when last wifi signal was received, for timeout
+char cmd[7];                 // command read from server
+int cmdIndex=0;              // index into command read from server
 char c;
-int cmdIndex=0;
-bool last_was_imgdata = false;
+bool loadingImgData = false; // tag to suppress log during image loading
+
 
 void blink(int m){
   for (int n=0;n<m;n++){
@@ -58,13 +51,12 @@ void blink(int m){
 }
 
 // Interrupt at interval determined by program
-void IRAM_ATTR timer0_intr()
+void IRAM_ATTR ptimer_intr()
 {
   // printf cannot be used within interrupt
   //Serial.print("Interrupt at ");
   //Serial.println(millis());
 
-  // do what needs to be done for the current program
   runner.onInterrupt();
 }
 
@@ -205,7 +197,7 @@ void setup()
   blink(2);
 
   // init timer
-  ptimer.init(timer0_intr);
+  ptimer.init(ptimer_intr);
 }
 
 void print_cmd(){
@@ -447,13 +439,13 @@ void loop()
 
       if (protocol_is_data()){
         // only print once
-        if (logVerbose != MUTE && !last_was_imgdata){
+        if (logVerbose != MUTE && !loadingImgData){
           printf("Reading image data... \n");
         }
-        last_was_imgdata = true;
+        loadingImgData = true;
       }
       else {
-        last_was_imgdata = false;
+        loadingImgData = false;
       }
 
       // carry out and clean command
