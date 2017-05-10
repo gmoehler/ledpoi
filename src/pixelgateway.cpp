@@ -67,6 +67,8 @@ void IRAM_ATTR timer0_intr()
   runner.onInterrupt();
 }
 
+PoiTimer ptimer(timer0_intr);
+
 void timer_init(){
   timer0 = timerBegin(3, 80, true);  // divider 80 = 1MHz
   timerAttachInterrupt(timer0, &timer0_intr, true); // attach timer0_inter, edge type interrupt
