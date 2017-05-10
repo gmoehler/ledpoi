@@ -1,16 +1,11 @@
-/*
-07.03.2017: Server funktioniert.
-Komisch: Vivaldi fragt IMMMER zusätzlich das favicon ab (Mozilla nur bei der ersten Verbindung
-Vivaldi öffnet nach der eigentlichen Anfrage noch eine TCP Verbindung, die aber nichts sendet, sondern nur die Verbindung offen hält.
-Das freezed den Server, wenn man nicht einen einfachen Timeout implementiert (TCPtimeoutCt)
-
-*/
 
 #include <Arduino.h>
 #include <ws2812.h>
 #include <WiFi.h>
 #include "WiFiCredentials.h"
+#include "ledpoi.h"
 #include "PoiProgramRunner.h"
+#include "PoiTimer.h"
 
 enum PoiState { POI_INIT,               // 0
                 POI_NETWORK_SEARCH,     // 1
@@ -18,7 +13,7 @@ enum PoiState { POI_INIT,               // 0
                 POI_RECEIVING_DATA,     // 3
                 NUM_POI_STATES};        // only used for enum size
 
-Verbosity logVerbose = QUIET; // CHATTY, QUIET or MUTE
+LogLevel logLevel = QUIET; // CHATTY, QUIET or MUTE
 
 const int DATA_PIN = 23; // was 18 Avoid using any of the strapping pins on the ESP32
 const int LED_PIN = 2;
@@ -34,18 +29,18 @@ WiFiServer server(1110);
 WiFiClient client;
 IPAddress clientIP;
 
-PoiProgramRunner runner(logVerbose);
-
 PoiState poiState = POI_INIT;
 PoiState nextPoiState = poiState;
 
-hw_timer_t *timer0;
-int TCPtimeoutCt=0;   // interrupt ms count
-uint32_t lastSignalTime = 0; // time when last wifi signal was received
-char cmd[7];          // command read from poi
+PoiTimer ptimer(logLevel);
+PoiProgramRunner runner(ptimer, logLevel);
+
+uint32_t lastSignalTime = 0; // time when last wifi signal was received, for timeout
+char cmd[7];                 // command read from server
+int cmdIndex=0;              // index into command read from server
 char c;
-int cmdIndex=0;
-bool last_was_imgdata = false;
+bool loadingImgData = false; // tag to suppress log during image loading
+
 
 void blink(int m){
   for (int n=0;n<m;n++){
@@ -57,36 +52,13 @@ void blink(int m){
 }
 
 // Interrupt at interval determined by program
-void IRAM_ATTR timer0_intr()
+void IRAM_ATTR ptimer_intr()
 {
   // printf cannot be used within interrupt
   //Serial.print("Interrupt at ");
   //Serial.println(millis());
 
-  // do what needs to be done for the current program
   runner.onInterrupt();
-}
-
-void timer_init(){
-  timer0 = timerBegin(3, 80, true);  // divider 80 = 1MHz
-  timerAttachInterrupt(timer0, &timer0_intr, true); // attach timer0_inter, edge type interrupt
-}
-
-void timer_set_interval(uint32_t intervalMs){
-  timerAlarmWrite(timer0, 1000 * intervalMs, true); // Alarm every timer0_int milli secs, auto-reload
-}
-
-void timer_enable(){
-  timerAlarmEnable(timer0);
-}
-
-void timer_disable(){
-  //timerDetachInterrupt(timer0);
-  timerAlarmDisable(timer0);
-}
-
-void timer_stop(){
-  timerEnd(timer0);
 }
 
 void printWifiStatus() {
@@ -112,7 +84,7 @@ void wifi_connect(){
   IPAddress gateway(192, 168, 1, 1);
   IPAddress subnet(255, 255, 255, 0);
 
-  if (logVerbose != MUTE){
+  if (logLevel != MUTE){
     Serial.println();
     Serial.print("Connecting to ");
     Serial.println(WIFI_SSID);
@@ -126,28 +98,22 @@ void wifi_connect(){
   WiFi.config(myIP,gateway,subnet);
    while (!connectedToWifi){
      WiFi.begin(WIFI_SSID, WIFI_PASS);
-     if (logVerbose != MUTE){
-       Serial.print("Connecting...");
-     }
+     if (logLevel != MUTE) Serial.print("Connecting...");
 
      while (WiFi.status() != WL_CONNECTED) {
        // Check to see if connecting failed.
        // This is due to incorrect credentials
        delay(500);
-       if (logVerbose != MUTE){
-         Serial.print(".");
-       }
+       if (logLevel != MUTE) Serial.print(".");
      }
      if (WiFi.status() == WL_CONNECT_FAILED) {
-       if (logVerbose != MUTE){
-        Serial.println("Connection Failed. Retrying...");
-       }
+       if (logLevel != MUTE) Serial.println("Connection Failed. Retrying...");
        blink(1);
      }
      else {
        blink(10);
        connectedToWifi=1;
-       if (logVerbose != MUTE) {
+       if (logLevel != MUTE) {
          Serial.println("Connected.");
          printWifiStatus();
        }
@@ -174,9 +140,7 @@ void client_connect(){
   client = server.available();
 
   if (client.connected()){
-    if (logVerbose != MUTE) {
-      printf("Client connected.\n" );
-    }
+    if (logLevel != MUTE) printf("Client connected.\n" );
     resetTimeout();
     nextPoiState = POI_RECEIVING_DATA;
   }
@@ -188,9 +152,7 @@ void client_connect(){
 
 void client_disconnect(){
   client.stop();
-  if (logVerbose != MUTE){
-    Serial.println("Connection closed.");
-  }
+  if (logLevel != MUTE) Serial.println("Connection closed.");
 }
 
 void setup()
@@ -200,7 +162,7 @@ void setup()
   //  blink(5);
   delay(500);
   Serial.begin(115200);
-  if (logVerbose != MUTE)  {
+  if (logLevel != MUTE)  {
     Serial.println();
     Serial.println("Starting...");
   }
@@ -209,7 +171,7 @@ void setup()
   runner.setup();
 
   // init LEDs
-  if(ws2812_init(DATA_PIN, LED_WS2812B)&& logVerbose != MUTE){
+  if(ws2812_init(DATA_PIN, LED_WS2812B) && logLevel != MUTE){
     Serial.println("LED Pixel init error");
   }
   #if DEBUG_WS2812_DRIVER
@@ -220,13 +182,11 @@ void setup()
   #if DEBUG_WS2812_DRIVER
   dumpDebugBuffer(-1, ws2812_debugBuffer);
   #endif
-  if (logVerbose != MUTE){
-    Serial.println("Init LEDs complete");
-  }
+  if (logLevel != MUTE) Serial.println("Init LEDs complete");
   blink(2);
 
   // init timer
-  timer_init();
+  ptimer.init(ptimer_intr);
 }
 
 void print_cmd(){
@@ -239,28 +199,28 @@ void realize_cmd(){
     case 254:
     switch (cmd[1]){  // setAction
       case 0:
-      //runner.showCurrent();
+      runner.showCurrent();
       break;
 
       case 1:
-      runner.showFrame(cmd[2],cmd[3]);
+      runner.showStaticFrame(cmd[2], cmd[3], cmd[4], cmd[5]);
       break;
 
       case 2:  // black with options
-      if (cmd[2]==0) runner.displayOff();  // keep BlackSofort-Pixel
-      else runner.fadeToBlack();           // fadeToBlack
+      if (cmd[2]==0) runner.displayOff();
+      else runner.fadeToBlack(cmd[2], cmd[3]);
       break;
 
       case 3:
-      //runner.startProg(cmd[2],cmd[3],cmd[4],cmd[5]);
+      runner.startProg();
       break;
 
       case 4:
-      //runner.pauseProg();
+      runner.pauseProg();
       break;
 
       case 5:
-      //runner.resetProg((PoiProgram) cmd[2]);
+      runner.continueProg();
       break;
 
       case 6:
@@ -280,22 +240,18 @@ void realize_cmd(){
       break;
 
       case 10:
-      if (logVerbose != MUTE) {
-        Serial.println("Connection close command received.");
-      }
+      if (logLevel != MUTE)   Serial.println("Connection close command received.");
       client_disconnect();
       nextPoiState = POI_CLIENT_CONNECTING;
       return;
 
       case 11:
       // keep alive signal
-      if (logVerbose != MUTE) {
-        Serial.print("*");
-      }
+      if (logLevel != MUTE) Serial.print("*");
       break;
 
       default:
-        if (logVerbose != MUTE) {
+        if (logLevel != MUTE) {
           printf("Protocoll Error: Unknown command received: " );
           print_cmd();
         }
@@ -304,21 +260,11 @@ void realize_cmd(){
     break;
 
     case 253:  // define programs
-      // set unset commands bytes to 0
-      for (int i=cmdIndex+1; i<6; i++){
-        cmd[i] = 0;
-      }
-      runner.addToProgram(cmd);
+    runner.addCmdToProgram(cmd);
     break;
 
     case 252: // directly play scene
-    timer_disable();
     runner.playScene(cmd[1],cmd[2],cmd[3],cmd[4],cmd[5]);
-    if (logVerbose != MUTE) {
-      printf("Setting timer interval to %d ms\n", runner.getDelay());
-    }
-    timer_set_interval( runner.getDelay() );
-    timer_enable();
     break;
 
     // 0...200
@@ -355,17 +301,13 @@ void protocoll_receive_data(){
 
     // start byte detected
     if (c== 255) {
-      if (logVerbose == CHATTY){
-          printf("Start byte detected.\n");
-      }
+      if (logLevel == CHATTY) printf("Start byte detected.\n");
       protocoll_clean_cmd();
       resetTimeout();
     }
 
     else if (cmdIndex > 5){
-      if (logVerbose != MUTE) {
-        Serial.println("Protocol Error. More than 6 bytes transmitted.");
-      }
+      if (logLevel != MUTE) Serial.println("Protocol Error. More than 6 bytes transmitted.");
     }
 
     // command
@@ -400,9 +342,7 @@ void loop()
 
   // exit actions
   if (state_changed){
-    if (logVerbose != MUTE){
-      printf("State changed: %d -> %d\n", (poiState), (nextPoiState));
-    }
+    if (logLevel != MUTE) printf("State changed: %d -> %d\n", (poiState), (nextPoiState));
 
     switch(poiState){
       case POI_INIT:
@@ -447,9 +387,7 @@ void loop()
     case POI_CLIENT_CONNECTING:
     if (state_changed){
       resetTimeout();
-      if (logVerbose != MUTE) {
-        printf("Waiting for client...\n");
-      }
+      if (logLevel != MUTE) printf("Waiting for client...\n");
     }
     client_connect();
     break;
@@ -460,21 +398,21 @@ void loop()
     }
     protocoll_receive_data();
     if (protocoll_cmd_complete()){
-      if (logVerbose != MUTE){
-        if (logVerbose == CHATTY || ( !protocol_is_data() && !protocol_is_sendalive() )){
+      if (logLevel != MUTE){
+        if (logLevel == CHATTY || ( !protocol_is_data() && !protocol_is_sendalive() )){
           print_cmd();
         }
       }
 
       if (protocol_is_data()){
         // only print once
-        if (logVerbose != MUTE && !last_was_imgdata){
+        if (logLevel != MUTE && !loadingImgData){
           printf("Reading image data... \n");
         }
-        last_was_imgdata = true;
+        loadingImgData = true;
       }
       else {
-        last_was_imgdata = false;
+        loadingImgData = false;
       }
 
       // carry out and clean command
