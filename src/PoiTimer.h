@@ -6,9 +6,10 @@
 class PoiTimer
 {
 public:
-PoiTimer(void (*timer_intr_func)(int));
+PoiTimer();
 ~PoiTimer();
 
+void init(void (*timer_intr_func)(int));
 void setInterval(uint32_t intervalMs);
 void enable();
 void disable();

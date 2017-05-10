@@ -1,5 +1,8 @@
-void PoiTimer(void (*timer_intr_func)(int)){
-  _timer = timerBegin(3, 80, true);  // divider 80 = 1MHz
+void PoiTimer(){
+	 _timer = timerBegin(3, 80, true);  // divider 80 = 1MHz
+}
+
+void PoiTimer::init(void (*timer_intr_func)(int)){
   timerAttachInterrupt(_timer, timer_intr_func, true); // attach timer0_inter, edge type interrupt
 }
 	
