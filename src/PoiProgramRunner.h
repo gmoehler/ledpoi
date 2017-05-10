@@ -5,9 +5,9 @@
  * Class responsible for running the poi led program
  **/
 
-
 #include <Arduino.h>
 #include <ws2812.h>
+#include "PoiTimer.h"
 
 #define N_SCENES 1
 #define N_FRAMES 200
@@ -35,7 +35,7 @@ enum CmdType {  PROG_END,
 class PoiProgramRunner
 {
 public:
-  PoiProgramRunner(Verbosity logVerbose);
+  PoiProgramRunner(PoiTimer& ptimer, Verbosity logVerbose);
   // load image
   void setPixel(uint8_t scene_idx, uint8_t frame_idx, uint8_t pixel_idx, rgbVal pixel);
   rgbVal getPixel(uint8_t scene_idx, uint8_t frame_idx, uint8_t pixel_idx);
@@ -78,6 +78,7 @@ private:
   uint32_t _currentFrame;
   uint32_t _currentLoop;
 
+  PoiTimer _ptimer;
   volatile SemaphoreHandle_t _timerSemaphore;
   portMUX_TYPE _timerMux;
 

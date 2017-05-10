@@ -1,11 +1,13 @@
 #include "PoiProgramRunner.h"
 
-PoiProgramRunner::PoiProgramRunner(Verbosity logVerbose) :
+PoiProgramRunner::PoiProgramRunner(PoiTimer& ptimer, Verbosity logVerbose) :
     _currentProgram(NO_PROGRAM),
     _scene(0), _frame(0), _startFrame(0), _endFrame(0),
     _delayMs(5), _numLoops(1),
-    _currentFrame(0), _currentLoop(0), _logVerbose(logVerbose),
-    _duringProgramming(false), _numProgSteps(0), _currentProgStep(0)
+    _currentFrame(0), _currentLoop(0),
+    _ptimer(ptimer),
+    _duringProgramming(false), _numProgSteps(0), _currentProgStep(0),
+    _logVerbose(logVerbose)
     {}
 
 void PoiProgramRunner::setup(){
@@ -60,6 +62,9 @@ void PoiProgramRunner::playScene(uint8_t scene, uint8_t startFrame, uint8_t endF
   if (_logVerbose != MUTE) {
     printf("Playing Scene: %d frames: [%d,%d] delay: %d loops:%d \n", scene, startFrame, endFrame, speed, loops);
   }
+
+  uint32_t prevDelayMs = _delayMs;
+
   _currentProgram = PLAY_DIRECT;
   _scene = scene;
   _startFrame = startFrame;
@@ -69,6 +74,15 @@ void PoiProgramRunner::playScene(uint8_t scene, uint8_t startFrame, uint8_t endF
 
   _currentFrame = _startFrame;
   _currentLoop = 0;
+
+  if (prevDelayMs != _delayMs){
+    if (_logVerbose != MUTE) {
+      printf("Setting timer interval to %d ms\n", _delayMs);
+    }
+    _ptimer.disable();
+    _ptimer.setInterval( _delayMs );
+    _ptimer.enable();
+  }
 }
 
 void PoiProgramRunner::_evaluateCommand(uint8_t index) {
@@ -108,6 +122,7 @@ void PoiProgramRunner::startProg(){
 
   _currentProgram = PLAY_PROG;
   _currentProgStep = 0;
+  _ptimer.disable();
   _evaluateCommand(_currentProgStep);     // SET_SCENE
   _evaluateCommand(++_currentProgStep);   // PLAY_FRAMES
 
@@ -119,10 +134,18 @@ void PoiProgramRunner::startProg(){
   // everything is set to start things
   _currentFrame = _startFrame;
   _currentLoop = 0;
+
+  if (_logVerbose != MUTE) {
+    printf("Setting timer interval to %d ms\n", _delayMs);
+  }
+  _ptimer.disable();
+  _ptimer.setInterval( _delayMs );
+  _ptimer.enable();
 }
 
-
 void PoiProgramRunner::_nextProgramStep(){
+
+  uint32_t prevDelayMs = _delayMs;
 
   // read one more command if this one is SET_SCENE
   if (!_programFinished() && _getCommandType(_prog[_currentProgStep + 1]) == SET_SCENE){
@@ -135,6 +158,19 @@ void PoiProgramRunner::_nextProgramStep(){
 
   if (!_programFinished() && _getCommandType(_prog[_currentProgStep + 1]) == LOOP){
     _evaluateCommand(++_currentProgStep); // LOOP
+  }
+
+  // everything is set to start things
+  _currentFrame = _startFrame;
+  _currentLoop = 0;
+
+  if (prevDelayMs != _delayMs){
+    if (_logVerbose != MUTE) {
+      printf("Setting timer interval to %d ms\n", _delayMs);
+    }
+    _ptimer.disable();
+    _ptimer.setInterval( _delayMs );
+    _ptimer.enable();
   }
 }
 

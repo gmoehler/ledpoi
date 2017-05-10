@@ -31,8 +31,8 @@ IPAddress clientIP;
 PoiState poiState = POI_INIT;
 PoiState nextPoiState = poiState;
 
-PoiProgramRunner runner(logVerbose);
 PoiTimer ptimer;
+PoiProgramRunner runner(ptimer, logVerbose);
 
 uint32_t lastSignalTime = 0; // time when last wifi signal was received, for timeout
 char cmd[7];                 // command read from server
@@ -283,13 +283,7 @@ void realize_cmd(){
     break;
 
     case 252: // directly play scene
-    ptimer.disable();
     runner.playScene(cmd[1],cmd[2],cmd[3],cmd[4],cmd[5]);
-    if (logVerbose != MUTE) {
-      printf("Setting timer interval to %d ms\n", runner.getDelay());
-    }
-    ptimer.setInterval( runner.getDelay() );
-    ptimer.enable();
     break;
 
     // 0...200
