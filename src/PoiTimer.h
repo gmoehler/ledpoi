@@ -6,20 +6,24 @@
  **/
 
 #include <Arduino.h>
+#include "ledpoi.h"
 
 class PoiTimer
 {
 public:
-  PoiTimer();
+  PoiTimer(LogLevel logLevel);
   ~PoiTimer();
 
   void init(void (*timer_intr_func)());
-  void setInterval(uint32_t intervalMs);
-  void enable();
   void disable();
+  void setIntervalAndEnable(uint32_t intervalMs);
 
 private:
+  void _setInterval(uint32_t intervalMs);
+  void _enable();
+
   hw_timer_t *_timer;
+  LogLevel _logLevel;
 };
 
 #endif

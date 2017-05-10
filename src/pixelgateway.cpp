@@ -3,6 +3,7 @@
 #include <ws2812.h>
 #include <WiFi.h>
 #include "WiFiCredentials.h"
+#include "ledpoi.h"
 #include "PoiProgramRunner.h"
 #include "PoiTimer.h"
 
@@ -12,7 +13,7 @@ enum PoiState { POI_INIT,               // 0
                 POI_RECEIVING_DATA,     // 3
                 NUM_POI_STATES};        // only used for enum size
 
-Verbosity logVerbose = QUIET; // CHATTY, QUIET or MUTE
+LogLevel logLevel = QUIET; // CHATTY, QUIET or MUTE
 
 const int DATA_PIN = 23; // was 18 Avoid using any of the strapping pins on the ESP32
 const int LED_PIN = 2;
@@ -31,8 +32,8 @@ IPAddress clientIP;
 PoiState poiState = POI_INIT;
 PoiState nextPoiState = poiState;
 
-PoiTimer ptimer;
-PoiProgramRunner runner(ptimer, logVerbose);
+PoiTimer ptimer(logLevel);
+PoiProgramRunner runner(ptimer, logLevel);
 
 uint32_t lastSignalTime = 0; // time when last wifi signal was received, for timeout
 char cmd[7];                 // command read from server
@@ -83,7 +84,7 @@ void wifi_connect(){
   IPAddress gateway(192, 168, 1, 1);
   IPAddress subnet(255, 255, 255, 0);
 
-  if (logVerbose != MUTE){
+  if (logLevel != MUTE){
     Serial.println();
     Serial.print("Connecting to ");
     Serial.println(WIFI_SSID);
@@ -97,28 +98,22 @@ void wifi_connect(){
   WiFi.config(myIP,gateway,subnet);
    while (!connectedToWifi){
      WiFi.begin(WIFI_SSID, WIFI_PASS);
-     if (logVerbose != MUTE){
-       Serial.print("Connecting...");
-     }
+     if (logLevel != MUTE) Serial.print("Connecting...");
 
      while (WiFi.status() != WL_CONNECTED) {
        // Check to see if connecting failed.
        // This is due to incorrect credentials
        delay(500);
-       if (logVerbose != MUTE){
-         Serial.print(".");
-       }
+       if (logLevel != MUTE) Serial.print(".");
      }
      if (WiFi.status() == WL_CONNECT_FAILED) {
-       if (logVerbose != MUTE){
-        Serial.println("Connection Failed. Retrying...");
-       }
+       if (logLevel != MUTE) Serial.println("Connection Failed. Retrying...");
        blink(1);
      }
      else {
        blink(10);
        connectedToWifi=1;
-       if (logVerbose != MUTE) {
+       if (logLevel != MUTE) {
          Serial.println("Connected.");
          printWifiStatus();
        }
@@ -145,9 +140,7 @@ void client_connect(){
   client = server.available();
 
   if (client.connected()){
-    if (logVerbose != MUTE) {
-      printf("Client connected.\n" );
-    }
+    if (logLevel != MUTE) printf("Client connected.\n" );
     resetTimeout();
     nextPoiState = POI_RECEIVING_DATA;
   }
@@ -159,9 +152,7 @@ void client_connect(){
 
 void client_disconnect(){
   client.stop();
-  if (logVerbose != MUTE){
-    Serial.println("Connection closed.");
-  }
+  if (logLevel != MUTE) Serial.println("Connection closed.");
 }
 
 void setup()
@@ -171,7 +162,7 @@ void setup()
   //  blink(5);
   delay(500);
   Serial.begin(115200);
-  if (logVerbose != MUTE)  {
+  if (logLevel != MUTE)  {
     Serial.println();
     Serial.println("Starting...");
   }
@@ -180,7 +171,7 @@ void setup()
   runner.setup();
 
   // init LEDs
-  if(ws2812_init(DATA_PIN, LED_WS2812B)&& logVerbose != MUTE){
+  if(ws2812_init(DATA_PIN, LED_WS2812B) && logLevel != MUTE){
     Serial.println("LED Pixel init error");
   }
   #if DEBUG_WS2812_DRIVER
@@ -191,9 +182,7 @@ void setup()
   #if DEBUG_WS2812_DRIVER
   dumpDebugBuffer(-1, ws2812_debugBuffer);
   #endif
-  if (logVerbose != MUTE){
-    Serial.println("Init LEDs complete");
-  }
+  if (logLevel != MUTE) Serial.println("Init LEDs complete");
   blink(2);
 
   // init timer
@@ -251,22 +240,18 @@ void realize_cmd(){
       break;
 
       case 10:
-      if (logVerbose != MUTE) {
-        Serial.println("Connection close command received.");
-      }
+      if (logLevel != MUTE)   Serial.println("Connection close command received.");
       client_disconnect();
       nextPoiState = POI_CLIENT_CONNECTING;
       return;
 
       case 11:
       // keep alive signal
-      if (logVerbose != MUTE) {
-        Serial.print("*");
-      }
+      if (logLevel != MUTE) Serial.print("*");
       break;
 
       default:
-        if (logVerbose != MUTE) {
+        if (logLevel != MUTE) {
           printf("Protocoll Error: Unknown command received: " );
           print_cmd();
         }
@@ -275,11 +260,7 @@ void realize_cmd(){
     break;
 
     case 253:  // define programs
-      // set unset commands bytes to 0
-      for (int i=cmdIndex+1; i<6; i++){
-        cmd[i] = 0;
-      }
-      runner.addToProgram(cmd);
+    runner.addCmdToProgram(cmd);
     break;
 
     case 252: // directly play scene
@@ -320,17 +301,13 @@ void protocoll_receive_data(){
 
     // start byte detected
     if (c== 255) {
-      if (logVerbose == CHATTY){
-          printf("Start byte detected.\n");
-      }
+      if (logLevel == CHATTY) printf("Start byte detected.\n");
       protocoll_clean_cmd();
       resetTimeout();
     }
 
     else if (cmdIndex > 5){
-      if (logVerbose != MUTE) {
-        Serial.println("Protocol Error. More than 6 bytes transmitted.");
-      }
+      if (logLevel != MUTE) Serial.println("Protocol Error. More than 6 bytes transmitted.");
     }
 
     // command
@@ -365,9 +342,7 @@ void loop()
 
   // exit actions
   if (state_changed){
-    if (logVerbose != MUTE){
-      printf("State changed: %d -> %d\n", (poiState), (nextPoiState));
-    }
+    if (logLevel != MUTE) printf("State changed: %d -> %d\n", (poiState), (nextPoiState));
 
     switch(poiState){
       case POI_INIT:
@@ -412,9 +387,7 @@ void loop()
     case POI_CLIENT_CONNECTING:
     if (state_changed){
       resetTimeout();
-      if (logVerbose != MUTE) {
-        printf("Waiting for client...\n");
-      }
+      if (logLevel != MUTE) printf("Waiting for client...\n");
     }
     client_connect();
     break;
@@ -425,15 +398,15 @@ void loop()
     }
     protocoll_receive_data();
     if (protocoll_cmd_complete()){
-      if (logVerbose != MUTE){
-        if (logVerbose == CHATTY || ( !protocol_is_data() && !protocol_is_sendalive() )){
+      if (logLevel != MUTE){
+        if (logLevel == CHATTY || ( !protocol_is_data() && !protocol_is_sendalive() )){
           print_cmd();
         }
       }
 
       if (protocol_is_data()){
         // only print once
-        if (logVerbose != MUTE && !loadingImgData){
+        if (logLevel != MUTE && !loadingImgData){
           printf("Reading image data... \n");
         }
         loadingImgData = true;
