@@ -171,8 +171,8 @@ void setup()
   runner.setup();
 
   // init LEDs
-  if(ws2812_init(DATA_PIN, LED_WS2812B) && logLevel != MUTE){
-    Serial.println("LED Pixel init error");
+  if(ws2812_init(DATA_PIN, LED_WS2812B)){
+    Serial.println("LED Pixel init error.");
   }
   #if DEBUG_WS2812_DRIVER
   dumpDebugBuffer(-2, ws2812_debugBuffer);
@@ -206,9 +206,8 @@ void realize_cmd(){
       runner.showStaticFrame(cmd[2], cmd[3], cmd[4], cmd[5]);
       break;
 
-      case 2:  // black with options
-      if (cmd[2]==0) runner.displayOff();
-      else runner.fadeToBlack(cmd[2], cmd[3]);
+      case 2:  // (fade to) black
+      runner.fadeToBlack(cmd[2], cmd[3]);
       break;
 
       case 3:
@@ -240,7 +239,7 @@ void realize_cmd(){
       break;
 
       case 10:
-      if (logLevel != MUTE)   Serial.println("Connection close command received.");
+      if (logLevel != MUTE) Serial.println("Connection close command received.");
       client_disconnect();
       nextPoiState = POI_CLIENT_CONNECTING;
       return;
@@ -301,13 +300,13 @@ void protocoll_receive_data(){
 
     // start byte detected
     if (c== 255) {
-      if (logLevel == CHATTY) printf("Start byte detected.\n");
+      if (logLevel != MUTE && !loadingImgData) Serial.print("*");
       protocoll_clean_cmd();
       resetTimeout();
     }
 
     else if (cmdIndex > 5){
-      if (logLevel != MUTE) Serial.println("Protocol Error. More than 6 bytes transmitted.");
+      Serial.println("Protocol Error. More than 6 bytes transmitted.");
     }
 
     // command
