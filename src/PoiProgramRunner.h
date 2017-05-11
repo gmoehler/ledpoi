@@ -40,26 +40,27 @@ class PoiProgramRunner
 {
 public:
   PoiProgramRunner(PoiTimer& ptimer, LogLevel logLevel);
+
   // load image
   void setPixel(uint8_t scene_idx, uint8_t frame_idx, uint8_t pixel_idx, rgbVal pixel);
 
-  // simple play methods
+  // action methods
   void playScene(uint8_t scene, uint8_t frameStart,uint8_t frameEnd, uint8_t speed, uint8_t loops);
   void showStaticFrame(uint8_t scene, uint8_t frame, uint8_t timeOutMSB, uint8_t timeOutLSB);
-  void displayOff();
   void showStaticRgb(uint8_t r, uint8_t g, uint8_t b);
-
-  void showCurrent();
+  void displayOff();
   void fadeToBlack(uint8_t fadeMSB, uint8_t fadeLSB);
+  void showCurrent();
 
+  // program related methods
   void addCmdToProgram(char cmd[7]);
   void startProg();
   void pauseProg();
   void continueProg();
   void saveProg();
 
-  void setup();         // to be called in setup()
-  void loop();          // to be called in the loop
+  void setup();             // to be called in setup()
+  void loop();               // to be called in the loop
   void onInterrupt();   // to be called during the timer interrupt
 
 private:
@@ -76,7 +77,6 @@ private:
   uint32_t _currentFrame;
   uint32_t _currentLoop;
   uint16_t _currentFadeStep;
-  bool _duringProgramming;
 
   // data stores
   rgbVal _pixelRegister[N_PIXELS]; // for temps and static actions
@@ -102,16 +102,16 @@ private:
   CmdType _getCommandType(uint8_t cmd[6]);
   void _evaluateCommand(uint8_t index);
 
-  // member variables
-  PoiTimer _ptimer;
-  volatile SemaphoreHandle_t _timerSemaphore;
-  portMUX_TYPE _timerMux;
-
-  // programming member variables
+  // program handling member variables
+  bool _duringProgramming;
   uint8_t _numProgSteps;
   uint8_t _currentProgStep;
   uint8_t _prog[N_PROG_STEPS][6];
-
+  
+  // other member variables
+  PoiTimer _ptimer;
+  volatile SemaphoreHandle_t _timerSemaphore;
+  portMUX_TYPE _timerMux;
   LogLevel _logLevel;
 };
 

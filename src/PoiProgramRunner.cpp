@@ -45,7 +45,6 @@ void PoiProgramRunner::_fillMap(rgbVal rgb){
   }
 }
 
-
 void PoiProgramRunner::_copyFrameToRegister(uint8_t scene_idx, uint8_t frame_idx, double factor){
   for (int i = 0; i < N_PIXELS; i++) {
     rgbVal rgb = _getPixel(scene_idx, frame_idx, i);
@@ -140,21 +139,24 @@ void PoiProgramRunner::displayOff() {
 }
 
 void PoiProgramRunner::fadeToBlack(uint8_t fadeMSB, uint8_t fadeLSB){
-  _currentFadeStep = 0; // will iterate this one up to N_FADE_STEPS
+ 
+  uint16_t fadeTime = fadeMSB << 8 + fadeLSB;
+  if (fadeTime == 0){
+  	displayOff();
+      return;
+  }
 
   _currentAction = FADE_TO_BLACK;
-  // dont touch _scene, _startFrame, _endFrame and _numLoops
-  uint16_t fadeTime = fadeMSB << 8 + fadeLSB;
   _delayMs = fadeTime / N_FADE_STEPS;
+  // dont touch _scene, _startFrame, _endFrame and _numLoops
+ _currentFadeStep = 0; // will iterate this one up to N_FADE_STEPS
 
   // start with current frame
   _copyCurrentFrameToRegister();
 
   _ptimer.disable();
   _displayRegister();
-  if (_delayMs > 0){
-    _ptimer.setIntervalAndEnable( _delayMs );
-  }
+  _ptimer.setIntervalAndEnable( _delayMs );
 }
 
 void PoiProgramRunner::showCurrent(){
@@ -338,47 +340,59 @@ void PoiProgramRunner::loop(){
   if (xSemaphoreTake(_timerSemaphore, 0) == pdTRUE){
     switch(_currentAction){
 
-      case PLAY_PROG:
-        _checkProgram();
-        // continue below - no break
       case PLAY_DIRECT:
-      case SHOW_STATIC_FRAME:
-
       _currentFrame++;
 
-      // end of frame reached
       if (_currentFrame > _endFrame){
+        // end of scene reached
         _currentLoop++;
 
-        // end of final loop reached
-        if (_currentLoop > _numLoops){
-          if (_currentAction == PLAY_PROG){
-            if (_logLevel != MUTE) printf("Reading next program step.\n");
-            _nextProgramStep();
-
-            if (_programFinished()) {
-              _currentAction = NO_PROGRAM;
-              if (_logLevel != MUTE) printf("End of program PLAY_PROG.\n");
-              return;
-            }
-          }
-          else {
-            _currentAction = NO_PROGRAM;
-            if (_logLevel != MUTE) printf("End of program PLAY_DIRECT.\n");
-          }
+        if (_currentLoop >= _numLoops){
+          // end of final loop reached
+          _currentAction = NO_PROGRAM;
+          if (_logLevel != MUTE) printf("PLAY_DIRECT: End of program reached.\n");
           return;
         }
 
-        // just continue to loop
+        // next loop starts
         _currentFrame = _startFrame;
       }
-
       _displayCurrentFrame();
+      break;
+
+      case PLAY_PROG:
+      _checkProgram();
+      _currentFrame++;
+
+      if (_currentFrame > _endFrame){
+        // end of frame reached
+        _currentLoop++;
+
+        if (_currentLoop >= _numLoops){
+          // end of final loop reached
+          if (_logLevel != MUTE) printf("PLAY_PROG: Reading next program step.\n");
+          _nextProgramStep();
+
+          if (_programFinished()) {
+            _currentAction = NO_PROGRAM;
+            if (_logLevel != MUTE) printf("PLAY_PROG: End of program reached.\n");
+          }
+          return;
+        }
+      }
+      _displayCurrentFrame();
+      break;
+
+      case SHOW_STATIC_FRAME:
+      // reached timeout
+      _currentAction = NO_PROGRAM;
+      if (_logLevel != MUTE) printf("Timeout of SHOW_STATIC_FRAME reached.\n");
       break;
 
       case FADE_TO_BLACK:
       _currentFadeStep++;
-      if (_currentFadeStep >= N_FADE_STEPS){
+      if (_currentFadeStep > N_FADE_STEPS){
+        // finished fading
         _currentAction = NO_PROGRAM;
         if (_logLevel != MUTE) printf("End of program FADE_TO_BLACK.\n");
         return;
