@@ -19,7 +19,8 @@ void PoiTimer::_setInterval(uint32_t intervalMs){
 	if (_logLevel != MUTE) {
 		printf("Setting timer interval to %d ms\n", intervalMs);
 	}
-  timerAlarmWrite(_timer, 1000 * intervalMs, true); // Alarm every intervalMs milli secs, auto-reload
+  // Alarm every intervalMs milli secs, auto-reload
+  timerAlarmWrite(_timer, 1000 * intervalMs, true); 
 }
 
 void PoiTimer::_enable(){
@@ -27,10 +28,10 @@ void PoiTimer::_enable(){
 }
 
 void PoiTimer::disable(){
-  //timerDetachInterrupt(_timer);
   timerAlarmDisable(_timer);
 }
 
 PoiTimer::~PoiTimer(){
+  //timerDetachInterrupt(_timer);
   timerEnd(_timer);
 }
