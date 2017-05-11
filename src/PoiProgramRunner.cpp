@@ -3,7 +3,7 @@
 PoiProgramRunner::PoiProgramRunner(PoiTimer& ptimer, LogLevel logLevel) :
     _currentAction(NO_PROGRAM),
     _scene(0), _startFrame(0), _endFrame(0),
-    _delayMs(0), _numLoops(1),
+    _delayMs(0), _numLoops(1), _numFadeSteps(N_FADE_STEPS_DEFAULT),
     _currentFrame(0), _currentLoop(0), _currentFadeStep(0),
     _ptimer(ptimer),
     _duringProgramming(false), _numProgSteps(0), _currentProgStep(0),
@@ -45,7 +45,7 @@ void PoiProgramRunner::_fillMap(rgbVal rgb){
   }
 }
 
-void PoiProgramRunner::_copyFrameToRegister(uint8_t scene_idx, uint8_t frame_idx, double factor){
+void PoiProgramRunner::_copyFrameToRegister(uint8_t scene_idx, uint8_t frame_idx, float factor){
   for (int i = 0; i < N_PIXELS; i++) {
     rgbVal rgb = _getPixel(scene_idx, frame_idx, i);
     if (factor == 1){
@@ -91,7 +91,7 @@ void PoiProgramRunner::showStaticFrame(uint8_t scene, uint8_t frame, uint8_t tim
   _scene          = constrain(scene,0,N_SCENES-1);
   _startFrame     = constrain(frame,0,N_FRAMES-1);
   _endFrame       = constrain(frame,0,N_FRAMES-1);
-  _delayMs        = timeOutMSB << 8 + timeOutLSB;
+  _delayMs        =  (uint16_t)timeOutMSB *256 + timeOutLSB;
   _numLoops       = 1;
 
   if (_logLevel != MUTE) printf("Playing static frame: scene %d frame: %d timeout: %d\n", _scene, _startFrame, _delayMs);
@@ -139,17 +139,24 @@ void PoiProgramRunner::displayOff() {
 }
 
 void PoiProgramRunner::fadeToBlack(uint8_t fadeMSB, uint8_t fadeLSB){
- 
-  uint16_t fadeTime = fadeMSB << 8 + fadeLSB;
-  if (fadeTime == 0){
+
+  uint16_t fadeTime = (uint16_t)fadeMSB * 256 + fadeLSB;
+
+  if (fadeTime < MIN_FADE_TIME){
   	displayOff();
       return;
   }
 
   _currentAction = FADE_TO_BLACK;
-  _delayMs = fadeTime / N_FADE_STEPS;
+  _numFadeSteps = N_FADE_STEPS_DEFAULT;
+  _delayMs = fadeTime / _numFadeSteps;
+  if (_delayMs < MIN_FADE_TIME){
+    _delayMs = MIN_FADE_TIME;
+    _numFadeSteps = fadeTime / _delayMs;
+  }
+  if (_logLevel != MUTE) printf("Fade to black - fade time: %ld fade-steps: %d.\n", fadeTime, _numFadeSteps);
   // dont touch _scene, _startFrame, _endFrame and _numLoops
- _currentFadeStep = 0; // will iterate this one up to N_FADE_STEPS
+ _currentFadeStep = 0; // will iterate this one up to _numFadeSteps
 
   // start with current frame
   _copyCurrentFrameToRegister();
@@ -179,20 +186,21 @@ CmdType PoiProgramRunner::_getCommandType(uint8_t cmd[6]){
 
 void PoiProgramRunner::addCmdToProgram(char cmd[7]){
 
-  if (_numProgSteps > N_PROG_STEPS){
+  if (_numProgSteps >= N_PROG_STEPS){
     printf("Error. Number of programming steps exceeds maximum (%d).\n", N_PROG_STEPS);
     // reset current program
     _clearProgram();
   }
 
   if ((CmdType) cmd[1] == PROG_END){
+    if (_logLevel != MUTE) printf("Program loaded: %d lines.\n", _numProgSteps);
     // finished programming
     _duringProgramming = false;
     return;
   }
 
   if (!_duringProgramming) {
-    printf("Starting to read a program...\n" );
+    if (_logLevel != MUTE) printf("Starting to read a program...\n" );
     _duringProgramming = true;
     _numProgSteps = 0;
   }
@@ -206,6 +214,8 @@ void PoiProgramRunner::addCmdToProgram(char cmd[7]){
 
 void PoiProgramRunner::_evaluateCommand(uint8_t index) {
 
+  if (_logLevel != MUTE) printf("Evaluating program line %d...\n", index);
+
   uint8_t* cmd = _prog[index];
   switch(_getCommandType(cmd)) {
 
@@ -217,12 +227,12 @@ void PoiProgramRunner::_evaluateCommand(uint8_t index) {
     case PLAY_FRAMES:
     _startFrame = constrain(cmd[1],0,N_FRAMES-1);
     _endFrame = constrain(cmd[2],0,N_FRAMES-1);
-    _delayMs =  (cmd[3] << 8) + cmd[4];
+    _delayMs =   (uint16_t)cmd[3] * 256 + cmd[4];
     _numLoops = 1;
     break;
 
     case LOOP:
-    _numLoops = (cmd[1] << 8) + cmd[2];
+    _numLoops = (uint16_t)cmd[1] * 256 + cmd[2];
     break;
 
     default:
@@ -251,6 +261,9 @@ void PoiProgramRunner::startProg(){
       || _getCommandType(_prog[_currentProgStep + 1]) == LOOP){
     _evaluateCommand(++_currentProgStep); // LOOP
   }
+
+  if (_logLevel != MUTE) printf("Starting program: scene %d frameStart: %d frameEnd: %d delay: %d loops: %d\n", _scene, _startFrame, _endFrame, _delayMs, _numLoops);
+
 
   // everything is set to start things
   _currentFrame = _startFrame;
@@ -288,6 +301,7 @@ void PoiProgramRunner::_nextProgramStep(){
 
 void PoiProgramRunner::pauseProg(){
   _currentAction = PAUSE_PROG;
+  if (_logLevel != MUTE) printf("Program paused.\n" );
 }
 
 void PoiProgramRunner::saveProg(){
@@ -296,6 +310,7 @@ void PoiProgramRunner::saveProg(){
 
 void PoiProgramRunner::continueProg() {
   _currentAction = PLAY_PROG;
+  if (_logLevel != MUTE) printf("Program continuing.\n" );
 }
 
 bool PoiProgramRunner::_checkProgram(){
@@ -322,20 +337,16 @@ void PoiProgramRunner::_clearProgram(){
 // no printf in interrupt!
 void PoiProgramRunner::onInterrupt(){
 
-  switch(_currentAction){
-    case PLAY_DIRECT:
-    case PLAY_PROG:
+  if (_currentAction != NO_PROGRAM){
     //Serial.println("play scene  - Next frame");
     // Give a semaphore that we can check in the loop
     xSemaphoreGiveFromISR(_timerSemaphore, NULL);
-    break;
-
-    default:
-    break;
   }
 }
 
 void PoiProgramRunner::loop(){
+
+  float factor = 1;
 
   if (xSemaphoreTake(_timerSemaphore, 0) == pdTRUE){
     switch(_currentAction){
@@ -351,7 +362,7 @@ void PoiProgramRunner::loop(){
           // end of final loop reached
           _currentAction = NO_PROGRAM;
           if (_logLevel != MUTE) printf("PLAY_DIRECT: End of program reached.\n");
-          return;
+          break;
         }
 
         // next loop starts
@@ -361,24 +372,31 @@ void PoiProgramRunner::loop(){
       break;
 
       case PLAY_PROG:
-      _checkProgram();
+      if (!_checkProgram()){
+        break;
+      }
       _currentFrame++;
 
       if (_currentFrame > _endFrame){
         // end of frame reached
         _currentLoop++;
+        if (_logLevel != MUTE) Serial.print(">");
 
         if (_currentLoop >= _numLoops){
           // end of final loop reached
-          if (_logLevel != MUTE) printf("PLAY_PROG: Reading next program step.\n");
-          _nextProgramStep();
-
           if (_programFinished()) {
             _currentAction = NO_PROGRAM;
             if (_logLevel != MUTE) printf("PLAY_PROG: End of program reached.\n");
+            break;
           }
-          return;
+
+          if (_logLevel != MUTE) printf("PLAY_PROG: Reading next program step.\n");
+          _nextProgramStep();
+          break;
         }
+
+        // next loop starts
+        _currentFrame = _startFrame;
       }
       _displayCurrentFrame();
       break;
@@ -391,13 +409,14 @@ void PoiProgramRunner::loop(){
 
       case FADE_TO_BLACK:
       _currentFadeStep++;
-      if (_currentFadeStep > N_FADE_STEPS){
+      if (_currentFadeStep > _numFadeSteps){
         // finished fading
         _currentAction = NO_PROGRAM;
         if (_logLevel != MUTE) printf("End of program FADE_TO_BLACK.\n");
-        return;
+        break;
       }
-      _copyCurrentFrameToRegister(((double)(N_FADE_STEPS - _currentFadeStep)) / N_FADE_STEPS);
+      factor = (float)(_numFadeSteps - _currentFadeStep) / _numFadeSteps;
+      _copyCurrentFrameToRegister(factor);
       _displayRegister();
       break;
 

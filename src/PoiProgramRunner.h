@@ -15,7 +15,8 @@
 #define N_PIXELS 60
 
 #define N_PROG_STEPS 50
-#define N_FADE_STEPS 50
+#define N_FADE_STEPS_DEFAULT 50
+#define MIN_FADE_TIME 20
 
 enum PoiAction { NO_PROGRAM,
                   SHOW_STATIC_RGB,
@@ -70,8 +71,9 @@ private:
   uint8_t _scene;
   uint8_t _startFrame;
   uint8_t _endFrame;
-  volatile uint16_t _delayMs;
+  uint16_t _delayMs;
   uint8_t _numLoops;
+  uint8_t _numFadeSteps;
 
   // member variables holding the current state of the action
   uint32_t _currentFrame;
@@ -84,7 +86,7 @@ private:
 
   // access functions
   rgbVal _getPixel(uint8_t scene_idx, uint8_t frame_idx, uint8_t pixel_idx);
-  void _copyFrameToRegister(uint8_t scene_idx, uint8_t frame_idx, double factor=1);
+  void _copyFrameToRegister(uint8_t scene_idx, uint8_t frame_idx, float factor=1);
   void _copyCurrentFrameToRegister(double factor=1);
   void _fillRegister(rgbVal rgb);
   void _fillMap(rgbVal rgb);
@@ -107,7 +109,7 @@ private:
   uint8_t _numProgSteps;
   uint8_t _currentProgStep;
   uint8_t _prog[N_PROG_STEPS][6];
-  
+
   // other member variables
   PoiTimer _ptimer;
   volatile SemaphoreHandle_t _timerSemaphore;
