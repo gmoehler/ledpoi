@@ -6,7 +6,8 @@ PoiProgramRunner::PoiProgramRunner(PoiTimer& ptimer, LogLevel logLevel) :
     _delayMs(0), _numLoops(1), _numFadeSteps(N_FADE_STEPS_DEFAULT),
     _currentFrame(0), _currentLoop(0), _currentFadeStep(0),
     _ptimer(ptimer),
-    _duringProgramming(false), _numProgSteps(0), _currentProgStep(0),
+    _duringProgramming(false), _inLoop(false),_numProgSteps(0),
+    _currentProgStep(0),
     _logLevel(logLevel)
     {
       // initialize map and register
@@ -77,9 +78,9 @@ void PoiProgramRunner::_displayCurrentFrame(){
   _displayFrame(_scene, _currentFrame);
 }
 
-/**********************
-  * External methods *
-  *********************/
+/****************************
+  * External action methods *
+  ***************************/
 
 void PoiProgramRunner::setPixel(uint8_t scene_idx, uint8_t frame_idx, uint8_t pixel_idx, rgbVal pixel){
   _pixelMap[constrain(scene_idx,0,N_SCENES-1)][constrain(frame_idx,0,N_FRAMES-1)][constrain(pixel_idx,0,N_PIXELS-1)] = pixel;
@@ -193,7 +194,10 @@ void PoiProgramRunner::addCmdToProgram(char cmd[7]){
   }
 
   if ((CmdType) cmd[1] == PROG_END){
-    if (_logLevel != MUTE) printf("Program loaded: %d lines.\n", _numProgSteps);
+    if (_logLevel != MUTE) {
+      printf("Program loaded: %d cmds, %d labels, %d sync points.\n",
+        _numProgSteps, _labelMap.size(), _syncMap.size());
+    }
     // finished programming
     _duringProgramming = false;
     return;
@@ -205,11 +209,43 @@ void PoiProgramRunner::addCmdToProgram(char cmd[7]){
     _numProgSteps = 0;
   }
 
+  if ((CmdType) cmd[1] == LABEL){
+    // keep labels separate in a map along with (next) cmd number
+    if (cmd[2] != 0) {
+      _labelMap[cmd[2]] = _numProgSteps;
+    }
+    else {
+      printf("Error. Label code cannot be zero.\n" );
+    }
+    if (cmd[3] != 0) {
+      _syncMap[cmd[3]] = _numProgSteps;
+    }
+  }
+
+  // add cmd to program memory
   _prog[_numProgSteps][0] = (CmdType) cmd[1];
   for (int i=2; i<7; i++){
     _prog[_numProgSteps][i-1] = (uint8_t) cmd[i];
   }
+
+
   _numProgSteps++;
+}
+
+bool PoiProgramRunner::jumpToLabel(uint8_t label){
+  if (label == 0){
+      printf("Error. Loop jump label 0 not allowed.\n");
+      return false;
+  }
+
+  std::map<uint8_t,uint8_t>::iterator it = _labelMap.find(label);
+  if (it != _labelMap.end()) {
+    _currentProgStep = it->second;
+    return true;
+  }
+
+  printf("Error. Loop jump label %d not found.\n", label);
+  return false;
 }
 
 void PoiProgramRunner::_evaluateCommand(uint8_t index) {
@@ -228,11 +264,36 @@ void PoiProgramRunner::_evaluateCommand(uint8_t index) {
     _startFrame = constrain(cmd[1],0,N_FRAMES-1);
     _endFrame = constrain(cmd[2],0,N_FRAMES-1);
     _delayMs =   (uint16_t)cmd[3] * 256 + cmd[4];
+    if (_delayMs == 0) _delayMs = 100; // default
     _numLoops = 1;
     break;
 
     case LOOP:
+    if (_inLoop){
+      _currentLoop++;
+      printf("Loop current loop:%d.\n",_currentLoop );
+      if (_currentLoop + 1 >= _numLoops){
+        printf("Loop finished.\n" );
+        _inLoop = false;
+        break;
+      }
+
+      // jump to label
+      if (!jumpToLabel(cmd[3])){
+        printf("Loop aborded.\n" );
+        _inLoop = false;
+      }
+      // continue whether it was successfull or not
+      break;
+    }
+    // first time hit
     _numLoops = (uint16_t)cmd[1] * 256 + cmd[2];
+    printf("Loop numLoops:%d.\n",_numLoops );
+    _inLoop = true;
+    if (!jumpToLabel(cmd[3])){
+      printf("Loop aborded.\n" );
+      _inLoop = false;
+    }
     break;
 
     default:
@@ -242,51 +303,28 @@ void PoiProgramRunner::_evaluateCommand(uint8_t index) {
 
 void PoiProgramRunner::startProg(){
 
-  if (_numProgSteps < 2
-    || _getCommandType(_prog[0]) != SET_SCENE
-    || _getCommandType(_prog[1]) != PLAY_FRAMES){
-    printf("Error. Program does not start with initial scene and play.\n" );
-    _clearProgram();
-    return;
-  }
-
   _currentAction = PLAY_PROG;
   _currentProgStep = 0;
 
-  _ptimer.disable();
-  _evaluateCommand(_currentProgStep);     // SET_SCENE
-  _evaluateCommand(++_currentProgStep);   // PLAY_FRAMES
-
-  if (_numProgSteps > _currentProgStep + 1
-      || _getCommandType(_prog[_currentProgStep + 1]) == LOOP){
-    _evaluateCommand(++_currentProgStep); // LOOP
-  }
-
+  _nextProgramStep();
   if (_logLevel != MUTE) printf("Starting program: scene %d frameStart: %d frameEnd: %d delay: %d loops: %d\n", _scene, _startFrame, _endFrame, _delayMs, _numLoops);
-
-
-  // everything is set to start things
-  _currentFrame = _startFrame;
-  _currentLoop = 0;
 
   // play frame right away (timer will switch it off again)
   _displayCurrentFrame();
-  _ptimer.setIntervalAndEnable( _delayMs );
 }
 
 void PoiProgramRunner::_nextProgramStep(){
 
-  // read one more command if this one is SET_SCENE
-  if (!_programFinished() && _getCommandType(_prog[_currentProgStep + 1]) == SET_SCENE){
-    _evaluateCommand(++_currentProgStep); // SET_SCENE
-  }
+  bool startProcessing = false;
 
-  if (!_programFinished()){
+  while (!startProcessing && !_programFinished()){
+
     _evaluateCommand(++_currentProgStep);
-  }
 
-  if (!_programFinished() && _getCommandType(_prog[_currentProgStep + 1]) == LOOP){
-    _evaluateCommand(++_currentProgStep); // LOOP
+    // only play command actually needs processing
+    if (_getCommandType(_prog[_currentProgStep]) == PLAY_FRAMES){
+      startProcessing = true;
+    }
   }
 
   // everything is set to start things
@@ -327,7 +365,10 @@ bool PoiProgramRunner::_checkProgram(){
 
 void PoiProgramRunner::_clearProgram(){
   _duringProgramming = false;
+  _inLoop = false;
   _numProgSteps = 0;
+  _labelMap.clear();
+  _syncMap.clear();
 }
 
 /*******************************
@@ -376,27 +417,16 @@ void PoiProgramRunner::loop(){
         break;
       }
       _currentFrame++;
-
       if (_currentFrame > _endFrame){
         // end of frame reached
-        _currentLoop++;
-        if (_logLevel != MUTE) Serial.print(">");
-
-        if (_currentLoop >= _numLoops){
-          // end of final loop reached
-          if (_programFinished()) {
-            _currentAction = NO_PROGRAM;
-            if (_logLevel != MUTE) printf("PLAY_PROG: End of program reached.\n");
-            break;
-          }
-
-          if (_logLevel != MUTE) printf("PLAY_PROG: Reading next program step.\n");
-          _nextProgramStep();
+        if (_programFinished()) {
+          _currentAction = NO_PROGRAM;
+          if (_logLevel != MUTE) printf("PLAY_PROG: End of program reached.\n");
           break;
         }
-
-        // next loop starts
-        _currentFrame = _startFrame;
+        if (_logLevel != MUTE) printf("PLAY_PROG: Reading next program step.\n");
+        _nextProgramStep();
+        break;
       }
       _displayCurrentFrame();
       break;
