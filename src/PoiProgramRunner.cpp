@@ -205,6 +205,7 @@ void PoiProgramRunner::addCmdToProgram(char cmd[7]){
 
   if (!_duringProgramming) {
     if (_logLevel != MUTE) printf("Starting to read a program...\n" );
+    _clearProgram();
     _duringProgramming = true;
     _numProgSteps = 0;
   }
@@ -273,14 +274,14 @@ void PoiProgramRunner::_evaluateCommand(uint8_t index) {
       _currentLoop++;
       printf("Loop current loop:%d.\n",_currentLoop );
       if (_currentLoop + 1 >= _numLoops){
-        printf("Loop finished.\n" );
+        if (_logLevel != MUTE) printf("Loop finished.\n" );
         _inLoop = false;
         break;
       }
 
       // jump to label
       if (!jumpToLabel(cmd[3])){
-        printf("Loop aborded.\n" );
+        printf("Error. Loop aborded.\n" );
         _inLoop = false;
       }
       // continue whether it was successfull or not
@@ -288,10 +289,10 @@ void PoiProgramRunner::_evaluateCommand(uint8_t index) {
     }
     // first time hit
     _numLoops = (uint16_t)cmd[1] * 256 + cmd[2];
-    printf("Loop numLoops:%d.\n",_numLoops );
+    if (_logLevel != MUTE) printf("Loop numLoops:%d.\n",_numLoops );
     _inLoop = true;
     if (!jumpToLabel(cmd[3])){
-      printf("Loop aborded.\n" );
+      printf("Error. Loop aborded.\n" );
       _inLoop = false;
     }
     break;
