@@ -244,11 +244,6 @@ void realize_cmd(){
       nextPoiState = POI_CLIENT_CONNECTING;
       return;
 
-      case 11:
-      // keep alive signal
-      if (logLevel != MUTE) Serial.print("*");
-      break;
-
       default:
         if (logLevel != MUTE) {
           printf("Protocoll Error: Unknown command received: " );

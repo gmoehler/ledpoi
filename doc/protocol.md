@@ -20,7 +20,6 @@ Byte[n] may not contain any 0xFF!
 ||setIP||8|IP1|IP2|IP3|IP4||0.0.0.0: use DHCP|
 ||setGW||9|GW1|GW2|GW3|GW4|||
 ||clientDisconnect||10|||||done|ask poi (server) to disconnect from PC (client)|
-||keepAlive||11|||||done|do nothing|
 |**setProg**||**253**|function|||||||
 ||ProgramEnd||0|||||(done)|End of program|
 ||setActiveScene||1|scene|frame (opt)|||(done)||
