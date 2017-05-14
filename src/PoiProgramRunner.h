@@ -1,20 +1,16 @@
 #ifndef POI_PROGRAM_H
 #define POI_PROGRAM_H
 
-/**
- * Class responsible for running the poi led program
- **/
 
 #include <Arduino.h>
 #include <ws2812.h>
 #include <map>
 #include "ledpoi.h"
 #include "PoiTimer.h"
+#include "FramePlayer.h"
+#include "FrameFader.h"
 
-#define N_SCENES 1
-#define N_FRAMES 200
-#define N_PIXELS 60
-
+#define N_REGISTERS 2
 #define N_PROG_STEPS 50
 #define N_FADE_STEPS_DEFAULT 50
 #define MIN_FADE_TIME 20
@@ -37,6 +33,12 @@ enum CmdType {  PROG_END,
                 LOOP,
                 LABEL
               };
+
+/**
+ * Class responsible for running the poi led program
+ * After each action the last frame is always copied to Register 0
+ **/
+
 
 class PoiProgramRunner
 {
@@ -68,6 +70,10 @@ public:
 private:
   PoiAction _currentAction;
 
+  // states for the different programs
+  FramePlayer _framePlayer;
+  FrameFader _frameFader;
+
   // member variables set by the actions
   uint8_t _scene;
   uint8_t _startFrame;
@@ -82,20 +88,21 @@ private:
   uint16_t _currentFadeStep;
 
   // data stores
-  rgbVal _pixelRegister[N_PIXELS]; // for temps and static actions
+  rgbVal _pixelRegister[2][N_PIXELS]; // for temps and static actions
   rgbVal _pixelMap[N_SCENES][N_FRAMES][N_PIXELS];
 
   // access functions
   rgbVal _getPixel(uint8_t scene_idx, uint8_t frame_idx, uint8_t pixel_idx);
-  void _copyFrameToRegister(uint8_t scene_idx, uint8_t frame_idx, float factor=1);
-  void _copyCurrentFrameToRegister(double factor=1);
-  void _fillRegister(rgbVal rgb);
+  void _copyFrameToRegister(uint8_t registerId, uint8_t scene_idx, uint8_t frame_idx, float factor=1);
+  void _copyRegisterToRegister(uint8_t registerId1, uint8_t registerId2, float factor=1);
+  void _copyCurrentFrameToRegister(uint8_t registerId1, double factor=1);
+  void _fillRegister(uint8_t register Id, rgbVal rgb);
   void _fillMap(rgbVal rgb);
 
   // display functions
   void _displayFrame(uint8_t scene, uint8_t frame);
   void _displayCurrentFrame();
-  void _displayRegister();
+  void _displayRegister(uint8_t register Id);
 
   // program handling functions
   bool _checkProgram();

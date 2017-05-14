@@ -13,7 +13,9 @@ PoiProgramRunner::PoiProgramRunner(PoiTimer& ptimer, LogLevel logLevel) :
       // initialize map and register
       if (_logLevel != MUTE) printf("Initializing image map and register.\n" );
       rgbVal black = makeRGBVal(0,0,0);
-      _fillRegister(black);
+      for (int i= 0; i< N_REGISTERS; i++){
+        _fillRegister(i, black);
+      }
       _fillMap(black);
     }
 
@@ -30,9 +32,13 @@ rgbVal PoiProgramRunner::_getPixel(uint8_t scene_idx, uint8_t frame_idx, uint8_t
   return _pixelMap[constrain(scene_idx,0,N_SCENES-1)][constrain(frame_idx,0,N_FRAMES-1)][constrain(pixel_idx,0,N_PIXELS-1)];
 }
 
-void PoiProgramRunner::_fillRegister(rgbVal rgb){
+void PoiProgramRunner::_fillRegister(uint8_t registerId, rgbVal rgb){
+  if (registerId +1 > N_REGISTERS){
+    printf("Error. Register %d does not exist\n", registerId);
+    return;
+  }
   for (int i = 0; i < N_PIXELS; i++) {
-    _pixelRegister[i] = rgb;
+    _pixelRegister[registerId][i] = rgb;
   }
 }
 
@@ -46,26 +52,57 @@ void PoiProgramRunner::_fillMap(rgbVal rgb){
   }
 }
 
-void PoiProgramRunner::_copyFrameToRegister(uint8_t scene_idx, uint8_t frame_idx, float factor){
+void PoiProgramRunner::_copyFrameToRegister(uint8_t registerId, uint8_t scene_idx, uint8_t frame_idx, float factor){
+  if (registerId +1 > N_REGISTERS){
+    printf("Error. Register %d does not exist\n", registerId);
+    return;
+  }
+
   for (int i = 0; i < N_PIXELS; i++) {
     rgbVal rgb = _getPixel(scene_idx, frame_idx, i);
     if (factor == 1){
-      _pixelRegister[i] = rgb;
+      _pixelRegister[registerId][i] = rgb;
     }
     else {
-      _pixelRegister[i] =  makeRGBVal(  ((double)rgb.r) * factor,
-                                        ((double)rgb.g) * factor,
-                                        ((double)rgb.b) * factor );
+      _pixelRegister[registerId][i] =
+            makeRGBVal(  ((double)rgb.r) * factor,
+                         ((double)rgb.g) * factor,
+                         ((double)rgb.b) * factor );
     }
   }
 }
 
-void PoiProgramRunner::_copyCurrentFrameToRegister(double factor){
-  _copyFrameToRegister(_scene, _currentFrame, factor);
+void PoiProgramRunner::_copyRegisterToRegister(uint8_t registerId1, uint8_t registerId2, float factor){
+  if (registerId1 +1 > N_REGISTERS){
+    printf("Error. Register %d does not exist\n", registerId1);
+    return;
+  }
+  if (registerId2 +1 > N_REGISTERS){
+    printf("Error. Register %d does not exist\n", registerId2);
+    return;
+  }
+
+  for (int i = 0; i < N_PIXELS; i++) {
+    rgbVal rgb = _pixelRegister[registerId1][i];
+    if (factor == 1){
+      _pixelRegister[registerId2][i] = rgb;
+    }
+    else {
+      _pixelRegister[registerId2][i] =
+            makeRGBVal(  ((double)rgb.r) * factor,
+                         ((double)rgb.g) * factor,
+                         ((double)rgb.b) * factor );
+    }
+  }
 }
 
-void PoiProgramRunner::_displayRegister(){
-    ws2812_setColors(N_PIXELS, _pixelRegister);
+
+void PoiProgramRunner::_copyCurrentFrameToRegister(uint8_t registerId, double factor){
+  _copyFrameToRegister(registerId, _scene, _currentFrame, factor);
+}
+
+void PoiProgramRunner::_displayRegister(uint8_t registerId){
+    ws2812_setColors(N_PIXELS, _pixelRegister[registerId]);
 }
 
 void PoiProgramRunner::_displayFrame(uint8_t scene, uint8_t frame){
@@ -89,50 +126,35 @@ void PoiProgramRunner::setPixel(uint8_t scene_idx, uint8_t frame_idx, uint8_t pi
 void PoiProgramRunner::showStaticFrame(uint8_t scene, uint8_t frame, uint8_t timeOutMSB, uint8_t timeOutLSB){
 
   _currentAction = SHOW_STATIC_FRAME;
-  _scene          = constrain(scene,0,N_SCENES-1);
-  _startFrame     = constrain(frame,0,N_FRAMES-1);
-  _endFrame       = constrain(frame,0,N_FRAMES-1);
-  _delayMs        =  (uint16_t)timeOutMSB *256 + timeOutLSB;
-  _numLoops       = 1;
+  uint8_t timeout = (uint16_t)timeOutMSB *256 + timeOutLSB;
+  if (_logLevel != MUTE)  printf("Play static Scene: %d frames: %d timeout:%d \n", scene, frame, timeout);
+  _copyFrameToRegister(0, scene, frame);
 
-  if (_logLevel != MUTE) printf("Playing static frame: scene %d frame: %d timeout: %d\n", _scene, _startFrame, _delayMs);
-
-  _currentFrame = _startFrame;
-  _currentLoop = 0;
-
-  // play frame right away (timer will switch it off again after timeout)
+  // play initial frame right away
   _ptimer.disable();
-  _displayCurrentFrame();
-  _ptimer.setIntervalAndEnable( _delayMs );
+  _displayRegister(0);
+  _ptimer.setIntervalAndEnable( timeout );
 }
 
 void PoiProgramRunner::playScene(uint8_t scene, uint8_t startFrame, uint8_t endFrame, uint8_t speed, uint8_t loops){
 
   _currentAction = PLAY_DIRECT;
-  _scene          = constrain(scene,0,N_SCENES-1);
-  _startFrame     = constrain(startFrame,0,N_FRAMES-1);
-  _endFrame       = constrain(endFrame,0,N_FRAMES-1);
-  _delayMs        = speed;
-  _numLoops       = loops;
-
-  if (_logLevel != MUTE) printf("Playing Scene: %d frames: [%d,%d] delay: %d loops:%d \n", _scene, _startFrame, _endFrame, _delayMs, _numLoops);
-
-  _currentFrame = _startFrame;
-  _currentLoop = 0;
+  _framePlayer.init(scene, startFrame, endFrame, speed, loops);
+  if (_logLevel != MUTE) _framePlayer.printInfo();
 
   // play initial frame right away
   _ptimer.disable();
-  _displayCurrentFrame();
-  _ptimer.setIntervalAndEnable( _delayMs );
+  _displayFrame(_framePlayer.getCurrentScene(), _framePlayer.getCurrentFrame());
+  _ptimer.setIntervalAndEnable( _framePlayer.getDelayMs() );
 }
 
 void PoiProgramRunner::showStaticRgb(uint8_t r, uint8_t g, uint8_t b) {
   // directly "play" out of register
-  _fillRegister(makeRGBVal(r,g,b));
+  _fillRegister(0, makeRGBVal(r,g,b));
 
   _currentAction = SHOW_STATIC_RGB;
   _ptimer.disable();
-  _displayRegister();
+  _displayRegister(0);
 }
 
 void PoiProgramRunner::displayOff() {
@@ -149,22 +171,16 @@ void PoiProgramRunner::fadeToBlack(uint8_t fadeMSB, uint8_t fadeLSB){
   }
 
   _currentAction = FADE_TO_BLACK;
-  _numFadeSteps = N_FADE_STEPS_DEFAULT;
-  _delayMs = fadeTime / _numFadeSteps;
-  if (_delayMs < MIN_FADE_TIME){
-    _delayMs = MIN_FADE_TIME;
-    _numFadeSteps = fadeTime / _delayMs;
-  }
-  if (_logLevel != MUTE) printf("Fade to black - fade time: %ld fade-steps: %d.\n", fadeTime, _numFadeSteps);
-  // dont touch _scene, _startFrame, _endFrame and _numLoops
- _currentFadeStep = 0; // will iterate this one up to _numFadeSteps
+  _frameFader.init((uint16_t)fadeMSB * 256 + fadeLSB);
+  if (_logLevel != MUTE) _frameFader.printInfo();
 
-  // start with current frame
-  _copyCurrentFrameToRegister();
+   // we take what is in register 0 and remember it in register 1
+   // later we will copy pixels back using a factor on the rgb values
+  _copyRegisterToRegister(0, 1);
 
   _ptimer.disable();
-  _displayRegister();
-  _ptimer.setIntervalAndEnable( _delayMs );
+  _displayRegister(0);
+  _ptimer.setIntervalAndEnable( _frameFader.getDelayMs() );
 }
 
 void PoiProgramRunner::showCurrent(){
@@ -394,23 +410,17 @@ void PoiProgramRunner::loop(){
     switch(_currentAction){
 
       case PLAY_DIRECT:
-      _currentFrame++;
-
-      if (_currentFrame > _endFrame){
-        // end of scene reached
-        _currentLoop++;
-
-        if (_currentLoop >= _numLoops){
-          // end of final loop reached
-          _currentAction = NO_PROGRAM;
-          if (_logLevel != MUTE) printf("PLAY_DIRECT: End of program reached.\n");
-          break;
-        }
-
-        // next loop starts
-        _currentFrame = _startFrame;
+      _framePlayer.next();
+      if (_logLevel == CHATTY) _framePlayer.printState();
+      if (_framePlayer.isActive()){
+        _displayFrame(_framePlayer.getCurrentScene(), _framePlayer.getCurrentFrame());
       }
-      _displayCurrentFrame();
+      else {
+        _currentAction = NO_PROGRAM;
+        // remember last frame in register 0
+        _copyFrameToRegister(0, _framePlayer.getCurrentScene(), _framePlayer.getCurrentFrame());
+        if (_logLevel != MUTE) printf("End of program PLAY_DIRECT.\n");
+      }
       break;
 
       case PLAY_PROG:
@@ -439,16 +449,17 @@ void PoiProgramRunner::loop(){
       break;
 
       case FADE_TO_BLACK:
-      _currentFadeStep++;
-      if (_currentFadeStep > _numFadeSteps){
-        // finished fading
+      _frameFader.next();
+      if (_logLevel == CHATTY)  _frameFader.printState();
+      if (_frameFader.isActive()){
+        // un-faded frame is in register 1
+        _copyRegisterToRegister(1, 0, _frameFader.getCurrentFadeFactor());
+        _displayRegister(0);
+      }
+      else {
         _currentAction = NO_PROGRAM;
         if (_logLevel != MUTE) printf("End of program FADE_TO_BLACK.\n");
-        break;
       }
-      factor = (float)(_numFadeSteps - _currentFadeStep) / _numFadeSteps;
-      _copyCurrentFrameToRegister(factor);
-      _displayRegister();
       break;
 
       case NO_PROGRAM:
