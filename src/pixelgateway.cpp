@@ -4,7 +4,7 @@
 #include <WiFi.h>
 #include "WiFiCredentials.h"
 #include "ledpoi.h"
-#include "PoiProgramRunner.h"
+#include "PoiActionRunner.h"
 #include "PoiTimer.h"
 
 enum PoiState { POI_INIT,               // 0
@@ -33,7 +33,7 @@ PoiState poiState = POI_INIT;
 PoiState nextPoiState = poiState;
 
 PoiTimer ptimer(logLevel);
-PoiProgramRunner runner(ptimer, logLevel);
+PoiActionRunner runner(ptimer, logLevel);
 
 uint32_t lastSignalTime = 0; // time when last wifi signal was received, for timeout
 char cmd[7];                 // command read from server
