@@ -7,6 +7,14 @@
 
 enum LogLevel { CHATTY, QUIET, MUTE};
 
+enum CmdType {  PROG_END,
+                SET_SCENE,
+                PLAY_FRAMES,
+                GOTO,
+                GOTO_FADE,
+                LOOP,
+                LABEL
+              };
 
 
 #endif
