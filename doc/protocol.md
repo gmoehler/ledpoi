@@ -20,15 +20,14 @@ Byte[n] may not contain any 0xFF!
 ||setIP||8|IP1|IP2|IP3|IP4||0.0.0.0: use DHCP|
 ||setGW||9|GW1|GW2|GW3|GW4|||
 ||clientDisconnect||10|||||done|ask poi (server) to disconnect from PC (client)|
-||keepAlive||11|||||done|do nothing|
 |**setProg**||**253**|function|||||||
 ||ProgramEnd||0|||||(done)|End of program|
-||setActiveScene||1|scene|frame (opt)|||(done)||
+||setActiveScene||1|scene||||(done)||
 ||play||2|frameStart|frameEnd|delayMSB|delay LSB|(done)|Play frames of active scene|
 ||gotoNoFade||3|scene|frame|delayMSB|delay LSB||goto next [scene/frame] - nofade|
 ||gotoFade||4|scene|frame|delayMSB|delay LSB||goto next [scene/frame] - fade|
-||loop||5|loopCt MSB|loopCt LSB|||(done)|loop prev command (mostly play)|
-||syncWait||6|syncCode|||||wait for sync code|
+||loop||5|loopCt MSB|loopCt LSB|loopStart labelCode||(done)|loop starting at label with labelCode - or prev command if labelCode=0|
+||label||6|labelCode|syncId||||labelCode is *name* of label (labelCode > 0) - syncId for syncImpulse (syncId > 0), syncIds start with 1 |
 ||||*default*||||||do nothing|
 |**playDirect**||**252**|scene|start|end|delay |loops|||
 |**endOfMessage**||**251**|||||||end of message  - client can disconnect|

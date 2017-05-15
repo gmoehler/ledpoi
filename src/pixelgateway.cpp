@@ -4,7 +4,7 @@
 #include <WiFi.h>
 #include "WiFiCredentials.h"
 #include "ledpoi.h"
-#include "PoiProgramRunner.h"
+#include "PoiActionRunner.h"
 #include "PoiTimer.h"
 
 enum PoiState { POI_INIT,               // 0
@@ -21,6 +21,9 @@ const int LED_PIN = 2;
 const int connTimeout=20;     // client connection timeout in secs
 const int maxLEDLevel = 200;  // restrict max LED brightness due to protocol
 
+const uint8_t aliveTickModulo = 10;
+uint8_t aliveTickCnt = 0;
+
 // WiFi credentials (as defined in WiFiCredentials.h)
 extern const char* WIFI_SSID;
 extern const char* WIFI_PASS;
@@ -33,7 +36,7 @@ PoiState poiState = POI_INIT;
 PoiState nextPoiState = poiState;
 
 PoiTimer ptimer(logLevel);
-PoiProgramRunner runner(ptimer, logLevel);
+PoiActionRunner runner(ptimer, logLevel);
 
 uint32_t lastSignalTime = 0; // time when last wifi signal was received, for timeout
 char cmd[7];                 // command read from server
@@ -244,11 +247,6 @@ void realize_cmd(){
       nextPoiState = POI_CLIENT_CONNECTING;
       return;
 
-      case 11:
-      // keep alive signal
-      if (logLevel != MUTE) Serial.print("*");
-      break;
-
       default:
         if (logLevel != MUTE) {
           printf("Protocoll Error: Unknown command received: " );
@@ -300,7 +298,11 @@ void protocoll_receive_data(){
 
     // start byte detected
     if (c== 255) {
-      if (logLevel != MUTE && !loadingImgData) Serial.print("*");
+      aliveTickCnt++;
+      if (logLevel != MUTE && !loadingImgData && (aliveTickCnt % aliveTickModulo) == 0) {
+        Serial.print("*");
+        aliveTickCnt = 0;
+      }
       protocoll_clean_cmd();
       resetTimeout();
     }

@@ -16,10 +16,10 @@ public:
 
   void init(void (*timer_intr_func)());
   void disable();
-  void setIntervalAndEnable(uint32_t intervalMs);
+  void setIntervalAndEnable(uint16_t intervalMs);
 
 private:
-  void _setInterval(uint32_t intervalMs);
+  void _setInterval(uint16_t intervalMs);
   void _enable();
 
   hw_timer_t *_timer;

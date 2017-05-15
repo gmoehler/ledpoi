@@ -1,22 +1,18 @@
-#ifndef POI_PROGRAM_H
-#define POI_PROGRAM_H
-
-/**
- * Class responsible for running the poi led program
- **/
+#ifndef POI_ACTION_RUNNER_H
+#define POI_ACTION_RUNNER_H
 
 #include <Arduino.h>
 #include <ws2812.h>
+#include <map>
 #include "ledpoi.h"
 #include "PoiTimer.h"
+#include "FramePlayer.h"
+#include "FrameFader.h"
+#include "PoiProgramHandler.h"
 
-#define N_SCENES 1
-#define N_FRAMES 200
-#define N_PIXELS 60
-
+#define N_REGISTERS 2
 #define N_PROG_STEPS 50
-#define N_FADE_STEPS_DEFAULT 50
-#define MIN_FADE_TIME 20
+
 
 enum PoiAction { NO_PROGRAM,
                   SHOW_STATIC_RGB,
@@ -28,19 +24,17 @@ enum PoiAction { NO_PROGRAM,
                   PAUSE_PROG
                 };
 
-enum CmdType {  PROG_END,
-                SET_SCENE,
-                PLAY_FRAMES,
-                GOTO,
-                GOTO_FADE,
-                LOOP,
-                SYNC_WAIT
-              };
 
-class PoiProgramRunner
+/**
+ * Class responsible for running the poi led program
+ * After each action the last frame is always copied to Register 0
+ **/
+
+
+class PoiActionRunner
 {
 public:
-  PoiProgramRunner(PoiTimer& ptimer, LogLevel logLevel);
+  PoiActionRunner(PoiTimer& ptimer, LogLevel logLevel);
 
   // load image
   void setPixel(uint8_t scene_idx, uint8_t frame_idx, uint8_t pixel_idx, rgbVal pixel);
@@ -67,48 +61,38 @@ public:
 private:
   PoiAction _currentAction;
 
+  // states for the different programs
+  FramePlayer _framePlayer;
+  FrameFader _frameFader;
+  PoiProgramHandler _progHandler;
+
   // member variables set by the actions
   uint8_t _scene;
   uint8_t _startFrame;
   uint8_t _endFrame;
   uint16_t _delayMs;
   uint8_t _numLoops;
-  uint8_t _numFadeSteps;
 
   // member variables holding the current state of the action
   uint32_t _currentFrame;
   uint32_t _currentLoop;
-  uint16_t _currentFadeStep;
 
   // data stores
-  rgbVal _pixelRegister[N_PIXELS]; // for temps and static actions
+  rgbVal _pixelRegister[2][N_PIXELS]; // for temps and static actions
   rgbVal _pixelMap[N_SCENES][N_FRAMES][N_PIXELS];
 
   // access functions
   rgbVal _getPixel(uint8_t scene_idx, uint8_t frame_idx, uint8_t pixel_idx);
-  void _copyFrameToRegister(uint8_t scene_idx, uint8_t frame_idx, float factor=1);
-  void _copyCurrentFrameToRegister(double factor=1);
-  void _fillRegister(rgbVal rgb);
+  void _copyFrameToRegister(uint8_t registerId, uint8_t scene_idx, uint8_t frame_idx, float factor=1);
+  void _copyRegisterToRegister(uint8_t registerId1, uint8_t registerId2, float factor=1);
+  void _copyCurrentFrameToRegister(uint8_t registerId1, double factor=1);
+  void _fillRegister(uint8_t register Id, rgbVal rgb);
   void _fillMap(rgbVal rgb);
 
   // display functions
   void _displayFrame(uint8_t scene, uint8_t frame);
   void _displayCurrentFrame();
-  void _displayRegister();
-
-  // program handling functions
-  bool _checkProgram();
-  void _nextProgramStep();
-  void _clearProgram();
-  bool _programFinished();
-  CmdType _getCommandType(uint8_t cmd[6]);
-  void _evaluateCommand(uint8_t index);
-
-  // program handling member variables
-  bool _duringProgramming;
-  uint8_t _numProgSteps;
-  uint8_t _currentProgStep;
-  uint8_t _prog[N_PROG_STEPS][6];
+  void _displayRegister(uint8_t register Id);
 
   // other member variables
   PoiTimer _ptimer;
