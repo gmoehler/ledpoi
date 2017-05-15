@@ -4,8 +4,16 @@ PoiProgramHandler::PoiProgramHandler(LogLevel logLevel) :
 _logLevel(logLevel){}
 
 void PoiProgramHandler::next(){
+	
+	_framePlayer.next();
+	if (!_framePlayer.isActive()){
+        _nextProgramStep();
+        break;
+      }
 
 }
+
+
 
 bool PoiProgramHandler::isProgramFinished(){
   return _currentProgStep + 1 >= _numProgSteps;

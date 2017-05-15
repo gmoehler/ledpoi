@@ -7,6 +7,8 @@
 
 #define N_PROG_STEPS 50
 
+	
+
 /**
  * Holds the information for a fade action on a given frame in the scene
  **/
@@ -23,11 +25,16 @@ public:
   bool isProgramFinished();
 
 private:
+
+  FramePlayer _framePlayer;
+  
   bool _duringProgramming;
   bool _inLoop;
   uint8_t _numProgSteps;
   uint8_t _currentProgStep;
+  
   uint8_t _prog[N_PROG_STEPS][6];
+  
   std::map<uint8_t, uint8_t> _labelMap; // map between label# and cmd#
   std::map<uint8_t, uint8_t> _syncMap;  // map between snyc# and cmd#
 
