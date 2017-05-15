@@ -6,7 +6,7 @@ PoiActionRunner::PoiActionRunner(PoiTimer& ptimer, LogLevel logLevel) :
     _delayMs(0), _numLoops(1),
     _currentFrame(0), _currentLoop(0),
     _ptimer(ptimer),
-    _logLevel(logLevel), _progHandler(logLevel)
+    _logLevel(logLevel), _progHandler(_framePlayer, logLevel)
     {
       // initialize map and register
       if (_logLevel != MUTE) printf("Initializing image map and register.\n" );
@@ -206,7 +206,7 @@ void PoiActionRunner::startProg(){
   // play initial frame right away
   _ptimer.disable();
   _displayFrame(_progHandler.getCurrentScene(), _progHandler.getCurrentFrame());
-  _ptimer.setIntervalAndEnable( _framePlayer.getDelayMs() );
+  _ptimer.setIntervalAndEnable( _progHandler.getDelayMs() );
 }
 
 void PoiActionRunner::pauseProg(){
@@ -259,16 +259,16 @@ void PoiActionRunner::loop(){
       break;
 
       case PLAY_PROG:
-      if (_progHandler.checkProgram()){
+      if (!_progHandler.checkProgram()){
         return;
       }
       _progHandler.next();
       if (_progHandler.isActive()){
-        if (_progHandler.hasDelayChanged())
-          _ptimer.disable();
+        if (_progHandler.hasDelayChanged()) {
+          _ptimer.disable(); }
         _displayFrame(_progHandler.getCurrentScene(), _progHandler.getCurrentFrame());
-        if (_progHandler.hasDelayChanged())
-          _ptimer.setIntervalAndEnable( _framePlayer.getDelayMs() );
+        if (_progHandler.hasDelayChanged()) {
+          _ptimer.setIntervalAndEnable( _progHandler.getDelayMs() ); }
       }
       else {
         _currentAction = NO_PROGRAM;

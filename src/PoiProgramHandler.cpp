@@ -1,14 +1,18 @@
 #include "PoiProgramHandler.h"
 
-PoiProgramHandler::PoiProgramHandler(LogLevel logLevel) :
-	_active(false), _delayChanged(false),_logLevel(logLevel){}
+PoiProgramHandler::PoiProgramHandler(FramePlayer& framePlayer, LogLevel logLevel) :
+	_active(false), _duringProgramming(false), _delayChanged(false), _inLoop(false),
+	_numProgSteps(0),_currentProgStep(0),
+	_numLoops(0), _currentLoop(0), _framePlayer(framePlayer),
+	_logLevel(logLevel){}
 
 void PoiProgramHandler::init(){
 	_currentProgStep = 0;
-	if (_logLevel != MUTE) printf("Starting program\n");
-	 _nextProgramStep();
+	if (_logLevel != MUTE) printf("Starting program...\n");
+	 _nextProgramStep(true);
 	 if (_logLevel != MUTE) _framePlayer.printInfo();
 	 _active = true;
+	 _delayChanged = true;
 }
 
 void PoiProgramHandler::next(){
@@ -22,7 +26,8 @@ void PoiProgramHandler::next(){
 		}
 		else {
 			_nextProgramStep();
-			// just in case
+			 if (_logLevel != MUTE) _framePlayer.printInfo();
+			// set timer in any case for a new command
 			_delayChanged = true;
 		}
 	}
@@ -47,6 +52,9 @@ uint8_t PoiProgramHandler::getCurrentFrame(){
   return _framePlayer.getCurrentFrame();
 }
 
+uint16_t PoiProgramHandler::getDelayMs(){
+	return _framePlayer.getDelayMs();
+}
 
 bool PoiProgramHandler::_isProgramFinished(){
   return _currentProgStep + 1 >= _numProgSteps;
@@ -100,7 +108,6 @@ void PoiProgramHandler::addCmdToProgram(char cmd[7]){
     _prog[_numProgSteps][i-1] = (uint8_t) cmd[i];
   }
 
-
   _numProgSteps++;
 }
 
@@ -120,6 +127,24 @@ bool PoiProgramHandler::_jumpToLabel(uint8_t label){
   return false;
 }
 
+void PoiProgramHandler::_nextProgramStep(bool initial){
+	bool noinitialcount = initial;
+  while (!_isProgramFinished()){
+		if (noinitialcount){
+			// don't count on initial call
+    	_evaluateCommand(_currentProgStep);
+			noinitialcount = false;
+		}
+		else {
+			_evaluateCommand(++_currentProgStep);
+		}
+    // continue until we hit a play command
+    if (_getCommandType(_prog[_currentProgStep]) == PLAY_FRAMES){
+      break;
+    }
+  }
+}
+
 void PoiProgramHandler::_evaluateCommand(uint8_t index) {
 
   if (_logLevel != MUTE) printf("Evaluating program line %d...\n", index);
@@ -133,13 +158,13 @@ void PoiProgramHandler::_evaluateCommand(uint8_t index) {
 
     case PLAY_FRAMES:
 		_framePlayer.init(constrain(cmd[1],0,N_FRAMES-1), constrain(cmd[2],0,N_FRAMES-1),
-											(uint16_t)cmd[3] * 256 + cmd[4], 1);
+											((uint16_t)cmd[3] * 256 + cmd[4]), 1);
     break;
 
     case LOOP:
     if (_inLoop){
       _currentLoop++;
-      printf("Loop current loop:%d.\n",_currentLoop );
+      printf("Loop current loop count: %d\n",_currentLoop+1 );
       if (_currentLoop + 1 >= _numLoops){
         if (_logLevel != MUTE) printf("Loop finished.\n" );
         _inLoop = false;
@@ -151,7 +176,7 @@ void PoiProgramHandler::_evaluateCommand(uint8_t index) {
         printf("Error. Loop aborded.\n" );
         _inLoop = false;
       }
-      // continue whether it was successfull or not
+      // continue whether loop was successfull or not
       break;
     }
     // first time hit
@@ -169,34 +194,44 @@ void PoiProgramHandler::_evaluateCommand(uint8_t index) {
   }
 }
 
-void PoiProgramHandler::_nextProgramStep(){
+void PoiProgramHandler::_clearProgram(){
+  _duringProgramming = false;
+  _inLoop = false;
+	_delayChanged = false;
+	_active = false;
 
-  while (!_isProgramFinished()){
-    _evaluateCommand(++_currentProgStep);
+	_numLoops = 0;
+  _numProgSteps = 0;
+	_currentLoop = 0;
+	_currentProgStep = 0;
 
-    // only play command actually needs processing
-    if (_getCommandType(_prog[_currentProgStep]) == PLAY_FRAMES){
-      break;
-    }
-  }
+  _labelMap.clear();
+  _syncMap.clear();
 }
 
 bool PoiProgramHandler::checkProgram(){
+	if (_duringProgramming){
+    printf("Error. Cannot start a program when upload is not completed.\n" );
+    return false;
+  }
   if (_numProgSteps == 0){
     printf("Error. Cannot start program with no commands.\n" );
     return false;
   }
-  if (_duringProgramming){
-    printf("Error. Cannot start a program when transmission is not completed.\n" );
-    return false;
-  }
+	if (_currentProgStep + 1 > _numProgSteps){
+		printf("Error. current program step > number of program steps.\n" );
+		return false;
+	}
   return true;
 }
 
-void PoiProgramHandler::_clearProgram(){
-  _duringProgramming = false;
-  _inLoop = false;
-  _numProgSteps = 0;
-  _labelMap.clear();
-  _syncMap.clear();
+void PoiProgramHandler::printInfo(){
+  printf("ProgramHandler: %d cmds, %d labels, %d sync points.\n", _numProgSteps, _labelMap.size(), _syncMap.size());
+	_framePlayer.printInfo();
+}
+
+void PoiProgramHandler::printState(){
+  printf("ProgramHandler: Active: %d Current cmd: %d [%d %d %d %d %d].\n", _currentProgStep,
+		_prog[_currentProgStep][0], _prog[_currentProgStep][1], _prog[_currentProgStep][2], _prog[_currentProgStep][3], _prog[_currentProgStep][4]);
+	_framePlayer.printState();
 }

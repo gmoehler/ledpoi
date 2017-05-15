@@ -2,7 +2,7 @@
 #define LEDPOI_H
 
 #define N_SCENES 1
-#define N_FRAMES 200
+#define N_FRAMES 200 // max: 255 because of uint8_t
 #define N_PIXELS 60
 
 enum LogLevel { CHATTY, QUIET, MUTE};

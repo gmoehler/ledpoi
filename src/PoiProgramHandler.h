@@ -16,7 +16,7 @@
 class PoiProgramHandler
 {
 public:
-  PoiProgramHandler(LogLevel logLevel);
+  PoiProgramHandler(FramePlayer& framePlayer, LogLevel logLevel);
   void addCmdToProgram(char cmd[7]);
   void init();
   bool isActive();
@@ -27,6 +27,7 @@ public:
   // current scene and frame from player
   uint8_t getCurrentScene();
   uint8_t getCurrentFrame();
+  uint16_t getDelayMs();
 
   bool checkProgram();
 
@@ -38,10 +39,10 @@ private:
   bool _duringProgramming;
   bool _delayChanged;
   bool _inLoop;
-  uint8_t _numLoops;
-  uint32_t _currentLoop;
   uint8_t _numProgSteps;
   uint8_t _currentProgStep;
+  uint8_t _numLoops;
+  uint16_t _currentLoop;
   FramePlayer _framePlayer;
 
   uint8_t _prog[N_PROG_STEPS][6];
@@ -51,7 +52,7 @@ private:
   bool _isProgramFinished();
   void _clearProgram();
   CmdType _getCommandType(uint8_t cmd[6]);
-  void _nextProgramStep();
+  void _nextProgramStep(bool initial=false);
   void _evaluateCommand(uint8_t index);
   bool _jumpToLabel(uint8_t label);
 

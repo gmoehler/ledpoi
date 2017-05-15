@@ -21,6 +21,9 @@ const int LED_PIN = 2;
 const int connTimeout=20;     // client connection timeout in secs
 const int maxLEDLevel = 200;  // restrict max LED brightness due to protocol
 
+const uint8_t aliveTickModulo = 10;
+uint8_t aliveTickCnt = 0;
+
 // WiFi credentials (as defined in WiFiCredentials.h)
 extern const char* WIFI_SSID;
 extern const char* WIFI_PASS;
@@ -295,7 +298,11 @@ void protocoll_receive_data(){
 
     // start byte detected
     if (c== 255) {
-      if (logLevel != MUTE && !loadingImgData) Serial.print("*");
+      aliveTickCnt++;
+      if (logLevel != MUTE && !loadingImgData && (aliveTickCnt % aliveTickModulo) == 0) {
+        Serial.print("*");
+        aliveTickCnt = 0;
+      }
       protocoll_clean_cmd();
       resetTimeout();
     }
