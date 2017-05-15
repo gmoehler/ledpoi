@@ -22,7 +22,7 @@ Byte[n] may not contain any 0xFF!
 ||clientDisconnect||10|||||done|ask poi (server) to disconnect from PC (client)|
 |**setProg**||**253**|function|||||||
 ||ProgramEnd||0|||||(done)|End of program|
-||setActiveScene||1|scene|frame (opt)|||(done)||
+||setActiveScene||1|scene||||(done)||
 ||play||2|frameStart|frameEnd|delayMSB|delay LSB|(done)|Play frames of active scene|
 ||gotoNoFade||3|scene|frame|delayMSB|delay LSB||goto next [scene/frame] - nofade|
 ||gotoFade||4|scene|frame|delayMSB|delay LSB||goto next [scene/frame] - fade|

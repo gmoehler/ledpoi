@@ -4,10 +4,13 @@ FramePlayer::FramePlayer() :
 _scene(0), _numLoops(0), _startFrame(0), _endFrame(0), _delayMs(100),
 _currentFrame (0), _currentLoop(0), _active(false) {}
 
-
 void FramePlayer::init(uint8_t scene, uint8_t startFrame, uint8_t endFrame, uint8_t speed, uint8_t loops) {
-
   _scene          = constrain(scene,0,N_SCENES-1);
+  init(startFrame, endFrame, speed, loops);
+}
+
+void FramePlayer::init(uint8_t startFrame, uint8_t endFrame, uint8_t speed, uint8_t loops) {
+
   _startFrame     = constrain(startFrame,0,N_FRAMES-1);
   _endFrame       = constrain(endFrame,0,N_FRAMES-1);
   _delayMs        = speed;
@@ -17,6 +20,10 @@ void FramePlayer::init(uint8_t scene, uint8_t startFrame, uint8_t endFrame, uint
   _currentLoop = 0;
   _active = true;
 }
+
+  void FramePlayer::setActiveScene(uint8_t scene){
+    _scene = scene;
+  }
 
 void FramePlayer::next(){
 

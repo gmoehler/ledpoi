@@ -12,7 +12,9 @@ class FramePlayer
 {
 public:
   FramePlayer();
+  void init(uint8_t startFrame, uint8_t endFrame, uint8_t speed, uint8_t loops);
   void init(uint8_t scene, uint8_t startFrame, uint8_t endFrame, uint8_t speed, uint8_t loops);
+  void setActiveScene(uint8_t scene);
 
   void next();
 
