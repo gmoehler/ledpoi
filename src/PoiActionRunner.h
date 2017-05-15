@@ -94,24 +94,6 @@ private:
   void _displayCurrentFrame();
   void _displayRegister(uint8_t register Id);
 
-  // program handling functions
-  bool _checkProgram();
-  void _nextProgramStep();
-  void _clearProgram();
-  bool _programFinished();
-  CmdType _getCommandType(uint8_t cmd[6]);
-  void _evaluateCommand(uint8_t index);
-  bool jumpToLabel(uint8_t label);
-
-  // program handling member variables
-  bool _duringProgramming;
-  bool _inLoop;
-  uint8_t _numProgSteps;
-  uint8_t _currentProgStep;
-  uint8_t _prog[N_PROG_STEPS][6];
-  std::map<uint8_t, uint8_t> _labelMap; // map between label# and cmd#
-  std::map<uint8_t, uint8_t> _syncMap;  // map between snyc# and cmd#
-
   // other member variables
   PoiTimer _ptimer;
   volatile SemaphoreHandle_t _timerSemaphore;

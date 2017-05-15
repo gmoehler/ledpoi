@@ -21,13 +21,17 @@ public:
   void init();
   bool isActive();
   bool hasDelayChanged();
-  
+
   void next();
 
+  // current scene and frame from player
   uint8_t getCurrentScene();
   uint8_t getCurrentFrame();
 
   bool checkProgram();
+
+  void printInfo();
+  void printState();
 
 private:
   bool _active;
