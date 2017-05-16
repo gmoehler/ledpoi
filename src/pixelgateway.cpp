@@ -247,11 +247,15 @@ void realize_cmd(){
       nextPoiState = POI_CLIENT_CONNECTING;
       return;
 
+      case 11:
+      runner.jumptoSync(cmd[2]);
+      break;
+
       default:
-        if (logLevel != MUTE) {
-          printf("Protocoll Error: Unknown command received: " );
-          print_cmd();
-        }
+      if (logLevel != MUTE) {
+        printf("Protocoll Error: Unknown command received: " );
+        print_cmd();
+      }
       break;
     };  // end setAction
     break;

@@ -6,8 +6,8 @@
 #include <map>
 #include "ledpoi.h"
 #include "PoiTimer.h"
-#include "FramePlayer.h"
-#include "FrameFader.h"
+#include "PlayHandler.h"
+#include "FadeHandler.h"
 #include "PoiProgramHandler.h"
 
 #define N_REGISTERS 2
@@ -46,6 +46,7 @@ public:
   void displayOff();
   void fadeToBlack(uint8_t fadeMSB, uint8_t fadeLSB);
   void showCurrent();
+  void jumptoSync(uint8_t syncId);
 
   // program related methods
   void addCmdToProgram(char cmd[7]);
@@ -61,37 +62,25 @@ public:
 private:
   PoiAction _currentAction;
 
-  // states for the different programs
-  FramePlayer _framePlayer;
-  FrameFader _frameFader;
+  // handlers for the different programs
+  PlayHandler _playHandler;
+  FadeHandler _fadeHandler;
   PoiProgramHandler _progHandler;
 
-  // member variables set by the actions
-  uint8_t _scene;
-  uint8_t _startFrame;
-  uint8_t _endFrame;
-  uint16_t _delayMs;
-  uint8_t _numLoops;
-
-  // member variables holding the current state of the action
-  uint32_t _currentFrame;
-  uint32_t _currentLoop;
-
   // data stores
-  rgbVal _pixelRegister[2][N_PIXELS]; // for temps and static actions
+  // after each action the last frame is stored in _pixelRegister[0]
+  rgbVal _pixelRegister[2][N_PIXELS];
   rgbVal _pixelMap[N_SCENES][N_FRAMES][N_PIXELS];
 
   // access functions
   rgbVal _getPixel(uint8_t scene_idx, uint8_t frame_idx, uint8_t pixel_idx);
   void _copyFrameToRegister(uint8_t registerId, uint8_t scene_idx, uint8_t frame_idx, float factor=1);
   void _copyRegisterToRegister(uint8_t registerId1, uint8_t registerId2, float factor=1);
-  void _copyCurrentFrameToRegister(uint8_t registerId1, double factor=1);
   void _fillRegister(uint8_t register Id, rgbVal rgb);
   void _fillMap(rgbVal rgb);
 
   // display functions
   void _displayFrame(uint8_t scene, uint8_t frame);
-  void _displayCurrentFrame();
   void _displayRegister(uint8_t register Id);
 
   // other member variables

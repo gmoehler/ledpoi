@@ -12,14 +12,15 @@ Byte[n] may not contain any 0xFF!
 ||showCurrent||0||||||Show last displayed frame|
 ||showStatic||1|scene|frame|timeOutMSB|timeOutLSB|done|timeOut=0: no time out|
 ||black||2|fade[ms]MSB|fade[ms]LSB|||(done)|fade=0: sofort aus|
-||startProg||3|||||(done)||
-||pauseProg||4|||||(done)||
+||startProg||3|||||done||
+||pauseProg||4|||||done||
 ||continueProg||5|frame||||(done)|frame does not make sense(?)|
 ||saveProg||6|||||?||
 ||savePix||7|scene|frame|||?||
 ||setIP||8|IP1|IP2|IP3|IP4||0.0.0.0: use DHCP|
 ||setGW||9|GW1|GW2|GW3|GW4|||
-||clientDisconnect||10|||||done|ask poi (server) to disconnect from PC (client)|
+||clientDisconnect||10|||||done|tell poi (server) to disconnect from PC (client)|
+||snycNow||11|syncId||||done|jump to label with syncId immediatelly - if syncId==0 jump to next syncId|
 |**setProg**||**253**|function|||||||
 ||ProgramEnd||0|||||(done)|End of program|
 ||setActiveScene||1|scene||||(done)||

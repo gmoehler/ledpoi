@@ -8,10 +8,10 @@
  * Holds the information for a play action for frames in a scene
  **/
 
-class FramePlayer
+class PlayHandler
 {
 public:
-  FramePlayer();
+  PlayHandler();
   void init(uint8_t startFrame, uint8_t endFrame, uint16_t delay, uint16_t loops);
   void init(uint8_t scene, uint8_t startFrame, uint8_t endFrame, uint16_t delay, uint16_t loops);
   void setActiveScene(uint8_t scene);

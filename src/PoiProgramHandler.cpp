@@ -1,32 +1,32 @@
 #include "PoiProgramHandler.h"
 
-PoiProgramHandler::PoiProgramHandler(FramePlayer& framePlayer, LogLevel logLevel) :
+PoiProgramHandler::PoiProgramHandler(PlayHandler& PlayHandler, LogLevel logLevel) :
 	_active(false), _duringProgramming(false), _delayChanged(false), _inLoop(false),
 	_numProgSteps(0),_currentProgStep(0),
-	_numLoops(0), _currentLoop(0), _framePlayer(framePlayer),
+	_numLoops(0), _currentLoop(0), _playHandler(PlayHandler),
 	_logLevel(logLevel){}
 
 void PoiProgramHandler::init(){
 	_currentProgStep = 0;
 	if (_logLevel != MUTE) printf("Starting program...\n");
 	 _nextProgramStep(true);
-	 if (_logLevel != MUTE) _framePlayer.printInfo();
+	 if (_logLevel != MUTE) _playHandler.printInfo();
 	 _active = true;
 	 _delayChanged = true;
 }
 
 void PoiProgramHandler::next(){
 
-	_framePlayer.next();
+	_playHandler.next();
 
-	if (!_framePlayer.isActive()){
+	if (!_playHandler.isActive()){
 		// end of play action
 		if (_isProgramFinished()) {
 			_active = false;
 		}
 		else {
 			_nextProgramStep();
-			 if (_logLevel != MUTE) _framePlayer.printInfo();
+			 if (_logLevel != MUTE) _playHandler.printInfo();
 			// set timer in any case for a new command
 			_delayChanged = true;
 		}
@@ -34,6 +34,28 @@ void PoiProgramHandler::next(){
 	else {
 		_delayChanged = false;
 	}
+}
+
+bool PoiProgramHandler::syncNow(uint8_t syncId){
+  if (syncId == 0){
+      printf("Error. Sync label 0 not allowed.\n");
+      return false;
+  }
+
+  std::map<uint8_t,uint8_t>::iterator it = _syncMap.find(syncId);
+  if (it != _syncMap.end()) {
+    if (_logLevel != MUTE) printf("Jumping to sync id %d.\n", syncId);
+		_currentProgStep = it->second;
+		_nextProgramStep();
+		 if (_logLevel != MUTE) _playHandler.printInfo();
+		// set timer in any case for a new command
+		_delayChanged = true;
+
+    return true;
+  }
+
+  printf("Error. Loop jump label %d not found.\n", syncId);
+  return false;
 }
 
 bool PoiProgramHandler::isActive(){
@@ -45,15 +67,15 @@ bool PoiProgramHandler::hasDelayChanged(){
 }
 
 uint8_t PoiProgramHandler::getCurrentScene(){
-  return _framePlayer.getCurrentScene();
+  return _playHandler.getCurrentScene();
 }
 
 uint8_t PoiProgramHandler::getCurrentFrame(){
-  return _framePlayer.getCurrentFrame();
+  return _playHandler.getCurrentFrame();
 }
 
 uint16_t PoiProgramHandler::getDelayMs(){
-	return _framePlayer.getDelayMs();
+	return _playHandler.getDelayMs();
 }
 
 bool PoiProgramHandler::_isProgramFinished(){
@@ -153,11 +175,11 @@ void PoiProgramHandler::_evaluateCommand(uint8_t index) {
   switch(_getCommandType(cmd)) {
 
     case SET_SCENE:
-		_framePlayer.setActiveScene(constrain(cmd[1],0,N_SCENES-1));
+		_playHandler.setActiveScene(constrain(cmd[1],0,N_SCENES-1));
     break;
 
     case PLAY_FRAMES:
-		_framePlayer.init(constrain(cmd[1],0,N_FRAMES-1), constrain(cmd[2],0,N_FRAMES-1),
+		_playHandler.init(constrain(cmd[1],0,N_FRAMES-1), constrain(cmd[2],0,N_FRAMES-1),
 											((uint16_t)cmd[3] * 256 + cmd[4]), 1);
     break;
 
@@ -227,11 +249,11 @@ bool PoiProgramHandler::checkProgram(){
 
 void PoiProgramHandler::printInfo(){
   printf("ProgramHandler: %d cmds, %d labels, %d sync points.\n", _numProgSteps, _labelMap.size(), _syncMap.size());
-	_framePlayer.printInfo();
+	_playHandler.printInfo();
 }
 
 void PoiProgramHandler::printState(){
   printf("ProgramHandler: Active: %d Current cmd: %d [%d %d %d %d %d].\n", _currentProgStep,
 		_prog[_currentProgStep][0], _prog[_currentProgStep][1], _prog[_currentProgStep][2], _prog[_currentProgStep][3], _prog[_currentProgStep][4]);
-	_framePlayer.printState();
+	_playHandler.printState();
 }
