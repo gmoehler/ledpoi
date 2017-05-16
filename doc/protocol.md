@@ -26,9 +26,13 @@ Byte[n] may not contain any 0xFF!
 ||setActiveScene||1|scene||||(done)||
 ||play||2|frameStart|frameEnd|delayMSB|delay LSB|(done)|Play frames of active scene|
 ||gotoNoFade||3|scene|frame|delayMSB|delay LSB||goto next [scene/frame] - nofade|
-||gotoFade||4|scene|frame|delayMSB|delay LSB||goto next [scene/frame] - fade|
+||4|scene|frame|delayMSB|delay LSB||goto next [scene/frame] - fade|
 ||loop||5|loopCt MSB|loopCt LSB|loopStart labelCode||(done)|loop starting at label with labelCode - or prev command if labelCode=0|
 ||label||6|labelCode|syncId||||labelCode is *name* of label (labelCode > 0) - syncId for syncImpulse (syncId > 0), syncIds start with 1 |
+||setRGB||7|r|g|b|||pre-set RGB color for following commands|
+||spiralIn||8|delayMSB|delayLSB||||spiral turning in with delay spec before|
+||spiralOut||9|delayMSB|delayMSB||||spiral turning out with delay spec before|
+||allOneColor||10|timeOutMSB|timeOutMSB||||spiral turning out with delay spec before|
 ||||*default*||||||do nothing|
 |**playDirect**||**252**|scene|start|end|delay |loops|||
 |**endOfMessage**||**251**|||||||end of message  - client can disconnect|
