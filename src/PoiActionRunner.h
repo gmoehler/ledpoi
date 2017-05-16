@@ -61,6 +61,7 @@ public:
 
 private:
   PoiAction _currentAction;
+  uint8_t _currentSyncId;
 
   // handlers for the different programs
   PlayHandler _playHandler;

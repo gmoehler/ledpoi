@@ -1,7 +1,7 @@
 #include "PoiActionRunner.h"
 
 PoiActionRunner::PoiActionRunner(PoiTimer& ptimer, LogLevel logLevel) :
-    _currentAction(NO_PROGRAM),
+    _currentAction(NO_PROGRAM), _currentSyncId(0),
     _ptimer(ptimer),
     _logLevel(logLevel), _progHandler(_playHandler, logLevel)
     {
@@ -204,7 +204,13 @@ void PoiActionRunner::pauseProg(){
 }
 
 void PoiActionRunner::jumptoSync(uint8_t syncId){
-  _progHandler.syncNow(syncId);
+  if (syncId == 0){
+    _currentSyncId++;
+    _progHandler.syncNow(_currentSyncId);
+  }
+  else {
+    _progHandler.syncNow(syncId);
+  }
 }
 
 void PoiActionRunner::saveProg(){
