@@ -259,6 +259,7 @@ void PoiActionRunner::loop(){
 
       case PLAY_PROG:
       if (!_progHandler.checkProgram()){
+        _currentAction = NO_PROGRAM;
         return;
       }
       _progHandler.next();
