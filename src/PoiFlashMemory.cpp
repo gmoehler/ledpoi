@@ -1,4 +1,56 @@
 #include "PoiFlashMemory.h"
+void PoiFlashMemory::saveImage(uint8_t *imageData, uint8_t sizex, uint8_t sizey){
+_save_uint8(IMAGE_NAMESPACE, "image", imageData, size_x, size_y);
+ if (err != ESP_OK) {
+  printf("Error (%d) writing image data to flash.\n", err);
+}
+}
+void PoiFlashMemory::saveProgram(uint8_t *programData, uint8_t size_x, uint8_t size_y){
+	_save_uint8(PROGRAM_NAMESPACE, "program", programData, size_x, size_y);
+ if (err != ESP_OK) {
+  printf("Error (%d) writing program data to flash.\n", err);
+}
+}
+
+esp_err_t PoiFlashMemory::_save_uint8(const char* namespace, const char* key, uint8_t *data, uint8_t size_x, uint8_t size_y){
+    nvs_handle my_handle;
+    esp_err_t err;
+
+    // Open
+    err = nvs_open(namespace, NVS_READWRITE, &my_handle);
+    if (err != ESP_OK) return err;
+
+    // Write prog values
+    required_size = sizeof(uint8_t)*size_x*size_y;
+    err = nvs_set_blob(my_handle, key, programData, required_size);
+    if (err != ESP_OK) return err;
+
+    // Commit
+    err = nvs_commit(my_handle);
+    if (err != ESP_OK) return err;
+
+    // Close
+    nvs_close(my_handle);
+    return ESP_OK;
+ }
+ 
+void PoiFlashMemory::getImage(uint8_t *imageData,){
+	_read_uint8(IMAGE_NAMESPACE, "image", imageData, size_x, size_y);
+ if (err != ESP_OK) {
+  printf("Error (%d) reading image data from flash.\n", err);
+}
+}
+
+void PoiFlashMemory::getProgram(uint8_t *programData){
+_read_uint8(PROGRAM_NAMESPACE, "program", programData, size_x, size_y);
+ if (err != ESP_OK) {
+  printf("Error (%d) readimg program data from flash.\n", err);
+}
+}
+
+esp_err_t PoiFlashMemory::_read_uint8(const char* namespace, const char* key, uint8_t *data, uint8_t size_x, uint8_t size_y){
+	
+}
 
 esp_err_t PoiFlashMemory::save_restart_counter(void)
 {

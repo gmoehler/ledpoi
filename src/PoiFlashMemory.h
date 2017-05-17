@@ -8,6 +8,8 @@
 #include "nvs.h"
 
 #define STORAGE_NAMESPACE "poiStorage"
+#define IMAGE_NAMESPACE "poiImage"
+#define PROGRAM_NAMESPACE "poiProgram"
 
 
 /**
@@ -18,7 +20,12 @@
 class PoiFlashMemory
 {
 public:
-  PoiFlashMemory();
+  void saveImage(uint8_t *imageData, uint8_t sizex, uint8_t sizey);
+  void saveProgram(uint8_t *programData, uint8_t sizex, uint8_t sizey);
+  
+  void getImage(uint8_t *imageData,);
+  void getProgram(uint8_t *programData);
+  
   esp_err_t save_restart_counter(void);
   esp_err_t save_run_time(void);
   esp_err_t print_what_saved(void);
