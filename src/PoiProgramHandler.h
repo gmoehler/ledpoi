@@ -6,6 +6,7 @@
 #include "ledpoi.h"
 #include "PoiTimer.h"
 #include "PlayHandler.h"
+#include "PoiFlashMemory.h"
 
 #define N_PROG_STEPS 50
 
@@ -45,6 +46,8 @@ private:
   uint8_t _numLoops;
   uint16_t _currentLoop;
   PlayHandler _playHandler;
+
+  PoiFlashMemory _flashMemory;
 
   uint8_t _prog[N_PROG_STEPS][6];
   std::map<uint8_t, uint8_t> _labelMap; // map between label# and cmd#

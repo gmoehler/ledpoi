@@ -98,6 +98,7 @@ void PoiProgramHandler::addCmdToProgram(char cmd[7]){
     if (_logLevel != MUTE) {
       printf("Program loaded: %d cmds, %d labels, %d sync points.\n",
         _numProgSteps, _labelMap.size(), _syncMap.size());
+				//_flashMemory.saveProgram(_prog, N_FRAMES, N_PIXELS);
     }
     // finished programming
     _duringProgramming = false;

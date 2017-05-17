@@ -24,7 +24,6 @@ enum PoiAction { NO_PROGRAM,
                   PAUSE_PROG
                 };
 
-
 /**
  * Class responsible for running the poi led program
  * After each action the last frame is always copied to Register 0
