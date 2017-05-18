@@ -17,6 +17,7 @@ PoiActionRunner::PoiActionRunner(PoiTimer& ptimer, LogLevel logLevel) :
 void PoiActionRunner::setup(){
   // Create semaphore to inform us when the timer has fired
   _timerSemaphore = xSemaphoreCreateBinary();
+  _progHandler.setup();
 }
 
 /**********************

@@ -19,12 +19,12 @@
 class PoiFlashMemory
 {
 public:
-  void saveImage(uint8_t *imageData, int size_x, int size_y);
-  void saveProgram(uint8_t *programData, int size_x, int size_y);
+  bool saveImage(uint8_t *imageData, uint8_t size_x, uint8_t size_y);
+  bool saveProgram(uint8_t *programData, uint8_t size_x, uint8_t size_y);
 
   // get-functions assume that there is enough space in the data
-  void getImage(uint8_t *imageData);
-  void getProgram(uint8_t *programData);
+  bool loadImage(uint8_t *imageData);
+  bool loadProgram(uint8_t *programData);
 
   esp_err_t save_restart_counter(void);
   esp_err_t save_run_time(void);
@@ -32,8 +32,11 @@ public:
   void setup();
 
 private:
-  esp_err_t _save_uint8(const char* mynamespace, const char* key, uint8_t *data, uint8_t size_x, uint8_t size_y);
-  esp_err_t _read_uint8(const char* mynamespace, const char* key, uint8_t *data);
+  esp_err_t _save_uint8_array(const char* mynamespace, const char* key, uint8_t *data,
+      uint8_t size_x, uint8_t size_y);
+  esp_err_t _save_uint8(const char* mynamespace, const char* key, uint8_t value);
+  esp_err_t _read_uint8_array(const char* mynamespace, const char* key, uint8_t *data);
+  esp_err_t _read_uint8(const char* mynamespace, const char* key, uint8_t *value);
 
 };
 

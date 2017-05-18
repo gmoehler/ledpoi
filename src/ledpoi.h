@@ -5,6 +5,9 @@
 #define N_FRAMES 200 // max: 255 because of uint8_t
 #define N_PIXELS 60
 
+#define N_PROG_STEPS 50
+#define N_CMD_FIELDS 6
+
 enum LogLevel { CHATTY, QUIET, MUTE};
 
 enum CmdType {  PROG_END,

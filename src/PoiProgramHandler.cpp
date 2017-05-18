@@ -6,6 +6,19 @@ PoiProgramHandler::PoiProgramHandler(PlayHandler& PlayHandler, LogLevel logLevel
 	_numLoops(0), _currentLoop(0), _playHandler(PlayHandler),
 	_logLevel(logLevel){}
 
+void PoiProgramHandler::setup(){
+	/*printf("Loading program from flash...\n");
+	_duringProgramming = true;
+	if (_flashMemory.loadProgram(&_prog[0][0])){
+		printf("Program loaded from flash.\n");
+
+		// set prog step and do some printout
+		//_numProgSteps = 0;
+		printf("Program read:\n");
+	}
+	_duringProgramming = false;*/
+}
+
 void PoiProgramHandler::init(){
 	_currentProgStep = 0;
 	if (_logLevel != MUTE) printf("Starting program...\n");
@@ -92,20 +105,23 @@ void PoiProgramHandler::addCmdToProgram(char cmd[7]){
     printf("Error. Number of programming steps exceeds maximum (%d).\n", N_PROG_STEPS);
     // reset current program
     _clearProgram();
+		return;
   }
 
   if ((CmdType) cmd[1] == PROG_END){
     if (_logLevel != MUTE) {
       printf("Program loaded: %d cmds, %d labels, %d sync points.\n",
-        _numProgSteps, _labelMap.size(), _syncMap.size());
-				//_flashMemory.saveProgram(_prog, N_FRAMES, N_PIXELS);
+      _numProgSteps, _labelMap.size(), _syncMap.size());
+			printf("Saving program to flash...\n");
+			_flashMemory.saveProgram(&_prog[0][0], N_PROG_STEPS, N_CMD_FIELDS);
+			printf("Program saved to flash.\n");
     }
     // finished programming
     _duringProgramming = false;
-    return;
+		// not returning because we also want to add end Program cmd
   }
 
-  if (!_duringProgramming) {
+  else if (!_duringProgramming) {
     if (_logLevel != MUTE) printf("Starting to read a program...\n" );
     _clearProgram();
     _duringProgramming = true;
