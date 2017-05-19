@@ -59,6 +59,7 @@ private:
   void _evaluateCommand(uint8_t index);
   bool _jumpToLabel(uint8_t label);
 
+  void _printProgram();
   LogLevel _logLevel;
 
 };

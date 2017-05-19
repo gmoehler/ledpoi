@@ -7,16 +7,35 @@ PoiProgramHandler::PoiProgramHandler(PlayHandler& PlayHandler, LogLevel logLevel
 	_logLevel(logLevel){}
 
 void PoiProgramHandler::setup(){
-	/*printf("Loading program from flash...\n");
+	if (_logLevel != MUTE) printf("Loading program from flash...\n");
 	_duringProgramming = true;
+	bool loadingSuccess = false;
 	if (_flashMemory.loadProgram(&_prog[0][0])){
-		printf("Program loaded from flash.\n");
+		if (_flashMemory.loadNumProgramSteps(&_numProgSteps)){
+			loadingSuccess = true;
 
-		// set prog step and do some printout
-		//_numProgSteps = 0;
-		printf("Program read:\n");
+			if (_logLevel != MUTE) {
+				printf("Program loaded from flash.\n");
+				printf("Program read:\n");
+				_printProgram();
+			}
+		}
 	}
-	_duringProgramming = false;*/
+
+	if (!loadingSuccess){
+		printf("Error loading program from flash.\n");
+		_clearProgram();
+	}
+	_duringProgramming = false;
+}
+
+void PoiProgramHandler::_printProgram(){
+	for (int i=0; i<_numProgSteps; i++){
+		for (int j=0; j<N_CMD_FIELDS; j++){
+			printf("%d ", _prog[i][j]);
+		}
+		printf("\n");
+	}
 }
 
 void PoiProgramHandler::init(){
@@ -110,15 +129,25 @@ void PoiProgramHandler::addCmdToProgram(char cmd[7]){
 
   if ((CmdType) cmd[1] == PROG_END){
     if (_logLevel != MUTE) {
-      printf("Program loaded: %d cmds, %d labels, %d sync points.\n",
+      if (_logLevel != MUTE) printf("Program loaded: %d cmds, %d labels, %d sync points.\n",
       _numProgSteps, _labelMap.size(), _syncMap.size());
-			printf("Saving program to flash...\n");
-			_flashMemory.saveProgram(&_prog[0][0], N_PROG_STEPS, N_CMD_FIELDS);
-			printf("Program saved to flash.\n");
+			if (_logLevel != MUTE) printf("Saving program to flash...\n");
+			if (_flashMemory.saveProgram(&_prog[0][0], N_PROG_STEPS, N_CMD_FIELDS)){
+				if (_flashMemory.saveNumProgramSteps(_numProgSteps)){
+					if (_logLevel != MUTE) printf("Program saved to flash.\n");
+				}
+				else {
+					printf("Error saving number of program steps to flash.");
+				}
+			}
+			else {
+				printf("Error saving program to flash.");
+			}
     }
+
     // finished programming
     _duringProgramming = false;
-		// not returning because we also want to add end Program cmd
+		return;
   }
 
   else if (!_duringProgramming) {

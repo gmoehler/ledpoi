@@ -13,7 +13,6 @@
 #define N_REGISTERS 2
 #define N_PROG_STEPS 50
 
-
 enum PoiAction { NO_PROGRAM,
                   SHOW_STATIC_RGB,
                   PLAY_DIRECT,

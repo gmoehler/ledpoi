@@ -12,6 +12,10 @@
 #define IMAGE_NAMESPACE "poiImage"
 #define PROGRAM_NAMESPACE "poiProgram"
 
+#define IMAGE_KEY "image"
+#define PROGRAM_KEY "program"
+#define NUM_PROG_STEPS_KEY "numProgSteps"
+
 /**
  * Interface to Non-volatile (flash) memory for image and program
  **/
@@ -21,15 +25,11 @@ class PoiFlashMemory
 public:
   bool saveImage(uint8_t *imageData, uint8_t size_x, uint8_t size_y);
   bool saveProgram(uint8_t *programData, uint8_t size_x, uint8_t size_y);
+  bool saveNumProgramSteps(uint8_t numProgSteps);
 
-  // get-functions assume that there is enough space in the data
   bool loadImage(uint8_t *imageData);
   bool loadProgram(uint8_t *programData);
-
-  esp_err_t save_restart_counter(void);
-  esp_err_t save_run_time(void);
-  esp_err_t print_what_saved(void);
-  void setup();
+  bool loadNumProgramSteps(uint8_t *numProgSteps);
 
 private:
   esp_err_t _save_uint8_array(const char* mynamespace, const char* key, uint8_t *data,
