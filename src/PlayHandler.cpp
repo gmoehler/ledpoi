@@ -1,13 +1,8 @@
 #include "PlayHandler.h"
 
 PlayHandler::PlayHandler() :
-_scene(0), _numLoops(0), _startFrame(0), _endFrame(0), _delayMs(100),
+ _numLoops(0), _startFrame(0), _endFrame(0), _delayMs(100),
 _currentFrame (0), _currentLoop(0), _active(false) {}
-
-void PlayHandler::init(uint8_t scene, uint8_t startFrame, uint8_t endFrame, uint16_t delay, uint16_t loops) {
-  _scene          = constrain(scene,0,N_SCENES-1);
-  init(startFrame, endFrame, delay, loops);
-}
 
 void PlayHandler::init(uint8_t startFrame, uint8_t endFrame, uint16_t delay, uint16_t loops) {
 
@@ -20,10 +15,6 @@ void PlayHandler::init(uint8_t startFrame, uint8_t endFrame, uint16_t delay, uin
   _currentLoop = 0;
   _active = true;
 }
-
-  void PlayHandler::setActiveScene(uint8_t scene){
-    _scene = scene;
-  }
 
 void PlayHandler::next(){
 
@@ -52,10 +43,6 @@ uint16_t PlayHandler::getDelayMs(){
   return _delayMs;
 }
 
-uint8_t PlayHandler::getCurrentScene(){
-  return _scene;
-}
-
 uint8_t PlayHandler::getCurrentFrame(){
   return _currentFrame;
 }
@@ -65,9 +52,9 @@ uint16_t PlayHandler::getCurrentLoop(){
 }
 
 void PlayHandler::printInfo(){
-  printf("PlayHandler: Scene: %d frames: [%d,%d] delay: %d loops:%d \n", _scene, _startFrame, _endFrame, _delayMs, _numLoops);
+  printf("PlayHandler: Frames [%d,%d] delay: %d loops:%d \n", _startFrame, _endFrame, _delayMs, _numLoops);
 }
 
 void PlayHandler::printState(){
-  printf("PlayHandler: Active: %d Current Scene: %d current frame: %d current loop: %d \n", _active, _scene, _currentFrame, _currentLoop);
+  printf("PlayHandler: Active: %d Current frame: %d current loop: %d \n", _active, _currentFrame, _currentLoop);
 }

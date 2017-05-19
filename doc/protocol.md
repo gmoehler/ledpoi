@@ -9,6 +9,7 @@ Byte[n] may not contain any 0xFF!
 |---|---|---|---|---|---|---|---|---|---|
 |**setPixel**||**0..200**|scene|frame|r|g|b|done|Adds a pixel to a frame in a scene|
 |**setAction**||**254**|*actionCMD*|*action0*|*action0*|*action2*|*action3*|||
+||save scene||0|scene|||||set scene id to scene currently in memory and save it to flash|
 ||showStatic||1|scene|frame|timeOutMSB|timeOutLSB|done|timeOut=0: no time out|
 ||black||2|fade[ms]MSB|fade[ms]LSB|||(done)|fade=0: sofort aus|
 ||startProg||3|||||done||

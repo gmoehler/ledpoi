@@ -44,17 +44,18 @@ private:
   uint8_t _currentProgStep;
   uint8_t _numLoops;
   uint16_t _currentLoop;
+  uint8_t _currentScene;
   PlayHandler _playHandler;
 
   PoiFlashMemory _flashMemory;
 
-  uint8_t _prog[N_PROG_STEPS][N_CMD_FIELDS];
+  uint8_t _prog[N_PROG_STEPS][N_PROG_FIELDS];
   std::map<uint8_t, uint8_t> _labelMap; // map between label# and cmd#
   std::map<uint8_t, uint8_t> _syncMap;  // map between snyc# and cmd#
 
   bool _isProgramFinished();
   void _clearProgram();
-  CmdType _getCommandType(uint8_t cmd[N_CMD_FIELDS]);
+  CmdType _getCommandType(uint8_t cmd[N_PROG_FIELDS]);
   void _nextProgramStep(bool initial=false);
   void _evaluateCommand(uint8_t index);
   bool _jumpToLabel(uint8_t label);

@@ -1,7 +1,7 @@
 #include "PoiActionRunner.h"
 
 PoiActionRunner::PoiActionRunner(PoiTimer& ptimer, LogLevel logLevel) :
-    _currentAction(NO_PROGRAM), _currentSyncId(0),
+    _currentAction(NO_PROGRAM), _currentSyncId(0), _currentScene(0),
     _ptimer(ptimer),
     _logLevel(logLevel), _progHandler(_playHandler, logLevel)
     {
@@ -24,8 +24,8 @@ void PoiActionRunner::setup(){
   * Utility functions *
   *********************/
 
-rgbVal PoiActionRunner::_getPixel(uint8_t scene_idx, uint8_t frame_idx, uint8_t pixel_idx) {
-  return _pixelMap[constrain(scene_idx,0,N_SCENES-1)][constrain(frame_idx,0,N_FRAMES-1)][constrain(pixel_idx,0,N_PIXELS-1)];
+rgbVal PoiActionRunner::_getPixel(uint8_t frame_idx, uint8_t pixel_idx) {
+  return _pixelMap[constrain(frame_idx,0,N_FRAMES-1)][constrain(pixel_idx,0,N_PIXELS-1)];
 }
 
 void PoiActionRunner::_fillRegister(uint8_t registerId, rgbVal rgb){
@@ -39,23 +39,21 @@ void PoiActionRunner::_fillRegister(uint8_t registerId, rgbVal rgb){
 }
 
 void PoiActionRunner::_fillMap(rgbVal rgb){
-  for (int s=0; s<N_SCENES; s++){
-    for (int f=0; f<N_FRAMES; f++){
-      for (int p=0; p<N_PIXELS; p++){
-        setPixel(s, f, s, rgb);
-      }
+  for (int f=0; f<N_FRAMES; f++){
+    for (int p=0; p<N_PIXELS; p++){
+      _setPixel(f, p, rgb);
     }
   }
 }
 
-void PoiActionRunner::_copyFrameToRegister(uint8_t registerId, uint8_t scene_idx, uint8_t frame_idx, float factor){
+void PoiActionRunner::_copyFrameToRegister(uint8_t registerId, uint8_t frame_idx, float factor){
   if (registerId +1 > N_REGISTERS){
     printf("Error. Register %d does not exist\n", registerId);
     return;
   }
 
   for (int i = 0; i < N_PIXELS; i++) {
-    rgbVal rgb = _getPixel(scene_idx, frame_idx, i);
+    rgbVal rgb = _getPixel(frame_idx, i);
     if (factor == 1){
       _pixelRegister[registerId][i] = rgb;
     }
@@ -97,9 +95,9 @@ void PoiActionRunner::_displayRegister(uint8_t registerId){
     ws2812_setColors(N_PIXELS, _pixelRegister[registerId]);
 }
 
-void PoiActionRunner::_displayFrame(uint8_t scene, uint8_t frame){
-  //printf("Showing frame: scene %d frame \n", scene, frame);
-  rgbVal* pixels = _pixelMap[constrain(scene,0,N_SCENES-1)][constrain(frame,0,N_FRAMES-1)];
+void PoiActionRunner::_displayFrame(uint8_t frame){
+  //printf("Showing frame %d\n", frame);
+  rgbVal* pixels = _pixelMap[constrain(frame,0,N_FRAMES-1)];
   ws2812_setColors(N_PIXELS, pixels);
 }
 
@@ -108,15 +106,44 @@ void PoiActionRunner::_displayFrame(uint8_t scene, uint8_t frame){
   ***************************/
 
 void PoiActionRunner::setPixel(uint8_t scene_idx, uint8_t frame_idx, uint8_t pixel_idx, rgbVal pixel){
-  _pixelMap[constrain(scene_idx,0,N_SCENES-1)][constrain(frame_idx,0,N_FRAMES-1)][constrain(pixel_idx,0,N_PIXELS-1)] = pixel;
+  // TODO: possibly handle cases in which scene_idx changes
+  _currentScene = scene_idx;
+  _setPixel(frame_idx, pixel_idx, pixel);
+}
+
+void PoiActionRunner::_setPixel(uint8_t frame_idx, uint8_t pixel_idx, rgbVal pixel){
+  _pixelMap[constrain(frame_idx,0,N_FRAMES-1)][constrain(pixel_idx,0,N_PIXELS-1)] = pixel;
+}
+
+void PoiActionRunner::saveScene(uint8_t scene){
+  _currentScene = scene;
+    if (_logLevel != MUTE) printf("Saving image of scene %d to flash.\n", _currentScene);
+  if (_flashMemory.saveImage(&_pixelMap[0][0], _currentScene, N_FRAMES, N_PIXELS)){
+    if (_logLevel != MUTE) printf("Image of scene %d saved to flash.\n", _currentScene);
+  }
+  else {
+    printf("Error saving scene %d to flash.", _currentScene);
+  }
+}
+
+void PoiActionRunner::_updateSceneFromFlash(uint8_t scene){
+    if (scene != _currentScene){
+    if (_flashMemory.loadImage(&_pixelMap[0][0], scene)){
+      _currentScene = scene;
+    }
+    else{
+      printf("Error. Cannot load scene %d\n", scene);
+    }
+  }
 }
 
 void PoiActionRunner::showStaticFrame(uint8_t scene, uint8_t frame, uint8_t timeOutMSB, uint8_t timeOutLSB){
 
   _currentAction = SHOW_STATIC_FRAME;
+  _updateSceneFromFlash(scene);
   uint8_t timeout = (uint16_t)timeOutMSB *256 + timeOutLSB;
-  if (_logLevel != MUTE)  printf("Play static Scene: %d frames: %d timeout:%d \n", scene, frame, timeout);
-  _copyFrameToRegister(0, scene, frame);
+  if (_logLevel != MUTE)  printf("Play static frame: %d timeout: %d \n", frame, timeout);
+  _copyFrameToRegister(0, frame);
 
   // play initial frame right away
   _ptimer.disable();
@@ -127,12 +154,13 @@ void PoiActionRunner::showStaticFrame(uint8_t scene, uint8_t frame, uint8_t time
 void PoiActionRunner::playScene(uint8_t scene, uint8_t startFrame, uint8_t endFrame, uint8_t speed, uint8_t loops){
 
   _currentAction = PLAY_DIRECT;
-  _playHandler.init(scene, startFrame, endFrame, speed, loops);
+  _updateSceneFromFlash(scene);
+  _playHandler.init(startFrame, endFrame, speed, loops);
   if (_logLevel != MUTE) _playHandler.printInfo();
 
   // play initial frame right away
   _ptimer.disable();
-  _displayFrame(_playHandler.getCurrentScene(), _playHandler.getCurrentFrame());
+  _displayFrame(_playHandler.getCurrentFrame());
   _ptimer.setIntervalAndEnable( _playHandler.getDelayMs() );
 }
 
@@ -195,7 +223,7 @@ void PoiActionRunner::startProg(){
 
   // play initial frame right away
   _ptimer.disable();
-  _displayFrame(_progHandler.getCurrentScene(), _progHandler.getCurrentFrame());
+  _displayFrame(_progHandler.getCurrentFrame());
   _ptimer.setIntervalAndEnable( _progHandler.getDelayMs() );
 }
 
@@ -231,7 +259,7 @@ void PoiActionRunner::continueProg() {
 void PoiActionRunner::onInterrupt(){
 
   if (_currentAction != NO_PROGRAM){
-    //Serial.println("play scene  - Next frame");
+    //Serial.println("play next frame");
     // Give a semaphore that we can check in the loop
     xSemaphoreGiveFromISR(_timerSemaphore, NULL);
   }
@@ -248,12 +276,12 @@ void PoiActionRunner::loop(){
       _playHandler.next();
       if (_logLevel == CHATTY) _playHandler.printState();
       if (_playHandler.isActive()){
-        _displayFrame(_playHandler.getCurrentScene(), _playHandler.getCurrentFrame());
+        _displayFrame(_playHandler.getCurrentFrame());
       }
       else {
         _currentAction = NO_PROGRAM;
         // remember last frame in register 0
-        _copyFrameToRegister(0, _playHandler.getCurrentScene(), _playHandler.getCurrentFrame());
+        _copyFrameToRegister(0, _playHandler.getCurrentFrame());
         if (_logLevel != MUTE) printf("End of program PLAY_DIRECT.\n");
       }
       break;
@@ -266,15 +294,22 @@ void PoiActionRunner::loop(){
       _progHandler.next();
       if (_progHandler.isActive()){
         if (_progHandler.hasDelayChanged()) {
-          _ptimer.disable(); }
-        _displayFrame(_progHandler.getCurrentScene(), _progHandler.getCurrentFrame());
+          _ptimer.disable();
+        }
+        uint8_t scene = _progHandler.getCurrentScene();
+        if (scene != _currentScene){
+          _updateSceneFromFlash(scene);
+          _currentScene = scene;
+        }
+        // finally display the frame
+        _displayFrame(_progHandler.getCurrentFrame());
         if (_progHandler.hasDelayChanged()) {
           _ptimer.setIntervalAndEnable( _progHandler.getDelayMs() ); }
       }
       else {
         _currentAction = NO_PROGRAM;
         // remember last frame in register 0
-        _copyFrameToRegister(0, _progHandler.getCurrentScene(), _progHandler.getCurrentFrame());
+        _copyFrameToRegister(0,_progHandler.getCurrentFrame());
         if (_logLevel != MUTE) printf("End of program PLAY_PROG.\n");
       }
       break;

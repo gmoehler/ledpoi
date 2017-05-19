@@ -3,7 +3,7 @@
 PoiProgramHandler::PoiProgramHandler(PlayHandler& PlayHandler, LogLevel logLevel) :
 	_active(false), _duringProgramming(false), _delayChanged(false), _inLoop(false),
 	_numProgSteps(0),_currentProgStep(0),
-	_numLoops(0), _currentLoop(0), _playHandler(PlayHandler),
+	_numLoops(0), _currentLoop(0), _currentScene(0), _playHandler(PlayHandler),
 	_logLevel(logLevel){}
 
 void PoiProgramHandler::setup(){
@@ -16,7 +16,7 @@ void PoiProgramHandler::setup(){
 
 			if (_logLevel != MUTE) {
 				printf("Program loaded from flash.\n");
-				printf("Program read:\n");
+				printf("Program read (%d lines):\n", _numProgSteps);
 				_printProgram();
 			}
 		}
@@ -31,7 +31,7 @@ void PoiProgramHandler::setup(){
 
 void PoiProgramHandler::_printProgram(){
 	for (int i=0; i<_numProgSteps; i++){
-		for (int j=0; j<N_CMD_FIELDS; j++){
+		for (int j=0; j<N_PROG_FIELDS; j++){
 			printf("%d ", _prog[i][j]);
 		}
 		printf("\n");
@@ -99,7 +99,7 @@ bool PoiProgramHandler::hasDelayChanged(){
 }
 
 uint8_t PoiProgramHandler::getCurrentScene(){
-  return _playHandler.getCurrentScene();
+  return _currentScene;
 }
 
 uint8_t PoiProgramHandler::getCurrentFrame(){
@@ -131,8 +131,8 @@ void PoiProgramHandler::addCmdToProgram(char cmd[7]){
     if (_logLevel != MUTE) {
       if (_logLevel != MUTE) printf("Program loaded: %d cmds, %d labels, %d sync points.\n",
       _numProgSteps, _labelMap.size(), _syncMap.size());
-			if (_logLevel != MUTE) printf("Saving program to flash...\n");
-			if (_flashMemory.saveProgram(&_prog[0][0], N_PROG_STEPS, N_CMD_FIELDS)){
+			if (_logLevel != MUTE) printf("Saving program to flash (%d lines)...\n", _numProgSteps);
+			if (_flashMemory.saveProgram(&_prog[0][0], N_PROG_STEPS, N_PROG_FIELDS)){
 				if (_flashMemory.saveNumProgramSteps(_numProgSteps)){
 					if (_logLevel != MUTE) printf("Program saved to flash.\n");
 				}
@@ -172,8 +172,8 @@ void PoiProgramHandler::addCmdToProgram(char cmd[7]){
 
   // add cmd to program memory
   _prog[_numProgSteps][0] = (CmdType) cmd[1];
-  for (int i=2; i<7; i++){
-    _prog[_numProgSteps][i-1] = (uint8_t) cmd[i];
+  for (int i=1; i<N_PROG_FIELDS; i++){
+    _prog[_numProgSteps][i] = (uint8_t) cmd[i+1];
   }
 
   _numProgSteps++;
@@ -221,7 +221,7 @@ void PoiProgramHandler::_evaluateCommand(uint8_t index) {
   switch(_getCommandType(cmd)) {
 
     case SET_SCENE:
-		_playHandler.setActiveScene(constrain(cmd[1],0,N_SCENES-1));
+		_currentScene = cmd[1];
     break;
 
     case PLAY_FRAMES:

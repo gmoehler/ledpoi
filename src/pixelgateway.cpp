@@ -190,6 +190,12 @@ void setup()
 
   // init timer
   ptimer.init(ptimer_intr);
+
+  rgbVal val1 = makeRGBVal(3, 3, 3);
+  rgbVal val2 = makeRGBVal(255,255,255);
+
+  printf("rgbSize: %d\n", sizeof(val1));
+  printf("rgbSize: %d\n", sizeof(val2));
 }
 
 void print_cmd(){
@@ -226,7 +232,8 @@ void realize_cmd(){
       break;
 
       case 6:
-      //runner.saveProg();
+      //runner.jumptoSync(cmd[2]);
+      runner.saveScene(cmd[2]);
       break;
 
       case 7:
@@ -246,10 +253,6 @@ void realize_cmd(){
       client_disconnect();
       nextPoiState = POI_CLIENT_CONNECTING;
       return;
-
-      case 11:
-      runner.jumptoSync(cmd[2]);
-      break;
 
       default:
       if (logLevel != MUTE) {

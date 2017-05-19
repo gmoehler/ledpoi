@@ -1,8 +1,33 @@
 #include "PoiFlashMemory.h"
 
 
-bool PoiFlashMemory::saveImage(uint8_t *imageData, uint8_t size_x, uint8_t size_y){
-  esp_err_t err = _save_uint8_array(IMAGE_NAMESPACE, IMAGE_KEY, imageData, size_x, size_y);
+void PoiFlashMemory::serializeRgbData(rgbVal *imageData, uint8_t *serializedImageData,
+    uint8_t size_x, uint8_t size_y, uint8_t *newSize){
+  uint16_t n = 0;
+  uint8_t *q = serializedImageData;
+  for (int i=0; i<size_x * size_y; i++){
+      rgbVal val = imageData[i];
+      *q = val.r; q++; n++;
+      *q = val.g; q++; n++;
+      *q = val.b; q++; n++;
+  }
+  *newSize = n;
+}
+
+void PoiFlashMemory::deserializeRgbData(uint8_t *serializedImageData, rgbVal *deserializedImageData,
+    uint8_t size_x, uint8_t size_y){
+  uint16_t n = 0;
+  uint8_t *q = serializedImageData;
+  for (int i=0; i<size_x * size_y; i++){
+      uint8_t r = *q; q++;
+      uint8_t g = *q; q++;
+      uint8_t b = *q; q++;
+      deserializedImageData[i] = makeRGBVal(r,g,b);
+  }
+}
+
+bool PoiFlashMemory::saveImage(rgbVal *imageData, uint8_t scene, uint8_t size_x, uint8_t size_y){
+  esp_err_t err = _save_uint8_array(IMAGE_NAMESPACE, IMAGE_KEY, (uint8_t*) imageData, 4*size_x, size_y);
   if (err != ESP_OK) {
     printf("Error (%d) writing image data to flash.\n", err);
     return false;
@@ -29,8 +54,8 @@ bool PoiFlashMemory::saveNumProgramSteps(uint8_t numProgSteps){
 }
 
 
-bool PoiFlashMemory::loadImage(uint8_t *imageData){
-  esp_err_t err = _read_uint8_array(IMAGE_NAMESPACE, IMAGE_KEY, imageData);
+bool PoiFlashMemory::loadImage(rgbVal *imageData, uint8_t scene){
+  esp_err_t err = _read_uint8_array(IMAGE_NAMESPACE, IMAGE_KEY, (uint8_t *) imageData);
   if (err != ESP_OK) {
     printf("Error (%d) reading image data from flash.\n", err);
     return false;
@@ -61,7 +86,7 @@ esp_err_t PoiFlashMemory::_save_uint8(const char* mynamespace, const char* key, 
   esp_err_t err;
 
   // Open
-  printf("Writing uint8_t...\n" );
+  //printf("Writing uint8_t...\n" );
   err = nvs_open(mynamespace, NVS_READWRITE, &my_handle);
   if (err != ESP_OK) return err;
 
@@ -83,7 +108,7 @@ esp_err_t PoiFlashMemory::_save_uint8_array(const char* mynamespace, const char*
   esp_err_t err;
 
   // Open
-  printf("Writing...\n" );
+  //printf("Writing...\n" );
   err = nvs_open(mynamespace, NVS_READWRITE, &my_handle);
   if (err != ESP_OK) return err;
 
