@@ -24,8 +24,12 @@ void PoiActionRunner::setup(){
   * Utility functions *
   *********************/
 
+rgbVal PoiActionRunner::_makeRGBValue(uint8_t rgb_array[3]){
+  return makeRGBVal(rgb_array[0], rgb_array[1], rgb_array[2]);
+}
+
 rgbVal PoiActionRunner::_getPixel(uint8_t frame_idx, uint8_t pixel_idx) {
-  return _pixelMap[constrain(frame_idx,0,N_FRAMES-1)][constrain(pixel_idx,0,N_PIXELS-1)];
+  return _makeRGBValue(_pixelMap[constrain(frame_idx,0,N_FRAMES-1)][constrain(pixel_idx,0,N_PIXELS-1)]);
 }
 
 void PoiActionRunner::_fillRegister(uint8_t registerId, rgbVal rgb){
@@ -52,8 +56,10 @@ void PoiActionRunner::_copyFrameToRegister(uint8_t registerId, uint8_t frame_idx
     return;
   }
 
+  //printf("Copying frame to register:\n");
   for (int i = 0; i < N_PIXELS; i++) {
     rgbVal rgb = _getPixel(frame_idx, i);
+    if (rgb.r>0) printf("%d-%d-%d\n", rgb.r, rgb.g, rgb.b);
     if (factor == 1){
       _pixelRegister[registerId][i] = rgb;
     }
@@ -97,28 +103,46 @@ void PoiActionRunner::_displayRegister(uint8_t registerId){
 
 void PoiActionRunner::_displayFrame(uint8_t frame){
   //printf("Showing frame %d\n", frame);
-  rgbVal* pixels = _pixelMap[constrain(frame,0,N_FRAMES-1)];
-  ws2812_setColors(N_PIXELS, pixels);
+  _copyFrameToRegister(0, frame);
+  _displayRegister(0);
+//  rgbVal* pixels = _pixelMap[constrain(frame,0,N_FRAMES-1)];
+//  ws2812_setColors(N_PIXELS, pixels);
 }
 
 /****************************
   * External action methods *
   ***************************/
 
-void PoiActionRunner::setPixel(uint8_t scene_idx, uint8_t frame_idx, uint8_t pixel_idx, rgbVal pixel){
+void PoiActionRunner::setPixel(uint8_t scene_idx, uint8_t frame_idx, uint8_t pixel_idx,
+    uint8_t r, uint8_t g, uint8_t b){
   // TODO: possibly handle cases in which scene_idx changes
   _currentScene = scene_idx;
-  _setPixel(frame_idx, pixel_idx, pixel);
+//  rgbVal pixel = makeRGBVal(r,g,b);
+  _setPixel(frame_idx, pixel_idx, r, g, b);
 }
 
 void PoiActionRunner::_setPixel(uint8_t frame_idx, uint8_t pixel_idx, rgbVal pixel){
-  _pixelMap[constrain(frame_idx,0,N_FRAMES-1)][constrain(pixel_idx,0,N_PIXELS-1)] = pixel;
+  _setPixel(frame_idx, pixel_idx,  pixel.r, pixel.g, pixel.b);
+}
+
+void PoiActionRunner::_setPixel(uint8_t frame_idx, uint8_t pixel_idx,  uint8_t r, uint8_t g, uint8_t b){
+  _pixelMap[constrain(frame_idx,0,N_FRAMES-1)][constrain(pixel_idx,0,N_PIXELS-1)][0] = r;
+  _pixelMap[constrain(frame_idx,0,N_FRAMES-1)][constrain(pixel_idx,0,N_PIXELS-1)][1] = g;
+  _pixelMap[constrain(frame_idx,0,N_FRAMES-1)][constrain(pixel_idx,0,N_PIXELS-1)][2] = b;
 }
 
 void PoiActionRunner::saveScene(uint8_t scene){
+  if (_logLevel != MUTE) printf("Erasing images.\n", _currentScene);
+  if (_flashMemory.eraseImages()){
+    if (_logLevel != MUTE) printf("Images earased.\n", _currentScene);
+  }
+  else {
+    printf("Error erasing images.", _currentScene);
+  }
+
   _currentScene = scene;
-    if (_logLevel != MUTE) printf("Saving image of scene %d to flash.\n", _currentScene);
-  if (_flashMemory.saveImage(&_pixelMap[0][0], _currentScene, N_FRAMES, N_PIXELS)){
+  if (_logLevel != MUTE) printf("Saving image of scene %d to flash.\n", _currentScene);
+  if (_flashMemory.saveImage(&_pixelMap[0][0][0], _currentScene, N_FRAMES, N_PIXELS)){
     if (_logLevel != MUTE) printf("Image of scene %d saved to flash.\n", _currentScene);
   }
   else {
@@ -127,14 +151,14 @@ void PoiActionRunner::saveScene(uint8_t scene){
 }
 
 void PoiActionRunner::_updateSceneFromFlash(uint8_t scene){
-    if (scene != _currentScene){
-    if (_flashMemory.loadImage(&_pixelMap[0][0], scene)){
+//    if (scene != _currentScene){
+/*    if (_flashMemory.loadImage(&_pixelMap[0][0][0], scene)){
       _currentScene = scene;
     }
     else{
       printf("Error. Cannot load scene %d\n", scene);
-    }
-  }
+    }*/
+//  }
 }
 
 void PoiActionRunner::showStaticFrame(uint8_t scene, uint8_t frame, uint8_t timeOutMSB, uint8_t timeOutLSB){
@@ -240,10 +264,6 @@ void PoiActionRunner::jumptoSync(uint8_t syncId){
   else {
     _progHandler.syncNow(syncId);
   }
-}
-
-void PoiActionRunner::saveProg(){
-  // TODO
 }
 
 void PoiActionRunner::continueProg() {

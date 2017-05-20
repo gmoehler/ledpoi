@@ -34,7 +34,8 @@ class PoiActionRunner
 public:
   PoiActionRunner(PoiTimer& ptimer, LogLevel logLevel);
 
-  void setPixel(uint8_t scene_idx, uint8_t frame_idx, uint8_t pixel_idx, rgbVal pixel);
+  void setPixel(uint8_t scene_idx, uint8_t frame_idx, uint8_t pixel_idx,
+      uint8_t r, uint8_t g, uint8_t b);
 
   // action methods
   void saveScene(uint8_t scene);
@@ -51,7 +52,6 @@ public:
   void startProg();
   void pauseProg();
   void continueProg();
-  void saveProg();
 
   void setup();             // to be called in setup()
   void loop();               // to be called in the loop
@@ -72,9 +72,11 @@ private:
   // data stores
   // after each action the last frame is stored in _pixelRegister[0]
   rgbVal _pixelRegister[2][N_PIXELS];
-  rgbVal _pixelMap[N_FRAMES][N_PIXELS];
+  uint8_t _pixelMap[N_FRAMES][N_PIXELS][3];
 
   // access functions
+  rgbVal _makeRGBValue(uint8_t rgb_array[3]);
+  void _setPixel(uint8_t frame_idx, uint8_t pixel_idx,  uint8_t r, uint8_t g, uint8_t b);
   void _setPixel(uint8_t frame_idx, uint8_t pixel_idx, rgbVal pixel);
   rgbVal _getPixel(uint8_t frame_idx, uint8_t pixel_idx);
   void _updateSceneFromFlash(uint8_t scene);

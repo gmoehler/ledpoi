@@ -1,35 +1,9 @@
 #include "PoiFlashMemory.h"
 
-
-void PoiFlashMemory::serializeRgbData(rgbVal *imageData, uint8_t *serializedImageData,
-    uint8_t size_x, uint8_t size_y, uint8_t *newSize){
-  uint16_t n = 0;
-  uint8_t *q = serializedImageData;
-  for (int i=0; i<size_x * size_y; i++){
-      rgbVal val = imageData[i];
-      *q = val.r; q++; n++;
-      *q = val.g; q++; n++;
-      *q = val.b; q++; n++;
-  }
-  *newSize = n;
-}
-
-void PoiFlashMemory::deserializeRgbData(uint8_t *serializedImageData, rgbVal *deserializedImageData,
-    uint8_t size_x, uint8_t size_y){
-  uint16_t n = 0;
-  uint8_t *q = serializedImageData;
-  for (int i=0; i<size_x * size_y; i++){
-      uint8_t r = *q; q++;
-      uint8_t g = *q; q++;
-      uint8_t b = *q; q++;
-      deserializedImageData[i] = makeRGBVal(r,g,b);
-  }
-}
-
-bool PoiFlashMemory::saveImage(rgbVal *imageData, uint8_t scene, uint8_t size_x, uint8_t size_y){
-  esp_err_t err = _save_uint8_array(IMAGE_NAMESPACE, IMAGE_KEY, (uint8_t*) imageData, 4*size_x, size_y);
+bool PoiFlashMemory::saveImage(uint8_t *imageData, uint8_t scene, uint8_t size_x, uint8_t size_y){
+  esp_err_t err = _save_uint8_array(IMAGE_NAMESPACE, IMAGE_KEY, imageData, size_x, size_y, 3);
   if (err != ESP_OK) {
-    printf("Error (%d) writing image data to flash.\n", err);
+    printf("Error (%4x) writing image data to flash.\n", err);
     return false;
   }
   return true;
@@ -38,7 +12,7 @@ bool PoiFlashMemory::saveImage(rgbVal *imageData, uint8_t scene, uint8_t size_x,
 bool PoiFlashMemory::saveProgram(uint8_t *programData, uint8_t size_x, uint8_t size_y){
   esp_err_t err = _save_uint8_array(PROGRAM_NAMESPACE, PROGRAM_KEY,  programData, size_x, size_y);
   if (err != ESP_OK) {
-    printf("Error (%d) writing program data to flash.\n", err);
+    printf("Error (%4x) writing program data to flash.\n", err);
     return false;
   }
   return true;
@@ -47,17 +21,17 @@ bool PoiFlashMemory::saveProgram(uint8_t *programData, uint8_t size_x, uint8_t s
 bool PoiFlashMemory::saveNumProgramSteps(uint8_t numProgSteps){
   esp_err_t err = _save_uint8(PROGRAM_NAMESPACE, NUM_PROG_STEPS_KEY, numProgSteps);
   if (err != ESP_OK) {
-    printf("Error (%d) writing program data to flash.\n", err);
+    printf("Error (%4x) writing program data to flash.\n", err);
     return false;
   }
   return true;
 }
 
 
-bool PoiFlashMemory::loadImage(rgbVal *imageData, uint8_t scene){
-  esp_err_t err = _read_uint8_array(IMAGE_NAMESPACE, IMAGE_KEY, (uint8_t *) imageData);
+bool PoiFlashMemory::loadImage(uint8_t *imageData, uint8_t scene){
+  esp_err_t err = _read_uint8_array(IMAGE_NAMESPACE, IMAGE_KEY, imageData);
   if (err != ESP_OK) {
-    printf("Error (%d) reading image data from flash.\n", err);
+    printf("Error (%4x) reading image data from flash.\n", err);
     return false;
   }
   return true;
@@ -66,7 +40,7 @@ bool PoiFlashMemory::loadImage(rgbVal *imageData, uint8_t scene){
 bool PoiFlashMemory::loadProgram(uint8_t *programData){
   esp_err_t err = _read_uint8_array(PROGRAM_NAMESPACE, PROGRAM_KEY, programData);
   if (err != ESP_OK) {
-    printf("Error (%d) readimg program data from flash.\n", err);
+    printf("Error (%4x) readimg program data from flash.\n", err);
     return false;
   }
   return true;
@@ -75,11 +49,35 @@ bool PoiFlashMemory::loadProgram(uint8_t *programData){
 bool PoiFlashMemory::loadNumProgramSteps(uint8_t *numProgSteps){
   esp_err_t err = _read_uint8(PROGRAM_NAMESPACE, NUM_PROG_STEPS_KEY, numProgSteps);
   if (err != ESP_OK) {
-    printf("Error (%d) readimg program data from flash.\n", err);
+    printf("Error (%4x) readimg program data from flash.\n", err);
     return false;
   }
   return true;
 }
+
+bool PoiFlashMemory::eraseImages(){
+  esp_err_t err = _eraseCompleteNamespace(IMAGE_NAMESPACE);
+  if (err != ESP_OK) {
+    printf("Error (%4x) while erasing images.\n", err);
+    return false;
+  }
+  return true;
+}
+
+bool PoiFlashMemory::eraseProgram(){
+  esp_err_t err = _eraseCompleteNamespace("storage");
+  if (err != ESP_OK) {
+    printf("Error (%4x) while erasing storage.\n", err);
+    return false;
+  }
+  err = _eraseCompleteNamespace(PROGRAM_NAMESPACE);
+  if (err != ESP_OK) {
+    printf("Error (%4x) while erasing program.\n", err);
+    return false;
+  }
+  return true;
+}
+
 
 esp_err_t PoiFlashMemory::_save_uint8(const char* mynamespace, const char* key, uint8_t value){
   nvs_handle my_handle;
@@ -103,7 +101,7 @@ esp_err_t PoiFlashMemory::_save_uint8(const char* mynamespace, const char* key, 
 }
 
 esp_err_t PoiFlashMemory::_save_uint8_array(const char* mynamespace, const char* key,
-    uint8_t *data, uint8_t size_x, uint8_t size_y){
+    uint8_t *data, uint8_t size_x, uint8_t size_y, uint8_t size_z){
   nvs_handle my_handle;
   esp_err_t err;
 
@@ -113,7 +111,7 @@ esp_err_t PoiFlashMemory::_save_uint8_array(const char* mynamespace, const char*
   if (err != ESP_OK) return err;
 
   // Write prog values
-  size_t required_size = sizeof(uint8_t)*size_x*size_y;
+  size_t required_size = sizeof(uint8_t)*size_x*size_y*size_z;
   printf("Size: %d\n", required_size);
   err = nvs_set_blob(my_handle, key, data, required_size);
   if (err != ESP_OK) return err;
@@ -171,4 +169,28 @@ esp_err_t PoiFlashMemory::_read_uint8_array(const char* mynamespace, const char*
   // Close
   nvs_close(my_handle);
   return ESP_OK;
+}
+
+
+esp_err_t PoiFlashMemory::_eraseCompleteNamespace(const char* mynamespace){
+
+  nvs_handle my_handle;
+  esp_err_t err;
+
+  // Open
+  printf("Erasing namespace %s...\n", mynamespace);
+  err = nvs_open(mynamespace, NVS_READWRITE, &my_handle);
+  if (err != ESP_OK) return err;
+
+  err = nvs_erase_all(my_handle);
+  if (err != ESP_OK) return err;
+
+  // Commit
+  err = nvs_commit(my_handle);
+  if (err != ESP_OK) return err;
+
+  // Close
+  nvs_close(my_handle);
+  return ESP_OK;
+
 }

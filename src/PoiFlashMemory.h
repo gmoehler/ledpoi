@@ -24,25 +24,24 @@
 class PoiFlashMemory
 {
 public:
-  bool saveImage(rgbVal *imageData, uint8_t scene, uint8_t size_x, uint8_t size_y);
+  bool saveImage(uint8_t *imageData, uint8_t scene, uint8_t size_x, uint8_t size_y);
   bool saveProgram(uint8_t *programData, uint8_t size_x, uint8_t size_y);
   bool saveNumProgramSteps(uint8_t numProgSteps);
 
-  bool loadImage(rgbVal *imageData, uint8_t scene);
+  bool loadImage(uint8_t *imageData, uint8_t scene);
   bool loadProgram(uint8_t *programData);
   bool loadNumProgramSteps(uint8_t *numProgSteps);
 
+  bool eraseImages();
+  bool eraseProgram();
+
 private:
   esp_err_t _save_uint8_array(const char* mynamespace, const char* key, uint8_t *data,
-      uint8_t size_x, uint8_t size_y);
+      uint8_t size_x, uint8_t size_y, uint8_t size_z=1);
   esp_err_t _save_uint8(const char* mynamespace, const char* key, uint8_t value);
   esp_err_t _read_uint8_array(const char* mynamespace, const char* key, uint8_t *data);
   esp_err_t _read_uint8(const char* mynamespace, const char* key, uint8_t *value);
-  void serializeRgbData(rgbVal *imageData, uint8_t *serializedImageData,
-      uint8_t size_x, uint8_t size_y, uint8_t *newSize);
-  void deserializeRgbData(uint8_t *serializedImageData, rgbVal *deserializedImageData,
-      uint8_t size_x, uint8_t size_y);
-
+  esp_err_t _eraseCompleteNamespace(const char* mynamespace);
 };
 
 

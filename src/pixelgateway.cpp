@@ -190,12 +190,6 @@ void setup()
 
   // init timer
   ptimer.init(ptimer_intr);
-
-  rgbVal val1 = makeRGBVal(3, 3, 3);
-  rgbVal val2 = makeRGBVal(255,255,255);
-
-  printf("rgbSize: %d\n", sizeof(val1));
-  printf("rgbSize: %d\n", sizeof(val2));
 }
 
 void print_cmd(){
@@ -273,8 +267,7 @@ void realize_cmd(){
 
     // 0...200
     default:
-    rgbVal pixel = makeRGBVal(cmd[3],cmd[4],cmd[5]);
-    runner.setPixel(cmd[1],cmd[2],cmd[0], pixel);
+    runner.setPixel(cmd[1], cmd[2], cmd[0], cmd[3], cmd[4], cmd[5]);
     break;
   }
 
