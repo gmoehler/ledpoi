@@ -192,5 +192,16 @@ esp_err_t PoiFlashMemory::_eraseCompleteNamespace(const char* mynamespace){
   // Close
   nvs_close(my_handle);
   return ESP_OK;
+}
 
+bool PoiFlashMemory::eraseNvsFlashPartition(){
+  // NVS partition was truncated and needs to be erased
+  printf("Erasing NVS flash partition.\n");
+  const esp_partition_t* nvs_partition = esp_partition_find_first(
+          ESP_PARTITION_TYPE_DATA, ESP_PARTITION_SUBTYPE_DATA_NVS, NULL);
+  assert(nvs_partition && "partition table must have an NVS partition");
+  ESP_ERROR_CHECK( esp_partition_erase_range(nvs_partition, 0, nvs_partition->size) );
+  // Retry nvs_flash_init
+  esp_err_t err = nvs_flash_init();
+  ESP_ERROR_CHECK( err );
 }

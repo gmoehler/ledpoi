@@ -56,7 +56,8 @@ public:
   void setup();             // to be called in setup()
   void loop();               // to be called in the loop
   void onInterrupt();   // to be called during the timer interrupt
-
+  void resetFlash();
+  
 private:
   PoiAction _currentAction;
   uint8_t _currentSyncId;

@@ -34,6 +34,7 @@ public:
 
   bool eraseImages();
   bool eraseProgram();
+  bool eraseNvsFlashPartition();
 
 private:
   esp_err_t _save_uint8_array(const char* mynamespace, const char* key, uint8_t *data,

@@ -11,6 +11,7 @@ enum PoiState { POI_INIT,               // 0
                 POI_NETWORK_SEARCH,     // 1
                 POI_CLIENT_CONNECTING,  // 2
                 POI_RECEIVING_DATA,     // 3
+                POI_DO_NOTHING,
                 NUM_POI_STATES};        // only used for enum size
 
 LogLevel logLevel = QUIET; // CHATTY, QUIET or MUTE
@@ -32,7 +33,7 @@ WiFiServer server(1110);
 WiFiClient client;
 IPAddress clientIP;
 
-PoiState poiState = POI_INIT;
+PoiState poiState =   POI_INIT;
 PoiState nextPoiState = poiState;
 
 PoiTimer ptimer(logLevel);
@@ -160,6 +161,13 @@ void client_disconnect(){
 
 void setup()
 {
+  // in case of startup issues with flash do this
+  //  PoiFlashMemory flashMem;
+  //  flashMem.eraseNvsFlashPartition();
+  // a flash hard reset works like this:
+  // .~/.platformio/packages/framework-arduinoespressif32/tools/esptool.py --chip esp32 --port COM6 --baud 115200
+  //  --before default_reset --after hard_reset erase_flash
+
   //  pinMode(BUTTON_PIN, INPUT_PULLUP);
   pinMode(LED_PIN, OUTPUT);
   //  blink(5);

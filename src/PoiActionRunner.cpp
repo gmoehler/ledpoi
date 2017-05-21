@@ -15,6 +15,8 @@ PoiActionRunner::PoiActionRunner(PoiTimer& ptimer, LogLevel logLevel) :
     }
 
 void PoiActionRunner::setup(){
+
+  printf("Size of pixelmap: %d\n", sizeof(_pixelMap));
   // Create semaphore to inform us when the timer has fired
   _timerSemaphore = xSemaphoreCreateBinary();
   _progHandler.setup();
@@ -112,6 +114,10 @@ void PoiActionRunner::_displayFrame(uint8_t frame){
 /****************************
   * External action methods *
   ***************************/
+
+void PoiActionRunner::resetFlash(){
+    _flashMemory.eraseNvsFlashPartition();
+}
 
 void PoiActionRunner::setPixel(uint8_t scene_idx, uint8_t frame_idx, uint8_t pixel_idx,
     uint8_t r, uint8_t g, uint8_t b){
