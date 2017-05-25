@@ -7,145 +7,422 @@ Das freezed den Server, wenn man nicht einen einfachen Timeout implementiert (TC
 */
 
 #include <Arduino.h>
-#include <ws2812.h>
+#include "esp_system.h"
+#include "esp_partition.h"
+#include "nvs_flash.h"
+#include "nvs.h"
+#include "esp_vfs.h"
+#include "esp_system.h"
 
-#define N_PIXELS 200
-
-enum PoiState { POI_INIT,               // 0
-                POI_NETWORK_SEARCH,     // 1
-                POI_CLIENT_CONNECTING,  // 2
-                POI_AWAITING_DATA,      // 3
-                POI_RECEIVING_DATA,     // 4
-                POI_TEST_WITHOUT_WIFI,   // 5
-                NUM_POI_STATES};        // only used for enum size
-
-const char* POI_INIT_STR = "POI_INIT";
-const char* POI_NETWORK_SEARCH_STR = "POI_NETWORK_SEARCH";
-const char* POI_CLIENT_CONNECTING_STR = "POI_CLIENT_CONNECTING";
-const char* POI_AWAITING_DATA_STR = "POI_AWAITING_DATA";
-const char* POI_RECEIVING_DATA_STR = "POI_RECEIVING_DATA";
-const char* POI_ACTIVE_STR = "POI_ACTIVE";
-
-
-const int DATA_PIN = 23; // was 18 Avoid using any of the strapping pins on the ESP32
-const int LED_PIN = 2;
-
-uint8_t MAX_COLOR_VAL = 200; // Limits brightness
-uint32_t timer0_int = 1000; // interrupt time in ms
-const int connTimeout=10;   // client connection timeout in secs
-bool muteLog = false;       // mute most verbose logs
-
-
-
-
-PoiState poiState = POI_TEST_WITHOUT_WIFI;
-PoiState nextPoiState = POI_TEST_WITHOUT_WIFI;
-
-hw_timer_t *timer0;
-int TCPtimeoutCt=0;   // interrupt ms count
-char cmd[7];          // command read from poi
-char c;
-int cmdIndex=0;
-uint32_t cp0_regs[18];
-
-void displayTest(uint8_t r, uint8_t g, uint8_t b) {
-  rgbVal pixels[N_PIXELS];
-  for (int i = 0; i < N_PIXELS; i++) {
-    pixels[i] = makeRGBVal(r, g, b);
-  }
-  ws2812_setColors(1, pixels);
-  //ws2812_setColors(N_PIXELS, pixels);
+extern "C" {
+    #include "esp_vfs_fat.h"
 }
 
-void blink(int m){
-  for (int n=0;n<m;n++){
-    digitalWrite(LED_PIN,HIGH);
-    delay(50);
-    digitalWrite(LED_PIN,LOW);
-    delay(50);
-  }
-}
+#define DIMX 10
+#define DIMY 2
 
-// Interrupt at each milli second
-void IRAM_ATTR timer0_intr()
+#define STORAGE_NAMESPACE "storage"
+#define IMAGE_NAMESPACE "poiImage"
+#define PROGRAM_NAMESPACE "poiProgram"
+
+static const char *TAG = "example";
+
+// Handle of the wear levelling library instance
+static wl_handle_t s_wl_handle = WL_INVALID_HANDLE;
+
+// Mount path for the partition
+const char *base_path = "/spiflash";
+
+
+esp_err_t save_restart_counter(void)
 {
-  Serial.print("Interrupt at ");
-  Serial.println(millis());
+    nvs_handle my_handle;
+    esp_err_t err;
 
-  // get FPU state
-   uint32_t cp_state = xthal_get_cpenable();
+    // Open
+    err = nvs_open(STORAGE_NAMESPACE, NVS_READWRITE, &my_handle);
+    if (err != ESP_OK) return err;
 
-   if(cp_state) {
-     // Save FPU registers
-     xthal_save_cp0(cp0_regs);
-   } else {
-     // enable FPU
-     xthal_set_cpenable(1);
-   }
+    // Read
+    int32_t restart_counter = 0; // value will default to 0, if not set yet in NVS
+    err = nvs_get_i32(my_handle, "restart_conter", &restart_counter);
+    if (err != ESP_OK && err != ESP_ERR_NVS_NOT_FOUND) return err;
 
-  // do what needs to be done for the current program
-  if (poiState == POI_TEST_WITHOUT_WIFI){
-    displayTest(0, 33, 0);
-  }
+    // Write
+    restart_counter++;
+    err = nvs_set_i32(my_handle, "restart_conter", restart_counter);
+    if (err != ESP_OK) return err;
 
-  if(cp_state) {
-    // Restore FPU registers
-    xthal_restore_cp0(cp0_regs);
-  } else {
-    // turn it back off
-    xthal_set_cpenable(0);
-  }
+    // Commit written value.
+    // After setting any values, nvs_commit() must be called to ensure changes are written
+    // to flash storage. Implementations may write to storage at other times,
+    // but this is not guaranteed.
+    err = nvs_commit(my_handle);
+    if (err != ESP_OK) return err;
 
-
-  Serial.println("Done.");
+    // Close
+    nvs_close(my_handle);
+    return ESP_OK;
 }
 
 
-void timer_init(){
-  timer0 = timerBegin(3, 80, true);  // divider 80 = 1MHz
-  timerAlarmWrite(timer0, 1000 * timer0_int, true); // Alarm every 1000 µs, auto-reload
-}
-
-void timer_start(){
-  timerAttachInterrupt(timer0, &timer0_intr, true); // attach timer0_inter, edge type interrupt  (db) timer macht GURU
-  timerAlarmEnable(timer0);
-}
-
-void timer_stop(){
-  timerDetachInterrupt(timer0);
-  timerAlarmDisable(timer0);
-}
-
-void setup()
+esp_err_t save_run_time(void)
 {
-  //  pinMode(BUTTON_PIN, INPUT_PULLUP);
-  pinMode(LED_PIN, OUTPUT);
-  //  blink(5);
-  delay(500);
-  Serial.begin(115200);
-  Serial.println();
-  Serial.println("Starting...");
+    nvs_handle my_handle;
+    esp_err_t err;
 
-  // init LEDs
-  if(ws2812_init(DATA_PIN, LED_WS2812B)) {
-    Serial.println("LED Pixel init error");
-  }
-  #if DEBUG_WS2812_DRIVER
-  dumpDebugBuffer(-2, ws2812_debugBuffer);
-  #endif
-  //  pixels = (rgbVal*)malloc(sizeof(rgbVal) * N_PIXELS*256*256);  //[pixel][scene][frame]
+    // Open
+    err = nvs_open(STORAGE_NAMESPACE, NVS_READWRITE, &my_handle);
+    if (err != ESP_OK) return err;
 
-  #if DEBUG_WS2812_DRIVER
-  dumpDebugBuffer(-1, ws2812_debugBuffer);
-  #endif
-  Serial.println("Init LEDs complete");
+    // Read the size of memory space required for blob
+    size_t required_size = 0;  // value will default to 0, if not set yet in NVS
+    err = nvs_get_blob(my_handle, "run_time", NULL, &required_size);
+    if (err != ESP_OK && err != ESP_ERR_NVS_NOT_FOUND) return err;
 
-  blink(2);
+    // Read previously saved blob if available
+    uint32_t* run_time = (uint32_t*) malloc(required_size + sizeof(uint32_t));
+    if (required_size > 0) {
+        err = nvs_get_blob(my_handle, "run_time", run_time, &required_size);
+        if (err != ESP_OK) return err;
+    }
 
-  timer_init();
-  timer_start();
+    // Write value including previously saved blob if available
+    required_size += sizeof(uint32_t);
+    run_time[required_size / sizeof(uint32_t) - 1] = xTaskGetTickCount() * portTICK_PERIOD_MS;
+    Serial.println(run_time[required_size / sizeof(uint32_t) - 1] );
+    err = nvs_set_blob(my_handle, "run_time", run_time, required_size);
+    free(run_time);
+
+    if (err != ESP_OK) return err;
+
+    // Commit
+    err = nvs_commit(my_handle);
+    if (err != ESP_OK) return err;
+
+    // Close
+    nvs_close(my_handle);
+    return ESP_OK;
+}
+/* Read from NVS and print restart counter
+   and the table with run times.
+   Return an error if anything goes wrong
+   during this process.
+ */
+esp_err_t print_what_saved(void)
+{
+    nvs_handle my_handle;
+    esp_err_t err;
+
+    // Open
+    err = nvs_open(STORAGE_NAMESPACE, NVS_READWRITE, &my_handle);
+    if (err != ESP_OK) return err;
+
+    // Read restart counter
+    int32_t restart_counter = 0; // value will default to 0, if not set yet in NVS
+    err = nvs_get_i32(my_handle, "restart_conter", &restart_counter);
+    if (err != ESP_OK && err != ESP_ERR_NVS_NOT_FOUND) return err;
+    printf("Restart counter = %d\n", restart_counter);
+
+    uint8_t val = 0; // value will default to 0, if not set yet in NVS
+    err = nvs_get_u8(my_handle, "numm", &val);
+    if (err != ESP_OK && err != ESP_ERR_NVS_NOT_FOUND) return err;
+    printf("val = %u\n", val);
+
+    // Read run time blob
+    size_t required_size = 0;  // value will default to 0, if not set yet in NVS
+    // obtain required memory space to store blob being read from NVS
+    err = nvs_get_blob(my_handle, "run_time", NULL, &required_size);
+    if (err != ESP_OK && err != ESP_ERR_NVS_NOT_FOUND) return err;
+    printf("Run time:\n");
+    if (required_size == 0) {
+        printf("Nothing saved yet!\n");
+    } else {
+        uint32_t* run_time = (uint32_t*) malloc(required_size);
+        err = nvs_get_blob(my_handle, "run_time", run_time, &required_size);
+        if (err != ESP_OK) return err;
+        for (int i = 0; i < required_size / sizeof(uint32_t); i++) {
+            printf("%d: %d\n", i + 1, run_time[i]);
+        }
+        free(run_time);
+    }
+
+    // Close
+    nvs_close(my_handle);
+    return ESP_OK;
 }
 
+esp_err_t save_uint8(const char* mynamespace, const char* key, uint8_t value){
+  nvs_handle my_handle;
+  esp_err_t err;
+
+  // Open
+  printf("Writing uint8_t...\n" );
+  err = nvs_open(mynamespace, NVS_READWRITE, &my_handle);
+  if (err != ESP_OK) return err;
+
+  err = nvs_set_u8(my_handle, key, value);
+  if (err != ESP_OK) return err;
+
+  // Commit
+  err = nvs_commit(my_handle);
+  if (err != ESP_OK) return err;
+
+  // Close
+  nvs_close(my_handle);
+  return ESP_OK;
+}
+
+
+esp_err_t save_uint8_array(const char* mynamespace, const char* key, uint8_t *data,
+    uint8_t size_x, uint8_t size_y){
+  nvs_handle my_handle;
+  esp_err_t err;
+
+  // Open
+  printf("Writing array...\n" );
+  err = nvs_open(mynamespace, NVS_READWRITE, &my_handle);
+  if (err != ESP_OK) return err;
+
+  // Write prog values
+  size_t required_size = sizeof(uint8_t)*size_x*size_y;
+  printf("Size: %d\n", required_size);
+
+  err = nvs_set_blob(my_handle, key, data, required_size);
+  if (err != ESP_OK) return err;
+
+  // Commit
+  err = nvs_commit(my_handle);
+  if (err != ESP_OK) return err;
+
+  // Close
+  nvs_close(my_handle);
+  return ESP_OK;
+}
+
+esp_err_t read_uint8_array(const char* mynamespace, const char* key, uint8_t *data){
+  nvs_handle my_handle;
+  esp_err_t err;
+
+  // Open
+  printf("Reading array...\n" );
+  err = nvs_open(mynamespace, NVS_READONLY, &my_handle);
+  if (err != ESP_OK) return err;
+
+  // Read the size of memory space required for blob
+  size_t data_size = 0;  // value will default to 0, if not set yet in NVS
+  err = nvs_get_blob(my_handle, key, NULL, &data_size);
+  if (err != ESP_OK && err != ESP_ERR_NVS_NOT_FOUND) return err;
+  printf("Read size: %d\n", data_size);
+
+  if (data_size > 0) {
+      err = nvs_get_blob(my_handle, key, data, &data_size);
+      if (err != ESP_OK) return err;
+  }
+  else {
+    return ESP_FAIL; // no data
+  }
+
+  printf("Real read size: %d\n", data_size);
+
+  // Close
+  nvs_close(my_handle);
+  return ESP_OK;
+}
+
+esp_err_t read_uint8(const char* mynamespace, const char* key, uint8_t *value){
+  nvs_handle my_handle;
+  esp_err_t err;
+
+  // Open
+  printf("Reading uint8_t...\n" );
+  err = nvs_open(mynamespace, NVS_READONLY, &my_handle);
+  if (err != ESP_OK) return err;
+
+  err = nvs_get_u8(my_handle, key,  value);
+  if (err != ESP_OK && err != ESP_ERR_NVS_NOT_FOUND) return err;
+  printf("val = %u\n", *value);
+
+  // Close
+  nvs_close(my_handle);
+  return ESP_OK;
+}
+
+
+void nvs_setup()
+{
+
+  esp_err_t err = nvs_flash_init();
+      if (err == ESP_ERR_NVS_NO_FREE_PAGES) {
+          // NVS partition was truncated and needs to be erased
+          const esp_partition_t* nvs_partition = esp_partition_find_first(
+                  ESP_PARTITION_TYPE_DATA, ESP_PARTITION_SUBTYPE_DATA_NVS, NULL);
+          assert(nvs_partition && "partition table must have an NVS partition");
+          ESP_ERROR_CHECK( esp_partition_erase_range(nvs_partition, 0, nvs_partition->size) );
+          // Retry nvs_flash_init
+          err = nvs_flash_init();
+      }
+      ESP_ERROR_CHECK( err );
+
+/*      err = print_what_saved();
+      if (err != ESP_OK) printf("Error (%d) reading data from NVS!\n", err);
+
+      err = save_restart_counter();
+      if (err != ESP_OK) printf("Error (%d) saving restart counter to NVS!\n", err);
+
+      err = save_run_time();
+      if (err != ESP_OK) printf("Error (%d) saving run time blob to NVS!\n", err);
+*/
+      uint8_t data[DIMX][DIMY] = {{1,5}, {5,6}, {7,8}, {7,8}, {7,9}};
+      err = save_uint8_array(IMAGE_NAMESPACE, "bla", &data[0][0], DIMX, DIMY);
+      if (err != ESP_OK) printf("Error (%04x) saving bla blob to NVS!\n", err);
+
+      err = save_uint8(IMAGE_NAMESPACE, "numm", 4);
+      if (err != ESP_OK) printf("Error (%04x) saving bla uint8_t to NVS!\n", err);
+
+
+      uint8_t data2[DIMX][DIMY];
+      err = read_uint8_array(IMAGE_NAMESPACE, "bla", &data2[0][0]);
+      if (err != ESP_OK) printf("Error (%04x) reading bla blob from NVS!\n", err);
+
+      uint8_t numRows = DIMX;
+      err = read_uint8(IMAGE_NAMESPACE, "numm", &numRows);
+      if (err != ESP_OK) printf("Error (%02x) reading uint8_t from NVS!\n", err);
+
+      printf("Data read (%d rows)\n", numRows);
+      for (int i=0; i< numRows; i++){
+        for (int j=0; j< DIMY; j++){
+          printf("%d ",data2[i][j]);
+        }
+        printf("\n");
+      }
+
+}
+
+void vfs_setup(void)
+{
+    ESP_LOGI(TAG, "Mounting FAT filesystem");
+    // To mount device we need name of device partition, define base_path
+    // and allow format partition in case if it is new one and was not formated before
+    esp_vfs_fat_mount_config_t mount_config;
+    mount_config.max_files = 4,
+    mount_config.format_if_mount_failed = true;
+
+    esp_err_t err = esp_vfs_fat_spiflash_mount(base_path, "storage", &mount_config, &s_wl_handle);
+    if (err != ESP_OK) {
+        ESP_LOGE(TAG, "Failed to mount FATFS (0x%x)", err);
+        return;
+    }
+    ESP_LOGI(TAG, "Opening file");
+    FILE *f = fopen("/spiflash/hello.txt", "wb");
+    if (f == NULL) {
+        ESP_LOGE(TAG, "Failed to open file for writing");
+        return;
+    }
+    fprintf(f, "written using ESP-IDF %s\n", esp_get_idf_version());
+    fclose(f);
+    ESP_LOGI(TAG, "File written");
+
+    // Open file for reading
+    ESP_LOGI(TAG, "Reading file");
+    f = fopen("/spiflash/hello.txt", "rb");
+    if (f == NULL) {
+        ESP_LOGE(TAG, "Failed to open file for reading");
+        return;
+    }
+    char line[128];
+    fgets(line, sizeof(line), f);
+    fclose(f);
+    // strip newline
+    char *pos = strchr(line, '\n');
+    if (pos) {
+        *pos = '\0';
+    }
+    ESP_LOGI(TAG, "Read from file: '%s'", line);
+
+    // Unmount FATFS
+    ESP_LOGI(TAG, "Unmounting FAT filesystem");
+    ESP_ERROR_CHECK( esp_vfs_fat_spiflash_unmount(base_path, s_wl_handle));
+
+    ESP_LOGI(TAG, "Done");
+}
+
+void partition_mmap_setup(){
+  const size_t max_size = 2 * SPI_FLASH_SEC_SIZE;
+  const esp_partition_t *p = esp_partition_find_first(ESP_PARTITION_TYPE_DATA,
+          ESP_PARTITION_SUBTYPE_DATA_FAT, "storage");
+
+  if (p == NULL) {
+    printf("Partition not found\n" );
+    return;
+  }
+  else{
+        printf("Partition found: %s size: %d\n", p->label, p->size );
+  }
+
+
+  const uint32_t *mmap_data;
+  spi_flash_mmap_handle_t mmap_handle;
+  size_t begin = 3000;
+  size_t size = 12000;
+  esp_partition_mmap(p, begin, size, SPI_FLASH_MMAP_DATA,
+                    (const void **)&mmap_data, &mmap_handle);
+  srand(0);
+  size_t block_size;
+  for (size_t offset = 0; offset < p->size; offset += block_size) {
+      block_size = ((rand() + 4) % max_size) & (~0x3);
+      size_t left = p->size - offset;
+      if (block_size > left) {
+          block_size = left;
+      }
+      for (size_t i = 0; i < block_size / 4; ++i) {
+          size_t pos = offset + i * 4;
+          uint32_t expected = rand();
+          if (pos < begin || pos >= (begin + size)) {
+              continue;
+          }
+          if (expected != mmap_data[(pos - begin) / 4]){
+            printf("%d != %d\n", expected, mmap_data[(pos - begin) / 4]);
+          }
+          else {
+            printf(".\n" );
+          }
+      }
+  }
+
+spi_flash_munmap(mmap_handle);
+}
+
+void list_partitions(){
+  esp_partition_iterator_t it = esp_partition_find(ESP_PARTITION_TYPE_DATA, ESP_PARTITION_SUBTYPE_ANY, NULL);
+    const esp_partition_t* prev = NULL;
+    for (; it != NULL; it = esp_partition_next(it)) {
+        const esp_partition_t *p = esp_partition_get(it);
+        if (p == NULL) {
+          printf("Partition not found\n" );
+        }
+        else{
+              printf("Partition found: %s size: %d type %d\n", p->label, p->size, p->subtype);
+        }
+    }
+    it = esp_partition_find(ESP_PARTITION_TYPE_APP, ESP_PARTITION_SUBTYPE_ANY, NULL);
+      for (; it != NULL; it = esp_partition_next(it)) {
+          const esp_partition_t *p = esp_partition_get(it);
+          if (p == NULL) {
+            printf("Partition not found\n" );
+          }
+          else{
+                printf("Partition found: %s size: %d type %d\n", p->label, p->size, p->subtype);
+          }
+      }
+    esp_partition_iterator_release(it);
+}
+
+
+void setup(){
+  list_partitions();
+  partition_mmap_setup();
+}
 
 // ===============================================
 // ====  LOOP ====================================
@@ -154,68 +431,4 @@ void setup()
 // state machine with entry actions, state actions and exit actions
 void loop()
 {
-
-  bool state_changed = nextPoiState != poiState;
-
-  // exit actions
-  if (state_changed){
-    if (!muteLog){
-      printf("State changed: %d -> %d\n", (poiState), (nextPoiState));
-    }
-
-    switch(poiState){
-      case POI_INIT:
-      break;
-
-      case POI_NETWORK_SEARCH:
-      break;
-
-      case POI_CLIENT_CONNECTING:
-      break;
-
-      case POI_AWAITING_DATA:
-      break;
-
-      case POI_RECEIVING_DATA:
-      break;
-
-      case POI_TEST_WITHOUT_WIFI:
-      break;
-
-      default:
-      break;
-    }
-  }
-
-  // update state
-  // need to do this here since these functions may set nextPoiState
-  int prevPoiState = poiState;
-  poiState = nextPoiState;
-
-  // entry and state actions of state machine
-  switch (poiState){
-
-    case POI_INIT:
-      // proceed to next state
-      nextPoiState = POI_NETWORK_SEARCH;
-    break;
-
-    case POI_NETWORK_SEARCH:
-    break;
-
-    case POI_CLIENT_CONNECTING:
-    break;
-
-    case POI_AWAITING_DATA:
-    break;
-
-    case POI_RECEIVING_DATA:
-    break;
-
-    case POI_TEST_WITHOUT_WIFI:
-    break;
-
-    default:
-    break;
-  }
 }
