@@ -350,14 +350,14 @@ void vfs_setup(void)
 void partition_mmap_setup(){
   const size_t max_size = 2 * SPI_FLASH_SEC_SIZE;
   const esp_partition_t *p = esp_partition_find_first(ESP_PARTITION_TYPE_DATA,
-        ESP_PARTITION_SUBTYPE_DATA_FAT, "storage");
+        ESP_PARTITION_SUBTYPE_DATA_SPIFFS, NULL);
 
-  printf("Using partition %s at 0x%x, size 0x%x\n", p->label, p->address, p->size);
   if (p == 0){
     printf("Partition does not exist.");
     return;
   }
 
+  printf("Using partition %s at 0x%x, size 0x%x\n", p->label, p->address, p->size);
   uint8_t *data = (uint8_t *) malloc(max_size);
   if (data == 0){
     printf("Cannot allocate data.");
@@ -450,6 +450,7 @@ void partition_mmap_setup(){
   }
 
   spi_flash_munmap(mmap_handle);
+  printf("DONE.\n");
 }
 
 void list_partitions(){
@@ -480,7 +481,7 @@ void list_partitions(){
 
 void setup(){
   list_partitions();
-  //partition_mmap_setup();
+  partition_mmap_setup();
 }
 
 // ===============================================
