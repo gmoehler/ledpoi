@@ -571,17 +571,22 @@ uint32_t getIndex(int x, int y, int z){
   return x * dim_y * dim_z + y * dim_z + z;
 }
 
-void partition_mmap_setup8_array(){
-  const esp_partition_t *p = esp_partition_find_first(ESP_PARTITION_TYPE_DATA,
-        ESP_PARTITION_SUBTYPE_DATA_SPIFFS, NULL);
 
+const esp_partition_t* getPartition(){
+    return esp_partition_find_first(ESP_PARTITION_TYPE_DATA,
+          ESP_PARTITION_SUBTYPE_DATA_SPIFFS, NULL);
+}
+
+void partition_mmap_setup8_array(){
+  const esp_partition_t *p = getPartition();
   if (p == 0){
     printf("Partition does not exist.");
     return;
   }
-
   printf("Using partition %s at 0x%x, size 0x%x\n",
     p->label, p->address, p->size);
+
+    const uint32_t offset=4096;
 
     uint8_t dim_x = 30;
     uint8_t dim_y = 10;
@@ -594,42 +599,27 @@ void partition_mmap_setup8_array(){
       printf("Cannot allocate data.");
       return;
     }
-/*    for (int x=0;x<dim_x;x++){
-      data[x] = (uint8_t **) malloc(dim_y);
-      if (data[x] == 0){
-        printf("Cannot allocate data %d", x);
-        return;
-      }
-      for (int y=0;y<dim_y;y++){
-        data[x][y] = (uint8_t *) malloc(dim_z);
-        if (data == 0){
-          printf("Cannot allocate data %d %d", x, y);
-          return;
-        }
-      }
-    }*/
 
     printf("Generating data\n");
     for (int x=0;x<dim_x;x++){
       for (int y=0;y<dim_y;y++){
         for (int z=0;z<dim_z;z++){
-          printf("%d %d %d -> %d\n", x,y,z,  2*y + x + z);
+  //        printf("%d %d %d -> %d\n", x,y,z,  2*y + x + z);
           uint32_t i = getIndex(x,y,z);
           data[i] = 2*y + x + z;
         }
       }
     }
 
-  printf("Erasing partition\n");
-  esp_err_t err = esp_partition_erase_range(p, 0, p->size);
+  printf("Erasing partition range\n");
+  esp_err_t err = esp_partition_erase_range(p, offset, p->size - offset);
   if (err != ESP_OK){
-    printf("Error erasing data range.\n");
+    printf("Error erasing data range: %d.\n", err);
     return;
   }
 
   printf("Writing data\n");
-  srand(0);
-  err = esp_partition_write(p, 0, data, max_size);
+  err = esp_partition_write(p, offset, data, max_size);
   if (err != ESP_OK){
     printf("Error writing data to partition.\n");
     return;
@@ -639,7 +629,7 @@ void partition_mmap_setup8_array(){
   for (int x=0;x<dim_x;x++){
     for (int y=0;y<dim_y;y++){
       for (int z=0;z<dim_z;z++){
-        printf("%d %d %d -> %d\n", x,y,z,  2*y + x + z);
+  //      printf("%d %d %d -> %d\n", x,y,z,  2*y + x + z);
         uint32_t i = getIndex(x,y,z);
         data[i] = 0;
       }
@@ -648,7 +638,7 @@ void partition_mmap_setup8_array(){
 
   printf("Reading data\n");
 
-  err = esp_partition_read(p, 0, data, max_size);
+  err = esp_partition_read(p, offset, data, max_size);
   if (err != ESP_OK){
     printf("Error reading data from partition.");
     return;
@@ -672,9 +662,7 @@ void partition_mmap_setup8_array(){
 
   const uint8_t *mmap_data;
   spi_flash_mmap_handle_t mmap_handle;
-  size_t begin = 0;
-  size_t size = max_size;
-  err = esp_partition_mmap(p, begin, size, SPI_FLASH_MMAP_DATA,
+  err = esp_partition_mmap(p, offset, max_size, SPI_FLASH_MMAP_DATA,
                     (const void **)&mmap_data, &mmap_handle);
 
   if (err != ESP_OK){
@@ -689,11 +677,7 @@ void partition_mmap_setup8_array(){
       for (int z=0;z<dim_z;z++){
           uint8_t expected = 2*y + x + z;
           uint32_t i = getIndex(x,y,z);
-          if (i < begin || i >= (begin + size)) {
-              printf(".\n" );
-              continue;
-          }
-          uint8_t val= mmap_data[(i - begin)];
+          uint8_t val= mmap_data[i];
           if (val != expected){
             printf("%ld != %ld\n", val, expected);
             return;

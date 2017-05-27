@@ -37,12 +37,12 @@ public:
   bool eraseNvsFlashPartition();
 
 private:
-  esp_err_t _save_uint8_array(const char* mynamespace, const char* key, uint8_t *data,
+  esp_err_t _nvs_save_uint8_array(const char* mynamespace, const char* key, uint8_t *data,
       uint8_t size_x, uint8_t size_y, uint8_t size_z=1);
-  esp_err_t _save_uint8(const char* mynamespace, const char* key, uint8_t value);
-  esp_err_t _read_uint8_array(const char* mynamespace, const char* key, uint8_t *data);
-  esp_err_t _read_uint8(const char* mynamespace, const char* key, uint8_t *value);
-  esp_err_t _eraseCompleteNamespace(const char* mynamespace);
+  esp_err_t _nvs_save_uint8(const char* mynamespace, const char* key, uint8_t value);
+  esp_err_t _nvs_read_uint8_array(const char* mynamespace, const char* key, uint8_t *data);
+  esp_err_t _nvs_read_uint8(const char* mynamespace, const char* key, uint8_t *value);
+  esp_err_t _nvs_eraseCompleteNamespace(const char* mynamespace);
 };
 
 

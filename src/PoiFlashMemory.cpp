@@ -1,7 +1,7 @@
 #include "PoiFlashMemory.h"
 
 bool PoiFlashMemory::saveImage(uint8_t *imageData, uint8_t scene, uint8_t size_x, uint8_t size_y){
-  esp_err_t err = _save_uint8_array(IMAGE_NAMESPACE, IMAGE_KEY, imageData, size_x, size_y, 3);
+  esp_err_t err = _nvs_save_uint8_array(IMAGE_NAMESPACE, IMAGE_KEY, imageData, size_x, size_y, 3);
   if (err != ESP_OK) {
     printf("Error (%4x) writing image data to flash.\n", err);
     return false;
@@ -10,7 +10,7 @@ bool PoiFlashMemory::saveImage(uint8_t *imageData, uint8_t scene, uint8_t size_x
 }
 
 bool PoiFlashMemory::saveProgram(uint8_t *programData, uint8_t size_x, uint8_t size_y){
-  esp_err_t err = _save_uint8_array(PROGRAM_NAMESPACE, PROGRAM_KEY,  programData, size_x, size_y);
+  esp_err_t err = _nvs_save_uint8_array(PROGRAM_NAMESPACE, PROGRAM_KEY,  programData, size_x, size_y);
   if (err != ESP_OK) {
     printf("Error (%4x) writing program data to flash.\n", err);
     return false;
@@ -19,7 +19,7 @@ bool PoiFlashMemory::saveProgram(uint8_t *programData, uint8_t size_x, uint8_t s
 }
 
 bool PoiFlashMemory::saveNumProgramSteps(uint8_t numProgSteps){
-  esp_err_t err = _save_uint8(PROGRAM_NAMESPACE, NUM_PROG_STEPS_KEY, numProgSteps);
+  esp_err_t err = _nvs_save_uint8(PROGRAM_NAMESPACE, NUM_PROG_STEPS_KEY, numProgSteps);
   if (err != ESP_OK) {
     printf("Error (%4x) writing program data to flash.\n", err);
     return false;
@@ -29,7 +29,7 @@ bool PoiFlashMemory::saveNumProgramSteps(uint8_t numProgSteps){
 
 
 bool PoiFlashMemory::loadImage(uint8_t *imageData, uint8_t scene){
-  esp_err_t err = _read_uint8_array(IMAGE_NAMESPACE, IMAGE_KEY, imageData);
+  esp_err_t err = _nvs_read_uint8_array(IMAGE_NAMESPACE, IMAGE_KEY, imageData);
   if (err != ESP_OK) {
     printf("Error (%4x) reading image data from flash.\n", err);
     return false;
@@ -38,7 +38,7 @@ bool PoiFlashMemory::loadImage(uint8_t *imageData, uint8_t scene){
 }
 
 bool PoiFlashMemory::loadProgram(uint8_t *programData){
-  esp_err_t err = _read_uint8_array(PROGRAM_NAMESPACE, PROGRAM_KEY, programData);
+  esp_err_t err = _nvs_read_uint8_array(PROGRAM_NAMESPACE, PROGRAM_KEY, programData);
   if (err != ESP_OK) {
     printf("Error (%4x) readimg program data from flash.\n", err);
     return false;
@@ -47,7 +47,7 @@ bool PoiFlashMemory::loadProgram(uint8_t *programData){
 }
 
 bool PoiFlashMemory::loadNumProgramSteps(uint8_t *numProgSteps){
-  esp_err_t err = _read_uint8(PROGRAM_NAMESPACE, NUM_PROG_STEPS_KEY, numProgSteps);
+  esp_err_t err = _nvs_read_uint8(PROGRAM_NAMESPACE, NUM_PROG_STEPS_KEY, numProgSteps);
   if (err != ESP_OK) {
     printf("Error (%4x) readimg program data from flash.\n", err);
     return false;
@@ -56,7 +56,7 @@ bool PoiFlashMemory::loadNumProgramSteps(uint8_t *numProgSteps){
 }
 
 bool PoiFlashMemory::eraseImages(){
-  esp_err_t err = _eraseCompleteNamespace(IMAGE_NAMESPACE);
+  esp_err_t err = _nvs_eraseCompleteNamespace(IMAGE_NAMESPACE);
   if (err != ESP_OK) {
     printf("Error (%4x) while erasing images.\n", err);
     return false;
@@ -65,12 +65,12 @@ bool PoiFlashMemory::eraseImages(){
 }
 
 bool PoiFlashMemory::eraseProgram(){
-  esp_err_t err = _eraseCompleteNamespace("storage");
+  esp_err_t err = _nvs_eraseCompleteNamespace("storage");
   if (err != ESP_OK) {
     printf("Error (%4x) while erasing storage.\n", err);
     return false;
   }
-  err = _eraseCompleteNamespace(PROGRAM_NAMESPACE);
+  err = _nvs_eraseCompleteNamespace(PROGRAM_NAMESPACE);
   if (err != ESP_OK) {
     printf("Error (%4x) while erasing program.\n", err);
     return false;
@@ -79,7 +79,7 @@ bool PoiFlashMemory::eraseProgram(){
 }
 
 
-esp_err_t PoiFlashMemory::_save_uint8(const char* mynamespace, const char* key, uint8_t value){
+esp_err_t PoiFlashMemory::_nvs_save_uint8(const char* mynamespace, const char* key, uint8_t value){
   nvs_handle my_handle;
   esp_err_t err;
 
@@ -100,7 +100,7 @@ esp_err_t PoiFlashMemory::_save_uint8(const char* mynamespace, const char* key, 
   return ESP_OK;
 }
 
-esp_err_t PoiFlashMemory::_save_uint8_array(const char* mynamespace, const char* key,
+esp_err_t PoiFlashMemory::_nvs_save_uint8_array(const char* mynamespace, const char* key,
     uint8_t *data, uint8_t size_x, uint8_t size_y, uint8_t size_z){
   nvs_handle my_handle;
   esp_err_t err;
@@ -125,7 +125,7 @@ esp_err_t PoiFlashMemory::_save_uint8_array(const char* mynamespace, const char*
   return ESP_OK;
 }
 
-esp_err_t PoiFlashMemory::_read_uint8(const char* mynamespace, const char* key, uint8_t *value){
+esp_err_t PoiFlashMemory::_nvs_read_uint8(const char* mynamespace, const char* key, uint8_t *value){
   nvs_handle my_handle;
   esp_err_t err;
 
@@ -142,7 +142,7 @@ esp_err_t PoiFlashMemory::_read_uint8(const char* mynamespace, const char* key, 
   return ESP_OK;
 }
 
-esp_err_t PoiFlashMemory::_read_uint8_array(const char* mynamespace, const char* key,
+esp_err_t PoiFlashMemory::_nvs_read_uint8_array(const char* mynamespace, const char* key,
     uint8_t *data){
   nvs_handle my_handle;
   esp_err_t err;
@@ -172,7 +172,7 @@ esp_err_t PoiFlashMemory::_read_uint8_array(const char* mynamespace, const char*
 }
 
 
-esp_err_t PoiFlashMemory::_eraseCompleteNamespace(const char* mynamespace){
+esp_err_t PoiFlashMemory::_nvs_eraseCompleteNamespace(const char* mynamespace){
 
   nvs_handle my_handle;
   esp_err_t err;
