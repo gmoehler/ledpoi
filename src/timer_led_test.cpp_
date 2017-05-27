@@ -364,16 +364,19 @@ void partition_mmap_setup(){
     return;
   }
 
+  printf("Erasing partition\n");
   esp_err_t err = esp_partition_erase_range(p, 0, p->size);
   if (err != ESP_OK){
     printf("Error erasing data range.");
     return;
   }
 
+  printf("Writing data\n");
   srand(0);
   size_t block_size;
   for (size_t offset = 0; offset < p->size; offset += block_size) {
       block_size = ((rand() + 4) % max_size) & (~0x3);
+      printf("Blocksize: %d\n", block_size);
       size_t left = p->size - offset;
       if (block_size > left) {
           block_size = left;
@@ -383,12 +386,18 @@ void partition_mmap_setup(){
       }
       err = esp_partition_write(p, offset, data, block_size);
       if (err != ESP_OK){
-        printf("Error erasing data range.");
+        printf("Error writing data to partition.");
         return;
       }
 
   }
 
+  printf("Clearing data\n");
+  for (int i=0; i<max_size;i++){
+      ((uint32_t *) (data))[i] = 0;
+  }
+
+  printf("Reading data\n");
   srand(0);
   for (size_t offset = 0; offset < p->size; offset += block_size) {
       block_size = ((rand() + 4) % max_size) & (~0x3);
@@ -398,7 +407,7 @@ void partition_mmap_setup(){
       }
       err = esp_partition_read(p, offset, data, block_size);
       if (err != ESP_OK){
-        printf("Error reading data range.");
+        printf("Error reading data from partition.");
         return;
       }
 
@@ -423,10 +432,11 @@ void partition_mmap_setup(){
                     (const void **)&mmap_data, &mmap_handle);
 
   if (err != ESP_OK){
-    printf("Error erasing data range.");
+    printf("Error mmap'ing data.");
     return;
   }
 
+  printf("MMaping data\n");
   srand(0);
   for (size_t offset = 0; offset < p->size; offset += block_size) {
       block_size = ((rand() + 4) % max_size) & (~0x3);
@@ -452,6 +462,134 @@ void partition_mmap_setup(){
   spi_flash_munmap(mmap_handle);
   printf("DONE.\n");
 }
+
+void partition_mmap_setup_array(){
+  const size_t max_size = 2 * SPI_FLASH_SEC_SIZE;
+  const esp_partition_t *p = esp_partition_find_first(ESP_PARTITION_TYPE_DATA,
+        ESP_PARTITION_SUBTYPE_DATA_SPIFFS, NULL);
+
+  if (p == 0){
+    printf("Partition does not exist.");
+    return;
+  }
+
+  printf("Using partition %s at 0x%x, size 0x%x\n", p->label, p->address, p->size);
+
+  uint8_t dim_x = 2;
+  uint8_t dim_y = 3;
+  uint8_t dim_z = 4;
+  uint32_t asize = dim_x*dim_y*dim_z;
+
+  printf("Allocating %d bytes\n", asize);
+  uint8_t ***data = (uint8_t ***) malloc(dim_x);
+  if (data == 0){
+    printf("Cannot allocate data.");
+    return;
+  }
+  for (int x=0;x<dim_x;x++){
+    data[x] = (uint8_t **) malloc(dim_y);
+    if (data[x] == 0){
+      printf("Cannot allocate data %d", x);
+      return;
+    }
+    for (int y=0;y<dim_y;y++){
+      data[x][y] = (uint8_t *) malloc(dim_z);
+      if (data == 0){
+        printf("Cannot allocate data %d %d", x, y);
+        return;
+      }
+    }
+  }
+
+
+  printf("Generating data\n");
+  for (int x=0;x<dim_x;x++){
+    for (int y=0;y<dim_y;y++){
+      for (int z=0;z<dim_z;z++){
+        printf("%d %d %d -> %d\n", x,y,z,  2*y + x + z);
+        data[x][y][z] = 2*y + x + z;
+      }
+    }
+  }
+
+  printf("Erasing partition\n");
+  esp_err_t err = esp_partition_erase_range(p, 0, p->size);
+  if (err != ESP_OK){
+    printf("Error erasing data range.");
+    return;
+  }
+
+  printf("Writing data to partition\n");
+  err = esp_partition_write(p, 0, data, asize);
+  if (err != ESP_OK){
+    printf("Error wring data.");
+    return;
+  }
+
+  printf("Clearing data\n");
+  for (int x=0;x<dim_x;x++){
+    for (int y=0;y<dim_y;y++){
+      for (int z=0;z<dim_z;z++){
+        data[x][y][z] = 0;
+      }
+    }
+  }
+
+  printf("Reading data from partitoin\n");
+  err = esp_partition_read(p, 0, data, asize);
+  if (err != ESP_OK){
+    printf("Error reading data range.");
+    return;
+  }
+
+
+  printf("Comparing read data\n");
+  for (int x=0;x<dim_x;x++){
+    for (int y=0;y<dim_y;y++){
+      for (int z=0;z<dim_z;z++){
+        uint8_t val = ((uint8_t ***) data)[x][y][z];
+        printf("%d %d %d -> %d\n", x,y,z, val);
+/*        if (data[x][y][z] != 2*y + x + z){
+          printf("Read data is not as expected: (%d,%d,%d): %d != %d\n",
+            x,y,z,data[x][y][z], 2*y + x + z);
+          return;
+        } */
+      }
+    }
+  }
+
+  free(data);
+
+  printf("MMAP'ing\n");
+  const uint32_t *mmap_data;
+  spi_flash_mmap_handle_t mmap_handle;
+  size_t begin = 3000;
+  size_t size = 12000;
+  err = esp_partition_mmap(p, begin, size, SPI_FLASH_MMAP_DATA,
+                    (const void **)&mmap_data, &mmap_handle);
+
+  if (err != ESP_OK){
+    printf("Error erasing data range.");
+    return;
+  }
+
+  printf("Comparing MMAP'ed data\n");
+  for (int x=0;x<dim_x;x++){
+    for (int y=0;y<dim_y;y++){
+      for (int z=0;z<dim_z;z++){
+        if (mmap_data[x*dim_x+y*dim_y+z] != 2*y + x + z){
+          printf("MMAP data is not as expected: (%d,%d,%d): %d != %d\n",
+            x,y,z,mmap_data[x*dim_x+y*dim_y+z] , 2*y + x + z);
+          return;
+        }
+      }
+    }
+  }
+
+  spi_flash_munmap(mmap_handle);
+  printf("DONE.\n");
+}
+
 
 void list_partitions(){
   esp_partition_iterator_t it = esp_partition_find(ESP_PARTITION_TYPE_DATA, ESP_PARTITION_SUBTYPE_ANY, NULL);
