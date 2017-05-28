@@ -1,4 +1,4 @@
-/*
+/* 
  * A driver for the WS2812 RGB LEDs using the RMT peripheral on the ESP32.
  *
  * Modifications Copyright (c) 2017 Martin F. Falatic
@@ -10,7 +10,7 @@
  * signals sent to the WS2812 LEDs.
  *
  */
-/*
+/* 
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
  * in the Software without restriction, including without limitation the rights
@@ -173,7 +173,7 @@ void copyToRmtBlock_half()
   for (i *= 8; i < MAX_PULSES; i++) {
     RMTMEM.chan[RMTCHANNEL].data32[i + offset].val = 0;
   }
-
+  
   ws2812_pos += len;
 
 #if DEBUG_WS2812_DRIVER
@@ -223,8 +223,8 @@ int ws2812_init(int gpioNum, int ledType)
       return -1;
   }
 
-  SET_PERI_REG_MASK(DPORT_PERIP_CLK_EN_REG, DPORT_RMT_CLK_EN);
-  CLEAR_PERI_REG_MASK(DPORT_PERIP_RST_EN_REG, DPORT_RMT_RST);
+  DPORT_SET_PERI_REG_MASK(DPORT_PERIP_CLK_EN_REG, DPORT_RMT_CLK_EN);
+  DPORT_CLEAR_PERI_REG_MASK(DPORT_PERIP_RST_EN_REG, DPORT_RMT_RST);
 
   PIN_FUNC_SELECT(GPIO_PIN_MUX_REG[gpioNum], 2);
   gpio_matrix_out((gpio_num_t)gpioNum, RMT_SIG_OUT0_IDX + RMTCHANNEL, 0, 0);
@@ -241,7 +241,7 @@ int ws2812_init(int gpioNum, int ledType)
   ws2812_bitval_to_rmt_map[0].level1 = 0;
   ws2812_bitval_to_rmt_map[0].duration0 = ledParams.T0H / (RMT_DURATION_NS * DIVIDER);
   ws2812_bitval_to_rmt_map[0].duration1 = ledParams.T0L / (RMT_DURATION_NS * DIVIDER);
-
+  
   // RMT config for WS2812 bit val 1
   ws2812_bitval_to_rmt_map[1].level0 = 1;
   ws2812_bitval_to_rmt_map[1].level1 = 0;
@@ -265,46 +265,6 @@ void ws2812_setColors(uint16_t length, rgbVal *array)
     ws2812_buffer[0 + i * 3] = array[i].g;
     ws2812_buffer[1 + i * 3] = array[i].r;
     ws2812_buffer[2 + i * 3] = array[i].b;
-  }
-
-  ws2812_pos = 0;
-  ws2812_half = 0;
-
-  copyToRmtBlock_half();
-
-  if (ws2812_pos < ws2812_len) {
-    // Fill the other half of the buffer block
-    #if DEBUG_WS2812_DRIVER
-      snprintf(ws2812_debugBuffer, ws2812_debugBufferSz, "%s# ", ws2812_debugBuffer);
-    #endif
-    copyToRmtBlock_half();
-  }
-  ws2812_sem = xSemaphoreCreateBinary();
-
-  RMT.conf_ch[RMTCHANNEL].conf1.mem_rd_rst = 1;
-  RMT.conf_ch[RMTCHANNEL].conf1.tx_start = 1;
-
-  xSemaphoreTake(ws2812_sem, portMAX_DELAY);
-  vSemaphoreDelete(ws2812_sem);
-  ws2812_sem = NULL;
-
-  free(ws2812_buffer);
-
-  return;
-}
-
-void ws2812_setColors(uint16_t length, uint8_t **array)
-{
-  uint16_t i;
-
-  ws2812_len = (length * 3) * sizeof(uint8_t);
-  ws2812_buffer = (uint8_t *) malloc(ws2812_len);
-
-  for (i = 0; i < length; i++) {
-    // Where color order is translated from RGB (e.g., WS2812 = GRB)
-    ws2812_buffer[0 + i * 3] = array[i][1];
-    ws2812_buffer[1 + i * 3] = array[i][0];
-    ws2812_buffer[2 + i * 3] = array[i][2];
   }
 
   ws2812_pos = 0;
