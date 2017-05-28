@@ -6,13 +6,12 @@
 #include <map>
 #include "ledpoi.h"
 #include "PoiTimer.h"
-#include "FramePlayer.h"
-#include "FrameFader.h"
+#include "PlayHandler.h"
+#include "FadeHandler.h"
 #include "PoiProgramHandler.h"
 
 #define N_REGISTERS 2
 #define N_PROG_STEPS 50
-
 
 enum PoiAction { NO_PROGRAM,
                   SHOW_STATIC_RGB,
@@ -23,7 +22,6 @@ enum PoiAction { NO_PROGRAM,
                   PLAY_PROG,
                   PAUSE_PROG
                 };
-
 
 /**
  * Class responsible for running the poi led program
@@ -36,62 +34,60 @@ class PoiActionRunner
 public:
   PoiActionRunner(PoiTimer& ptimer, LogLevel logLevel);
 
-  // load image
-  void setPixel(uint8_t scene_idx, uint8_t frame_idx, uint8_t pixel_idx, rgbVal pixel);
+  void setPixel(uint8_t scene_idx, uint8_t frame_idx, uint8_t pixel_idx,
+      uint8_t r, uint8_t g, uint8_t b);
 
   // action methods
+  void saveScene(uint8_t scene);
   void playScene(uint8_t scene, uint8_t frameStart,uint8_t frameEnd, uint8_t speed, uint8_t loops);
   void showStaticFrame(uint8_t scene, uint8_t frame, uint8_t timeOutMSB, uint8_t timeOutLSB);
   void showStaticRgb(uint8_t r, uint8_t g, uint8_t b);
   void displayOff();
   void fadeToBlack(uint8_t fadeMSB, uint8_t fadeLSB);
   void showCurrent();
+  void jumptoSync(uint8_t syncId);
 
   // program related methods
   void addCmdToProgram(char cmd[7]);
   void startProg();
   void pauseProg();
   void continueProg();
-  void saveProg();
 
   void setup();             // to be called in setup()
   void loop();               // to be called in the loop
   void onInterrupt();   // to be called during the timer interrupt
+  void resetFlash();
 
 private:
   PoiAction _currentAction;
+  uint8_t _currentSyncId;
+  uint8_t _currentScene;
 
-  // states for the different programs
-  FramePlayer _framePlayer;
-  FrameFader _frameFader;
+  // handlers for the different programs
+  PlayHandler _playHandler;
+  FadeHandler _fadeHandler;
   PoiProgramHandler _progHandler;
 
-  // member variables set by the actions
-  uint8_t _scene;
-  uint8_t _startFrame;
-  uint8_t _endFrame;
-  uint16_t _delayMs;
-  uint8_t _numLoops;
-
-  // member variables holding the current state of the action
-  uint32_t _currentFrame;
-  uint32_t _currentLoop;
+  PoiFlashMemory _flashMemory;
 
   // data stores
-  rgbVal _pixelRegister[2][N_PIXELS]; // for temps and static actions
-  rgbVal _pixelMap[N_SCENES][N_FRAMES][N_PIXELS];
+  // after each action the last frame is stored in _pixelRegister[0]
+  rgbVal _pixelRegister[2][N_PIXELS];
+  uint8_t *_pixelMap;
 
   // access functions
-  rgbVal _getPixel(uint8_t scene_idx, uint8_t frame_idx, uint8_t pixel_idx);
-  void _copyFrameToRegister(uint8_t registerId, uint8_t scene_idx, uint8_t frame_idx, float factor=1);
+  rgbVal _makeRGBValue(uint8_t rgb_array[3]);
+  void _setPixel(uint8_t frame_idx, uint8_t pixel_idx,  uint8_t r, uint8_t g, uint8_t b);
+  void _setPixel(uint8_t frame_idx, uint8_t pixel_idx, rgbVal pixel);
+  rgbVal _getPixel(uint8_t frame_idx, uint8_t pixel_idx);
+  void _updateSceneFromFlash(uint8_t scene);
+  void _copyFrameToRegister(uint8_t registerId, uint8_t frame_idx, float factor=1);
   void _copyRegisterToRegister(uint8_t registerId1, uint8_t registerId2, float factor=1);
-  void _copyCurrentFrameToRegister(uint8_t registerId1, double factor=1);
   void _fillRegister(uint8_t register Id, rgbVal rgb);
   void _fillMap(rgbVal rgb);
 
   // display functions
-  void _displayFrame(uint8_t scene, uint8_t frame);
-  void _displayCurrentFrame();
+  void _displayFrame(uint8_t frame);
   void _displayRegister(uint8_t register Id);
 
   // other member variables

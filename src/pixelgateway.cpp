@@ -11,6 +11,7 @@ enum PoiState { POI_INIT,               // 0
                 POI_NETWORK_SEARCH,     // 1
                 POI_CLIENT_CONNECTING,  // 2
                 POI_RECEIVING_DATA,     // 3
+                POI_DO_NOTHING,
                 NUM_POI_STATES};        // only used for enum size
 
 LogLevel logLevel = QUIET; // CHATTY, QUIET or MUTE
@@ -32,7 +33,7 @@ WiFiServer server(1110);
 WiFiClient client;
 IPAddress clientIP;
 
-PoiState poiState = POI_INIT;
+PoiState poiState =   POI_INIT;
 PoiState nextPoiState = poiState;
 
 PoiTimer ptimer(logLevel);
@@ -160,6 +161,13 @@ void client_disconnect(){
 
 void setup()
 {
+  // in case of startup issues with flash do this
+  //  PoiFlashMemory flashMem;
+  //  flashMem.eraseNvsFlashPartition();
+  // a flash hard reset works like this:
+  // .~/.platformio/packages/framework-arduinoespressif32/tools/esptool.py --chip esp32 --port COM6 --baud 115200
+  //  --before default_reset --after hard_reset erase_flash
+
   //  pinMode(BUTTON_PIN, INPUT_PULLUP);
   pinMode(LED_PIN, OUTPUT);
   //  blink(5);
@@ -226,7 +234,9 @@ void realize_cmd(){
       break;
 
       case 6:
-      //runner.saveProg();
+      // TODO: changet this back to jumptoSync
+      //runner.jumptoSync(cmd[2]);
+      runner.saveScene(cmd[2]);
       break;
 
       case 7:
@@ -248,10 +258,10 @@ void realize_cmd(){
       return;
 
       default:
-        if (logLevel != MUTE) {
-          printf("Protocoll Error: Unknown command received: " );
-          print_cmd();
-        }
+      if (logLevel != MUTE) {
+        printf("Protocoll Error: Unknown command received: " );
+        print_cmd();
+      }
       break;
     };  // end setAction
     break;
@@ -266,8 +276,7 @@ void realize_cmd(){
 
     // 0...200
     default:
-    rgbVal pixel = makeRGBVal(cmd[3],cmd[4],cmd[5]);
-    runner.setPixel(cmd[1],cmd[2],cmd[0], pixel);
+    runner.setPixel(cmd[1], cmd[2], cmd[0], cmd[3], cmd[4], cmd[5]);
     break;
   }
 
@@ -409,6 +418,11 @@ void loop()
         // only print once
         if (logLevel != MUTE && !loadingImgData){
           printf("Reading image data... \n");
+          // currently required since we write directly into image memory
+          // TODO: add start command for image loading (with scene id)
+          //       which will remove current image from memory
+          // TODO: then remove this line again - it does not work anyway ;-)
+          runner. showStaticRgb(0,0,0);
         }
         loadingImgData = true;
       }

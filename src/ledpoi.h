@@ -1,19 +1,28 @@
 #ifndef LEDPOI_H
 #define LEDPOI_H
 
-#define N_SCENES 1
-#define N_FRAMES 200 // max: 255 because of uint8_t
+// on flash image must fit into a multiple of SPI_FLASH_SEC_SIZE (4096)
+// in 2MB there are 256 sections available
+#define N_NUM_FLASH_SECTIONS_PER_IMAGE 10
+// this is int( N_NUM_IMAGE_SECTIONS*4096/(N_PIXELS*3) )
+// max is 255 because of uint8_t
+#define N_FRAMES 227
 #define N_PIXELS 60
+
+#define N_PROG_STEPS 50
+#define N_PROG_FIELDS 5
 
 enum LogLevel { CHATTY, QUIET, MUTE};
 
 enum CmdType {  PROG_END,
-                SET_SCENE,
+                LABEL,
+                SYNC_POINT,
                 PLAY_FRAMES,
-                GOTO,
-                GOTO_FADE,
                 LOOP,
-                LABEL
+                SET_SCENE,
+                PRESET_RGB,
+                FADE_TO_RGB,
+                FADE_TO_FRAME
               };
 
 

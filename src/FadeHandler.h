@@ -12,10 +12,10 @@
  **/
 
 
-class FrameFader
+class FadeHandler
 {
 public:
-  FrameFader();
+  FadeHandler();
   void init(uint16_t fadeTime);
 
   void next();
