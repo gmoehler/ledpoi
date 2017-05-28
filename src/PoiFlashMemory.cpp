@@ -1,13 +1,59 @@
 #include "PoiFlashMemory.h"
 
-bool PoiFlashMemory::saveImage(uint8_t *imageData, uint8_t scene, uint8_t size_x, uint8_t size_y){
-  esp_err_t err = _nvs_save_uint8_array(IMAGE_NAMESPACE, IMAGE_KEY, imageData, size_x, size_y, 3);
-  if (err != ESP_OK) {
-    printf("Error (%4x) writing image data to flash.\n", err);
+uint32_t PoiFlashMemory::getSizeOfImageSection(){
+  // fixed size for image section
+  return N_NUM_FLASH_SECTIONS_PER_IMAGE * SPI_FLASH_SEC_SIZE;
+}
+
+bool PoiFlashMemory::saveImage(uint8_t scene, uint8_t *imageData){
+
+  const esp_partition_t *p = _getDataPartition();
+  if (p == 0){
+    printf("Error. Data partition does not exist.");
+    return false;
+  }
+  printf("Using partition %s at 0x%x, size 0x%x\n",
+    p->label, p->address, p->size);
+
+  const uint32_t offset = scene * getSizeOfImageSection();
+
+  printf("Erasing partition range %d at offset %d for image\n", getSizeOfImageSection(), offset);
+  esp_err_t err = esp_partition_erase_range(p, offset, getSizeOfImageSection());
+  if (err != ESP_OK){
+    printf("Error. Cannot erase partition section for new image (Errorcode: %d).\n", err);
+    return false;
+  }
+
+  printf("Writing image data\n");
+  err = esp_partition_write(p, offset, imageData, getSizeOfImageSection());
+  if (err != ESP_OK){
+    printf("Error. Cannot write image data to partition (Errorcode: %d).\n", err);
+    return false;
+  }
+
+  return true;
+}
+
+bool PoiFlashMemory::loadImage(uint8_t scene, uint8_t *imageData){
+  const esp_partition_t *p = _getDataPartition();
+  if (p == 0){
+    printf("Error. Data partition does not exist.");
+    return false;
+  }
+  printf("Using partition %s at 0x%x, size 0x%x\n",
+    p->label, p->address, p->size);
+
+  const uint32_t offset = scene * getSizeOfImageSection();
+
+  printf("Loading image for scene %d from offset %d.\n", scene, offset);
+  esp_err_t err = esp_partition_read(p, offset, imageData, getSizeOfImageSection());
+  if (err != ESP_OK){
+    printf("Error. Cannot read data from partition (Errorcode: %d).\n", err);
     return false;
   }
   return true;
 }
+
 
 bool PoiFlashMemory::saveProgram(uint8_t *programData, uint8_t size_x, uint8_t size_y){
   esp_err_t err = _nvs_save_uint8_array(PROGRAM_NAMESPACE, PROGRAM_KEY,  programData, size_x, size_y);
@@ -18,29 +64,19 @@ bool PoiFlashMemory::saveProgram(uint8_t *programData, uint8_t size_x, uint8_t s
   return true;
 }
 
-bool PoiFlashMemory::saveNumProgramSteps(uint8_t numProgSteps){
-  esp_err_t err = _nvs_save_uint8(PROGRAM_NAMESPACE, NUM_PROG_STEPS_KEY, numProgSteps);
-  if (err != ESP_OK) {
-    printf("Error (%4x) writing program data to flash.\n", err);
-    return false;
-  }
-  return true;
-}
-
-
-bool PoiFlashMemory::loadImage(uint8_t *imageData, uint8_t scene){
-  esp_err_t err = _nvs_read_uint8_array(IMAGE_NAMESPACE, IMAGE_KEY, imageData);
-  if (err != ESP_OK) {
-    printf("Error (%4x) reading image data from flash.\n", err);
-    return false;
-  }
-  return true;
-}
-
 bool PoiFlashMemory::loadProgram(uint8_t *programData){
   esp_err_t err = _nvs_read_uint8_array(PROGRAM_NAMESPACE, PROGRAM_KEY, programData);
   if (err != ESP_OK) {
     printf("Error (%4x) readimg program data from flash.\n", err);
+    return false;
+  }
+  return true;
+}
+
+bool PoiFlashMemory::saveNumProgramSteps(uint8_t numProgSteps){
+  esp_err_t err = _nvs_save_uint8(PROGRAM_NAMESPACE, NUM_PROG_STEPS_KEY, numProgSteps);
+  if (err != ESP_OK) {
+    printf("Error (%4x) writing program data to flash.\n", err);
     return false;
   }
   return true;
@@ -78,6 +114,10 @@ bool PoiFlashMemory::eraseProgram(){
   return true;
 }
 
+const esp_partition_t* PoiFlashMemory::_getDataPartition(){
+    return esp_partition_find_first(ESP_PARTITION_TYPE_DATA,
+          ESP_PARTITION_SUBTYPE_DATA_SPIFFS, NULL);
+}
 
 esp_err_t PoiFlashMemory::_nvs_save_uint8(const char* mynamespace, const char* key, uint8_t value){
   nvs_handle my_handle;

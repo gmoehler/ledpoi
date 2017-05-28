@@ -234,6 +234,7 @@ void realize_cmd(){
       break;
 
       case 6:
+      // TODO: changet this back to jumptoSync
       //runner.jumptoSync(cmd[2]);
       runner.saveScene(cmd[2]);
       break;
@@ -417,6 +418,11 @@ void loop()
         // only print once
         if (logLevel != MUTE && !loadingImgData){
           printf("Reading image data... \n");
+          // currently required since we write directly into image memory
+          // TODO: add start command for image loading (with scene id)
+          //       which will remove current image from memory
+          // TODO: then remove this line again - it does not work anyway ;-)
+          runner. showStaticRgb(0,0,0);
         }
         loadingImgData = true;
       }

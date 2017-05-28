@@ -12,7 +12,9 @@ PoiActionRunner::PoiActionRunner(PoiTimer& ptimer, LogLevel logLevel) :
         _fillRegister(i, black);
       }
 
-      _pixelMap = (uint8_t *) malloc(N_FRAMES * N_PIXELS * 3);
+      // memory section is a bit larger than required, but exactly the size
+      // we reserve on flash
+      _pixelMap = (uint8_t *) malloc(_flashMemory.getSizeOfImageSection());
       if (_pixelMap == 0){
         printf("Error. Cannot allocate pixelMap with size %d.\n",
           N_FRAMES * N_PIXELS * 3);
@@ -38,6 +40,11 @@ rgbVal PoiActionRunner::_makeRGBValue(uint8_t *rgb_array){
 }
 
 rgbVal PoiActionRunner::_getPixel(uint8_t frame_idx, uint8_t pixel_idx) {
+  if (frame_idx >= N_FRAMES || pixel_idx >= N_PIXELS){
+    printf("Error. Pixel index exceeds boundaries for getPixel: %d >= %d || %d >= %d ",
+      frame_idx, N_FRAMES, pixel_idx, N_PIXELS);
+    return makeRGBVal(0, 0, 0);
+  }
   return _makeRGBValue(&_pixelMap[frame_idx * N_PIXELS * 3 + pixel_idx * 3] );
 }
 
@@ -68,7 +75,6 @@ void PoiActionRunner::_copyFrameToRegister(uint8_t registerId, uint8_t frame_idx
   //printf("Copying frame to register:\n");
   for (int i = 0; i < N_PIXELS; i++) {
     rgbVal rgb = _getPixel(frame_idx, i);
-    if (rgb.r>0) printf("%d-%d-%d\n", rgb.r, rgb.g, rgb.b);
     if (factor == 1){
       _pixelRegister[registerId][i] = rgb;
     }
@@ -137,39 +143,37 @@ void PoiActionRunner::_setPixel(uint8_t frame_idx, uint8_t pixel_idx, rgbVal pix
 }
 
 void PoiActionRunner::_setPixel(uint8_t frame_idx, uint8_t pixel_idx,  uint8_t r, uint8_t g, uint8_t b){
-
+  if (frame_idx >= N_FRAMES || pixel_idx >= N_PIXELS){
+    printf("Error. Pixel index exceeds boundaries for setPixel:  %d >= %d || %d >= %d ",
+      frame_idx, N_FRAMES, pixel_idx, N_PIXELS);
+    return;
+  }
   _pixelMap[frame_idx * N_PIXELS * 3 + pixel_idx * 3]     = r;
   _pixelMap[frame_idx * N_PIXELS * 3 + pixel_idx * 3 + 1] = g;
   _pixelMap[frame_idx * N_PIXELS * 3 + pixel_idx * 3 + 2] = b;
 }
 
 void PoiActionRunner::saveScene(uint8_t scene){
-/*  if (_logLevel != MUTE) printf("Erasing images.\n", _currentScene);
-  if (_flashMemory.eraseImages()){
-    if (_logLevel != MUTE) printf("Images earased.\n", _currentScene);
-  }
-  else {
-    printf("Error erasing images.", _currentScene);
-  }
 
-  _currentScene = scene;
   if (_logLevel != MUTE) printf("Saving image of scene %d to flash.\n", _currentScene);
-  if (_flashMemory.saveImage(&_pixelMap[0][0][0], _currentScene, N_FRAMES, N_PIXELS)){
+  if (_flashMemory.saveImage(scene, _pixelMap)){
+    _currentScene = scene;
     if (_logLevel != MUTE) printf("Image of scene %d saved to flash.\n", _currentScene);
   }
   else {
     printf("Error saving scene %d to flash.", _currentScene);
-  } */
+  }
 }
 
 void PoiActionRunner::_updateSceneFromFlash(uint8_t scene){
 //    if (scene != _currentScene){
-/*    if (_flashMemory.loadImage(&_pixelMap[0][0][0], scene)){
+    if (_flashMemory.loadImage(scene, _pixelMap)){
       _currentScene = scene;
+      if (_logLevel != MUTE) printf("Scene %d loaded from Flash.\n", _currentScene);
     }
     else{
       printf("Error. Cannot load scene %d\n", scene);
-    }*/
+    }
 //  }
 }
 
@@ -288,7 +292,7 @@ void PoiActionRunner::continueProg() {
   ******************************/
 
 // no printf in interrupt!
-void PoiActionRunner::onInterrupt(){
+void IRAM_ATTR PoiActionRunner::onInterrupt(){
 
   if (_currentAction != NO_PROGRAM){
     //Serial.println("play next frame");
