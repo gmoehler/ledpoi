@@ -5,13 +5,19 @@ PoiActionRunner::PoiActionRunner(PoiTimer& ptimer, LogLevel logLevel) :
     _ptimer(ptimer),
     _logLevel(logLevel), _progHandler(_playHandler, logLevel)
     {
-      // initialize map and register
+      // initialize register and map
       if (_logLevel != MUTE) printf("Initializing image map and register.\n" );
       rgbVal black = makeRGBVal(0,0,0);
       for (int i= 0; i< N_REGISTERS; i++){
         _fillRegister(i, black);
       }
-      _fillMap(black);
+
+      _pixelMap = (uint8_t *) malloc(N_FRAMES * N_PIXELS * 3);
+      if (_pixelMap == 0){
+        printf("Error. Cannot allocate pixelMap with size %d.\n",
+          N_FRAMES * N_PIXELS * 3);
+      }
+      _fillMap(black); // not sure whether required...
     }
 
 void PoiActionRunner::setup(){
@@ -26,12 +32,13 @@ void PoiActionRunner::setup(){
   * Utility functions *
   *********************/
 
-rgbVal PoiActionRunner::_makeRGBValue(uint8_t rgb_array[3]){
+// version that takes an rgb array
+rgbVal PoiActionRunner::_makeRGBValue(uint8_t *rgb_array){
   return makeRGBVal(rgb_array[0], rgb_array[1], rgb_array[2]);
 }
 
 rgbVal PoiActionRunner::_getPixel(uint8_t frame_idx, uint8_t pixel_idx) {
-  return _makeRGBValue(_pixelMap[constrain(frame_idx,0,N_FRAMES-1)][constrain(pixel_idx,0,N_PIXELS-1)]);
+  return _makeRGBValue(&_pixelMap[frame_idx * N_PIXELS * 3 + pixel_idx * 3] );
 }
 
 void PoiActionRunner::_fillRegister(uint8_t registerId, rgbVal rgb){
@@ -107,8 +114,7 @@ void PoiActionRunner::_displayFrame(uint8_t frame){
   //printf("Showing frame %d\n", frame);
   _copyFrameToRegister(0, frame);
   _displayRegister(0);
-//  rgbVal* pixels = _pixelMap[constrain(frame,0,N_FRAMES-1)];
-//  ws2812_setColors(N_PIXELS, pixels);
+  // TODO : directly get it from image - needs rework of code
 }
 
 /****************************
@@ -123,7 +129,6 @@ void PoiActionRunner::setPixel(uint8_t scene_idx, uint8_t frame_idx, uint8_t pix
     uint8_t r, uint8_t g, uint8_t b){
   // TODO: possibly handle cases in which scene_idx changes
   _currentScene = scene_idx;
-//  rgbVal pixel = makeRGBVal(r,g,b);
   _setPixel(frame_idx, pixel_idx, r, g, b);
 }
 
@@ -132,13 +137,14 @@ void PoiActionRunner::_setPixel(uint8_t frame_idx, uint8_t pixel_idx, rgbVal pix
 }
 
 void PoiActionRunner::_setPixel(uint8_t frame_idx, uint8_t pixel_idx,  uint8_t r, uint8_t g, uint8_t b){
-  _pixelMap[constrain(frame_idx,0,N_FRAMES-1)][constrain(pixel_idx,0,N_PIXELS-1)][0] = r;
-  _pixelMap[constrain(frame_idx,0,N_FRAMES-1)][constrain(pixel_idx,0,N_PIXELS-1)][1] = g;
-  _pixelMap[constrain(frame_idx,0,N_FRAMES-1)][constrain(pixel_idx,0,N_PIXELS-1)][2] = b;
+
+  _pixelMap[frame_idx * N_PIXELS * 3 + pixel_idx * 3]     = r;
+  _pixelMap[frame_idx * N_PIXELS * 3 + pixel_idx * 3 + 1] = g;
+  _pixelMap[frame_idx * N_PIXELS * 3 + pixel_idx * 3 + 2] = b;
 }
 
 void PoiActionRunner::saveScene(uint8_t scene){
-  if (_logLevel != MUTE) printf("Erasing images.\n", _currentScene);
+/*  if (_logLevel != MUTE) printf("Erasing images.\n", _currentScene);
   if (_flashMemory.eraseImages()){
     if (_logLevel != MUTE) printf("Images earased.\n", _currentScene);
   }
@@ -153,7 +159,7 @@ void PoiActionRunner::saveScene(uint8_t scene){
   }
   else {
     printf("Error saving scene %d to flash.", _currentScene);
-  }
+  } */
 }
 
 void PoiActionRunner::_updateSceneFromFlash(uint8_t scene){

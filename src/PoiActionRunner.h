@@ -57,7 +57,7 @@ public:
   void loop();               // to be called in the loop
   void onInterrupt();   // to be called during the timer interrupt
   void resetFlash();
-  
+
 private:
   PoiAction _currentAction;
   uint8_t _currentSyncId;
@@ -73,7 +73,7 @@ private:
   // data stores
   // after each action the last frame is stored in _pixelRegister[0]
   rgbVal _pixelRegister[2][N_PIXELS];
-  uint8_t _pixelMap[N_FRAMES][N_PIXELS][3];
+  uint8_t *_pixelMap;
 
   // access functions
   rgbVal _makeRGBValue(uint8_t rgb_array[3]);
