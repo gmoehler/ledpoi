@@ -422,7 +422,7 @@ void loop()
           // TODO: add start command for image loading (with scene id)
           //       which will remove current image from memory
           // TODO: then remove this line again - it does not work anyway ;-)
-          runner. showStaticRgb(0,0,0);
+          runner.clearImageMap();
         }
         loadingImgData = true;
       }

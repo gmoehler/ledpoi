@@ -22,6 +22,11 @@ PoiActionRunner::PoiActionRunner(PoiTimer& ptimer, LogLevel logLevel) :
       _fillMap(black); // not sure whether required...
     }
 
+void PoiActionRunner::clearImageMap(){
+	rgbVal black = makeRGBVal(0,0,0);
+    _fillMap(black);
+}
+	
 void PoiActionRunner::setup(){
 
   printf("Size of pixelmap: %d\n", sizeof(_pixelMap));

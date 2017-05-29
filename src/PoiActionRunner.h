@@ -57,6 +57,7 @@ public:
   void loop();               // to be called in the loop
   void onInterrupt();   // to be called during the timer interrupt
   void resetFlash();
+  void clearImageMap();
 
 private:
   PoiAction _currentAction;
