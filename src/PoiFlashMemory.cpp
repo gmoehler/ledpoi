@@ -9,7 +9,8 @@ void PoiFlashMemory::_checkImagePartitionInitialized(){
   if (_imagePartitionInitialized){
     return;
   }
-  //check whether flash is initialized (it is when it contains the number of scenes)
+  //check whether flash is initialized
+  //it is when it contains the correct number of scenes
   uint8_t numScenes = 0;
   if (!loadNumScenes(&numScenes) || numScenes != N_SCENES){
       // initialize image partition
