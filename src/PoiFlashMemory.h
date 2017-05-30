@@ -9,17 +9,16 @@
 #include <ws2812.h>
 #include "ledpoi.h"
 
-#define STORAGE_NAMESPACE "poiStorage"
-#define IMAGE_NAMESPACE "poiImage"
-#define PROGRAM_NAMESPACE "poiProgram"
+#define NVS_IMAGE_NAMESPACE "poiImage"
+#define NVS_PROGRAM_NAMESPACE "poiProgram"
 
-#define IMAGE_KEY "image"
-#define PROGRAM_KEY "program"
-#define NUM_PROG_STEPS_KEY "numProgSteps"
+#define NVS_PROGRAM_KEY "program"
+#define NVS_NUM_PROG_STEPS_KEY "numProgSteps"
+#define NVS_NUM_SCENES_KEY "numScenes"
 
 /**
- * Interface to flash partition memory for image and Non-volatile (flash) memory for the program
- * Image data on flash is organized into fiyed image memory segements of size
+ * Interface to flash partition memory for image and Non-volatile (NVS) memory for the program
+ * Image data on flash is organized into fixed image memory segements of size
  * N_NUM_IMAGE_SECTIONS *
  **/
 
@@ -35,8 +34,12 @@ public:
   bool saveNumProgramSteps(uint8_t numProgSteps);
   bool loadNumProgramSteps(uint8_t* numProgSteps);
 
+  bool saveNumScenes(uint8_t numScenes);
+  bool loadNumScenes(uint8_t* numScenes);
+
   bool eraseImages();
   bool eraseProgram();
+  
   bool eraseNvsFlashPartition();
 
   uint32_t getSizeOfImageSection();

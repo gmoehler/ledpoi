@@ -160,6 +160,8 @@ void PoiActionRunner::_setPixel(uint8_t frame_idx, uint8_t pixel_idx,  uint8_t r
 
 void PoiActionRunner::saveScene(uint8_t scene){
 
+  //TODO check whether flash is initialized
+
   if (_logLevel != MUTE) printf("Saving image of scene %d to flash.\n", _currentScene);
   if (_flashMemory.saveImage(scene, _pixelMap)){
     _currentScene = scene;

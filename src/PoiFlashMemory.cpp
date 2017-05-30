@@ -6,7 +6,10 @@ uint32_t PoiFlashMemory::getSizeOfImageSection(){
 }
 
 bool PoiFlashMemory::saveImage(uint8_t scene, uint8_t *imageData){
-
+  if (scene > N_SCENES-1){
+  	printf("Error. Cannot save scene %d. Maximum number of scenes is %d .", scene, N_SCENES);
+      return false;
+  }
   const esp_partition_t *p = _getDataPartition();
   if (p == 0){
     printf("Error. Data partition does not exist.");
@@ -35,6 +38,10 @@ bool PoiFlashMemory::saveImage(uint8_t scene, uint8_t *imageData){
 }
 
 bool PoiFlashMemory::loadImage(uint8_t scene, uint8_t *imageData){
+  if (scene > N_SCENES-1){
+  	printf("Error. Cannot load scene %d. Maximum number of scenes is %d .", scene, N_SCENES);
+      return false;
+  }
   const esp_partition_t *p = _getDataPartition();
   if (p == 0){
     printf("Error. Data partition does not exist.");
@@ -54,9 +61,8 @@ bool PoiFlashMemory::loadImage(uint8_t scene, uint8_t *imageData){
   return true;
 }
 
-
 bool PoiFlashMemory::saveProgram(uint8_t *programData, uint8_t size_x, uint8_t size_y){
-  esp_err_t err = _nvs_save_uint8_array(PROGRAM_NAMESPACE, PROGRAM_KEY,  programData, size_x, size_y);
+  esp_err_t err = _nvs_save_uint8_array(NVS_PROGRAM_NAMESPACE, NVS_PROGRAM_KEY,  programData, size_x, size_y);
   if (err != ESP_OK) {
     printf("Error (%4x) writing program data to flash.\n", err);
     return false;
@@ -65,7 +71,7 @@ bool PoiFlashMemory::saveProgram(uint8_t *programData, uint8_t size_x, uint8_t s
 }
 
 bool PoiFlashMemory::loadProgram(uint8_t *programData){
-  esp_err_t err = _nvs_read_uint8_array(PROGRAM_NAMESPACE, PROGRAM_KEY, programData);
+  esp_err_t err = _nvs_read_uint8_array(NVS_PROGRAM_NAMESPACE, NVS_PROGRAM_KEY, programData);
   if (err != ESP_OK) {
     printf("Error (%4x) readimg program data from flash.\n", err);
     return false;
@@ -74,25 +80,62 @@ bool PoiFlashMemory::loadProgram(uint8_t *programData){
 }
 
 bool PoiFlashMemory::saveNumProgramSteps(uint8_t numProgSteps){
-  esp_err_t err = _nvs_save_uint8(PROGRAM_NAMESPACE, NUM_PROG_STEPS_KEY, numProgSteps);
+  esp_err_t err = _nvs_save_uint8(NVS_PROGRAM_NAMESPACE, NVS_NUM_PROG_STEPS_KEY, numProgSteps);
   if (err != ESP_OK) {
-    printf("Error (%4x) writing program data to flash.\n", err);
+    printf("Error (%4x) writing mumber of program steps to flash.\n", err);
     return false;
   }
   return true;
 }
 
 bool PoiFlashMemory::loadNumProgramSteps(uint8_t *numProgSteps){
-  esp_err_t err = _nvs_read_uint8(PROGRAM_NAMESPACE, NUM_PROG_STEPS_KEY, numProgSteps);
+  esp_err_t err = _nvs_read_uint8(NVS_PROGRAM_NAMESPACE, NVS_NUM_PROG_STEPS_KEY, numProgSteps);
   if (err != ESP_OK) {
-    printf("Error (%4x) readimg program data from flash.\n", err);
+    printf("Error (%4x) reading number of program steps from flash.\n", err);
     return false;
   }
   return true;
 }
 
+bool PoiFlashMemory::saveNumScenes(uint8_t numScenes){
+  esp_err_t err = _nvs_save_uint8(NVS_IMAGE_NAMESPACE, NVS_NUM_SCENES_KEY, numScenes);
+  if (err != ESP_OK) {
+    printf("Error (%4x) writing number of scenes to flash.\n", err);
+    return false;
+  }
+  return true;
+}
+
+bool PoiFlashMemory::loadNumScenes(uint8_t *numScenes){
+  esp_err_t err = _nvs_read_uint8(NVS_IMAGE_NAMESPACE, NVS_NUM_SCENES_KEY, numScenes);
+  if (err != ESP_OK) {
+    printf("Error (%4x) reading number of scenes from flash.\n", err);
+    return false;
+  }
+  return true;
+}
+
+
 bool PoiFlashMemory::eraseImages(){
-  esp_err_t err = _nvs_eraseCompleteNamespace(IMAGE_NAMESPACE);
+	
+	// first remove image data
+  const esp_partition_t *p = _getDataPartition();
+  if (p == 0){
+    printf("Error. Data partition does not exist.");
+    return false;
+  }
+  printf("Using partition %s at 0x%x, size 0x%x\n",
+    p->label, p->address, p->size);
+
+  printf("Erasing complete image partition. \n");
+  esp_err_t err = esp_partition_erase_range(p, 0, p->size);
+  if (err != ESP_OK){
+    printf("Error. Cannot erase complete image partition (Errorcode: %d).\n", err);
+    return false;
+  }
+
+  // then remove nvs namespace with image data (number of images for now)
+  esp_err_t err = _nvs_eraseCompleteNamespace(NVS_NVS_IMAGE_NAMESPACE);
   if (err != ESP_OK) {
     printf("Error (%4x) while erasing images.\n", err);
     return false;
@@ -106,7 +149,7 @@ bool PoiFlashMemory::eraseProgram(){
     printf("Error (%4x) while erasing storage.\n", err);
     return false;
   }
-  err = _nvs_eraseCompleteNamespace(PROGRAM_NAMESPACE);
+  err = _nvs_eraseCompleteNamespace(NVS_PROGRAM_NAMESPACE);
   if (err != ESP_OK) {
     printf("Error (%4x) while erasing program.\n", err);
     return false;
