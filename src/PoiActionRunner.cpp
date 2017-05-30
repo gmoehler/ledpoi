@@ -159,7 +159,6 @@ void PoiActionRunner::_setPixel(uint8_t frame_idx, uint8_t pixel_idx,  uint8_t r
 }
 
 void PoiActionRunner::saveScene(uint8_t scene){
-
   if (_logLevel != MUTE) printf("Saving image of scene %d to flash.\n", _currentScene);
   if (_flashMemory.saveImage(scene, _pixelMap)){
     _currentScene = scene;
@@ -171,7 +170,7 @@ void PoiActionRunner::saveScene(uint8_t scene){
 }
 
 void PoiActionRunner::_updateSceneFromFlash(uint8_t scene){
-  //TODO: activate this again
+  //TODO: activate this check again
 //    if (scene != _currentScene){
     if (_flashMemory.loadImage(scene, _pixelMap)){
       _currentScene = scene;
@@ -184,7 +183,6 @@ void PoiActionRunner::_updateSceneFromFlash(uint8_t scene){
 }
 
 void PoiActionRunner::showStaticFrame(uint8_t scene, uint8_t frame, uint8_t timeOutMSB, uint8_t timeOutLSB){
-
   _currentAction = SHOW_STATIC_FRAME;
   _updateSceneFromFlash(scene);
   uint8_t timeout = (uint16_t)timeOutMSB *256 + timeOutLSB;
@@ -198,7 +196,6 @@ void PoiActionRunner::showStaticFrame(uint8_t scene, uint8_t frame, uint8_t time
 }
 
 void PoiActionRunner::playScene(uint8_t scene, uint8_t startFrame, uint8_t endFrame, uint8_t speed, uint8_t loops){
-
   _currentAction = PLAY_DIRECT;
   _updateSceneFromFlash(scene);
   _playHandler.init(startFrame, endFrame, speed, loops);
