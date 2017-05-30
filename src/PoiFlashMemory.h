@@ -39,12 +39,15 @@ public:
 
   bool eraseImages();
   bool eraseProgram();
-  
+
   bool eraseNvsFlashPartition();
 
   uint32_t getSizeOfImageSection();
 
 private:
+  bool _imagePartitionInitialized = false;
+  
+  void  _checkImagePartitionInitialized();
   const esp_partition_t* _getDataPartition();
   esp_err_t _nvs_save_uint8_array(const char* mynamespace, const char* key, uint8_t *data,
       uint8_t size_x, uint8_t size_y, uint8_t size_z=1);

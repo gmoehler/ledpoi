@@ -5,7 +5,23 @@ uint32_t PoiFlashMemory::getSizeOfImageSection(){
   return N_NUM_FLASH_SECTIONS_PER_IMAGE * SPI_FLASH_SEC_SIZE;
 }
 
+void PoiFlashMemory::_checkImagePartitionInitialized(){
+  if (_imagePartitionInitialized){
+    return;
+  }
+  //check whether flash is initialized (it is when it contains the number of scenes)
+  uint8_t numScenes = 0;
+  if (!loadNumScenes(&numScenes) || numScenes != N_SCENES){
+      // initialize image partition
+      printf("Initializing the image partition of the flash memory\n" );
+      eraseImages();
+      saveNumScenes(N_SCENES);
+  }
+  _imagePartitionInitialized = true;
+}
+
 bool PoiFlashMemory::saveImage(uint8_t scene, uint8_t *imageData){
+  _checkImagePartitionInitialized();
   if (scene > N_SCENES-1){
   	printf("Error. Cannot save scene %d. Maximum number of scenes is %d .", scene, N_SCENES);
       return false;
@@ -38,6 +54,7 @@ bool PoiFlashMemory::saveImage(uint8_t scene, uint8_t *imageData){
 }
 
 bool PoiFlashMemory::loadImage(uint8_t scene, uint8_t *imageData){
+  _checkImagePartitionInitialized();
   if (scene > N_SCENES-1){
   	printf("Error. Cannot load scene %d. Maximum number of scenes is %d .", scene, N_SCENES);
       return false;
@@ -117,7 +134,7 @@ bool PoiFlashMemory::loadNumScenes(uint8_t *numScenes){
 
 
 bool PoiFlashMemory::eraseImages(){
-	
+
 	// first remove image data
   const esp_partition_t *p = _getDataPartition();
   if (p == 0){
@@ -135,7 +152,7 @@ bool PoiFlashMemory::eraseImages(){
   }
 
   // then remove nvs namespace with image data (number of images for now)
-  esp_err_t err = _nvs_eraseCompleteNamespace(NVS_NVS_IMAGE_NAMESPACE);
+  err = _nvs_eraseCompleteNamespace(NVS_IMAGE_NAMESPACE);
   if (err != ESP_OK) {
     printf("Error (%4x) while erasing images.\n", err);
     return false;

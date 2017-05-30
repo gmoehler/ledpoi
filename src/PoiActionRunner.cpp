@@ -26,7 +26,7 @@ void PoiActionRunner::clearImageMap(){
 	rgbVal black = makeRGBVal(0,0,0);
     _fillMap(black);
 }
-	
+
 void PoiActionRunner::setup(){
 
   printf("Size of pixelmap: %d\n", sizeof(_pixelMap));
@@ -160,8 +160,6 @@ void PoiActionRunner::_setPixel(uint8_t frame_idx, uint8_t pixel_idx,  uint8_t r
 
 void PoiActionRunner::saveScene(uint8_t scene){
 
-  //TODO check whether flash is initialized
-
   if (_logLevel != MUTE) printf("Saving image of scene %d to flash.\n", _currentScene);
   if (_flashMemory.saveImage(scene, _pixelMap)){
     _currentScene = scene;
@@ -173,6 +171,7 @@ void PoiActionRunner::saveScene(uint8_t scene){
 }
 
 void PoiActionRunner::_updateSceneFromFlash(uint8_t scene){
+  //TODO: activate this again
 //    if (scene != _currentScene){
     if (_flashMemory.loadImage(scene, _pixelMap)){
       _currentScene = scene;
