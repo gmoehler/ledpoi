@@ -20,11 +20,25 @@
  * Interface to flash partition memory for image and Non-volatile (NVS) memory for the program
  * Image data on flash is organized into fixed image memory segements of size
  * N_NUM_IMAGE_SECTIONS *
+ *
+ * in case of startup issues with flash do this
+ *  PoiFlashMemory flashMem;
+ *  flashMem.eraseNvsFlashPartition();
+ *  flashMem.eraseImages();
+ * or call runner.resetFlash()
+ * A flash hard reset works like this:
+ * .~/.platformio/packages/framework-arduinoespressif32/tools/esptool.py --chip esp32 --port COM6 --baud 115200
+ *  --before default_reset --after hard_reset erase_flash
  **/
+
+
 
 class PoiFlashMemory
 {
 public:
+
+  void setup(LogLevel logLevel); // to be called during setup
+
   bool saveImage(uint8_t scene, uint8_t* imageData);
   bool loadImage(uint8_t scene, uint8_t* imageData);
 
@@ -38,16 +52,16 @@ public:
   bool loadNumScenes(uint8_t* numScenes);
 
   bool eraseImages();
-  bool eraseProgram();
+  bool eraseNvsFlashPartition(); // all NVS stuff
+  bool eraseProgram();  // only program on nvs, reset prog steps to 0
 
-  bool eraseNvsFlashPartition();
+
+  void listPartitions();
+  void printContents();
 
   uint32_t getSizeOfImageSection();
 
 private:
-  bool _imagePartitionInitialized = false;
-  
-  void  _checkImagePartitionInitialized();
   const esp_partition_t* _getDataPartition();
   esp_err_t _nvs_save_uint8_array(const char* mynamespace, const char* key, uint8_t *data,
       uint8_t size_x, uint8_t size_y, uint8_t size_z=1);

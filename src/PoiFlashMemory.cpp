@@ -1,16 +1,8 @@
 #include "PoiFlashMemory.h"
 
-uint32_t PoiFlashMemory::getSizeOfImageSection(){
-  // fixed size for image section
-  return N_NUM_FLASH_SECTIONS_PER_IMAGE * SPI_FLASH_SEC_SIZE;
-}
-
-void PoiFlashMemory::_checkImagePartitionInitialized(){
-  if (_imagePartitionInitialized){
-    return;
-  }
-  //check whether flash is initialized
-  //it is when it contains the correct number of scenes
+void PoiFlashMemory::setup(LogLevel logLevel){
+  // check whether flash is initialized
+  // it is when it contains the correct number of scenes
   uint8_t numScenes = 0;
   if (!loadNumScenes(&numScenes) || numScenes != N_SCENES){
       // initialize image partition
@@ -18,11 +10,61 @@ void PoiFlashMemory::_checkImagePartitionInitialized(){
       eraseImages();
       saveNumScenes(N_SCENES);
   }
-  _imagePartitionInitialized = true;
+  uint8_t numProgSteps = 0;
+  if (!loadNumProgramSteps(&numProgSteps)){
+    printf("Initializing the number of program steps to 0\n" );
+    saveNumProgramSteps(numProgSteps); // initialize with 0
+  }
+
+  if (logLevel != MUTE) printContents();
+}
+
+void PoiFlashMemory::printContents(){
+
+    listPartitions();
+    uint8_t numScenes = 0;
+    loadNumScenes(&numScenes);
+    uint8_t numProgSteps = 0;
+    loadNumProgramSteps(&numProgSteps);
+
+    printf("Flash memory has space for %d scenes and contains %d program steps.\n",
+      numScenes, numProgSteps);
+}
+
+void PoiFlashMemory::listPartitions(){
+
+  printf("Available data partitions on flash memory:\n");
+  esp_partition_iterator_t it = esp_partition_find(ESP_PARTITION_TYPE_DATA, ESP_PARTITION_SUBTYPE_ANY, NULL);
+    const esp_partition_t* prev = NULL;
+    for (; it != NULL; it = esp_partition_next(it)) {
+        const esp_partition_t *p = esp_partition_get(it);
+        if (p == NULL) {
+          printf("Partition not found\n" );
+        }
+        else{
+              printf("  %s size: %d type %d\n", p->label, p->size, p->subtype);
+        }
+    }
+    printf("Available app partitions on flash memory:\n");
+    it = esp_partition_find(ESP_PARTITION_TYPE_APP, ESP_PARTITION_SUBTYPE_ANY, NULL);
+      for (; it != NULL; it = esp_partition_next(it)) {
+          const esp_partition_t *p = esp_partition_get(it);
+          if (p == NULL) {
+            printf("Partition not found\n" );
+          }
+          else{
+                printf("  %s size: %d type %d\n", p->label, p->size, p->subtype);
+          }
+      }
+    esp_partition_iterator_release(it);
+}
+
+uint32_t PoiFlashMemory::getSizeOfImageSection(){
+  // fixed size for image section
+  return N_NUM_FLASH_SECTIONS_PER_IMAGE * SPI_FLASH_SEC_SIZE;
 }
 
 bool PoiFlashMemory::saveImage(uint8_t scene, uint8_t *imageData){
-  _checkImagePartitionInitialized();
   if (scene > N_SCENES-1){
   	printf("Error. Cannot save scene %d. Maximum number of scenes is %d .", scene, N_SCENES);
       return false;
@@ -55,7 +97,6 @@ bool PoiFlashMemory::saveImage(uint8_t scene, uint8_t *imageData){
 }
 
 bool PoiFlashMemory::loadImage(uint8_t scene, uint8_t *imageData){
-  _checkImagePartitionInitialized();
   if (scene > N_SCENES-1){
   	printf("Error. Cannot load scene %d. Maximum number of scenes is %d .", scene, N_SCENES);
       return false;
@@ -152,6 +193,8 @@ bool PoiFlashMemory::eraseImages(){
     return false;
   }
 
+  // TODO: initialize images with 0s (instead of 255s)
+  
   // then remove nvs namespace with image data (number of images for now)
   err = _nvs_eraseCompleteNamespace(NVS_IMAGE_NAMESPACE);
   if (err != ESP_OK) {
@@ -162,16 +205,12 @@ bool PoiFlashMemory::eraseImages(){
 }
 
 bool PoiFlashMemory::eraseProgram(){
-  esp_err_t err = _nvs_eraseCompleteNamespace("storage");
-  if (err != ESP_OK) {
-    printf("Error (%4x) while erasing storage.\n", err);
-    return false;
-  }
-  err = _nvs_eraseCompleteNamespace(NVS_PROGRAM_NAMESPACE);
+  esp_err_t  err = _nvs_eraseCompleteNamespace(NVS_PROGRAM_NAMESPACE);
   if (err != ESP_OK) {
     printf("Error (%4x) while erasing program.\n", err);
     return false;
   }
+  saveNumProgramSteps(0);
   return true;
 }
 
@@ -185,7 +224,7 @@ esp_err_t PoiFlashMemory::_nvs_save_uint8(const char* mynamespace, const char* k
   esp_err_t err;
 
   // Open
-  //printf("Writing uint8_t...\n" );
+  printf("Writing uint8_t with key %s to flash nvs...\n", key );
   err = nvs_open(mynamespace, NVS_READWRITE, &my_handle);
   if (err != ESP_OK) return err;
 
@@ -207,7 +246,7 @@ esp_err_t PoiFlashMemory::_nvs_save_uint8_array(const char* mynamespace, const c
   esp_err_t err;
 
   // Open
-  //printf("Writing...\n" );
+  printf("Writing uint8_t array with key %s to falsh nvs...\n", key );
   err = nvs_open(mynamespace, NVS_READWRITE, &my_handle);
   if (err != ESP_OK) return err;
 
@@ -231,7 +270,7 @@ esp_err_t PoiFlashMemory::_nvs_read_uint8(const char* mynamespace, const char* k
   esp_err_t err;
 
   // Open
-  printf("Reading uint8_t...\n" );
+  printf("Reading uint8_t with key %s from flash nvs...\n", key );
   err = nvs_open(mynamespace, NVS_READONLY, &my_handle);
   if (err != ESP_OK) return err;
 
@@ -249,7 +288,7 @@ esp_err_t PoiFlashMemory::_nvs_read_uint8_array(const char* mynamespace, const c
   esp_err_t err;
 
   // Open
-  printf("Reading...\n" );
+  printf("Reading uint8_t array with key %s from flash nvs...\n", key );
   err = nvs_open(mynamespace, NVS_READONLY, &my_handle);
   if (err != ESP_OK) return err;
 
@@ -279,7 +318,7 @@ esp_err_t PoiFlashMemory::_nvs_eraseCompleteNamespace(const char* mynamespace){
   esp_err_t err;
 
   // Open
-  printf("Erasing namespace %s...\n", mynamespace);
+  printf("Erasing namespace %s on flash nvs...\n", mynamespace);
   err = nvs_open(mynamespace, NVS_READWRITE, &my_handle);
   if (err != ESP_OK) return err;
 
@@ -297,7 +336,7 @@ esp_err_t PoiFlashMemory::_nvs_eraseCompleteNamespace(const char* mynamespace){
 
 bool PoiFlashMemory::eraseNvsFlashPartition(){
   // NVS partition was truncated and needs to be erased
-  printf("Erasing NVS flash partition.\n");
+  printf("Erasing complete NVS flash partition.\n");
   const esp_partition_t* nvs_partition = esp_partition_find_first(
           ESP_PARTITION_TYPE_DATA, ESP_PARTITION_SUBTYPE_DATA_NVS, NULL);
   assert(nvs_partition && "partition table must have an NVS partition");

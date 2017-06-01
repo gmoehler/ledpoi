@@ -64,12 +64,12 @@ private:
   uint8_t _currentSyncId;
   uint8_t _currentScene;
 
-  // handlers for the different programs
+  PoiFlashMemory _flashMemory;
+
+    // handlers for the different programs
   PlayHandler _playHandler;
   FadeHandler _fadeHandler;
   PoiProgramHandler _progHandler;
-
-  PoiFlashMemory _flashMemory;
 
   // data stores
   // after each action the last frame is stored in _pixelRegister[0]
