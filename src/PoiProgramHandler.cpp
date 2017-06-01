@@ -139,6 +139,7 @@ void PoiProgramHandler::addCmdToProgram(char cmd[7]){
       if (_logLevel != MUTE) printf("Program loaded: %d cmds, %d labels, %d sync points.\n",
       _numProgSteps, _labelMap.size(), _syncMap.size());
 			if (_logLevel != MUTE) printf("Saving program to flash (%d lines)...\n", _numProgSteps);
+			// always write complete program buffer since program array _prog has that size
 			if (_flashMemory.saveProgram(&_prog[0][0], N_PROG_STEPS, N_PROG_FIELDS)){
 				if (_flashMemory.saveNumProgramSteps(_numProgSteps)){
 					if (_logLevel != MUTE) printf("Program saved to flash.\n");

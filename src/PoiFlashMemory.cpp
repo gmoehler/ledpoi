@@ -194,7 +194,7 @@ bool PoiFlashMemory::eraseImages(){
   }
 
   // TODO: initialize images with 0s (instead of 255s)
-  
+
   // then remove nvs namespace with image data (number of images for now)
   err = _nvs_eraseCompleteNamespace(NVS_IMAGE_NAMESPACE);
   if (err != ESP_OK) {
@@ -224,7 +224,7 @@ esp_err_t PoiFlashMemory::_nvs_save_uint8(const char* mynamespace, const char* k
   esp_err_t err;
 
   // Open
-  printf("Writing uint8_t with key %s to flash nvs...\n", key );
+  printf("Writing uint8_t value %d with key %s to flash nvs...\n", value, key );
   err = nvs_open(mynamespace, NVS_READWRITE, &my_handle);
   if (err != ESP_OK) return err;
 
@@ -241,7 +241,7 @@ esp_err_t PoiFlashMemory::_nvs_save_uint8(const char* mynamespace, const char* k
 }
 
 esp_err_t PoiFlashMemory::_nvs_save_uint8_array(const char* mynamespace, const char* key,
-    uint8_t *data, uint8_t size_x, uint8_t size_y, uint8_t size_z){
+    uint8_t *data, uint8_t size_x, uint8_t size_y){
   nvs_handle my_handle;
   esp_err_t err;
 
@@ -251,7 +251,7 @@ esp_err_t PoiFlashMemory::_nvs_save_uint8_array(const char* mynamespace, const c
   if (err != ESP_OK) return err;
 
   // Write prog values
-  size_t required_size = sizeof(uint8_t)*size_x*size_y*size_z;
+  size_t required_size = sizeof(uint8_t)*size_x*size_y;
   printf("Size: %d\n", required_size);
   err = nvs_set_blob(my_handle, key, data, required_size);
   if (err != ESP_OK) return err;
@@ -276,6 +276,7 @@ esp_err_t PoiFlashMemory::_nvs_read_uint8(const char* mynamespace, const char* k
 
   err = nvs_get_u8(my_handle, key,  value);
   if (err != ESP_OK && err != ESP_ERR_NVS_NOT_FOUND) return err;
+  printf("Read value: %d\n", *value);
 
   // Close
   nvs_close(my_handle);
