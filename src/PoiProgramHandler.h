@@ -15,7 +15,7 @@
 class PoiProgramHandler
 {
 public:
-  PoiProgramHandler(PlayHandler& PlayHandler, LogLevel logLevel);
+  PoiProgramHandler(PlayHandler& playHandler, PoiFlashMemory& flashMemory, LogLevel logLevel);
   void setup();
   void addCmdToProgram(char cmd[7]);
   void init(); // init program start

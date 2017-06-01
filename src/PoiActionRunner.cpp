@@ -1,32 +1,37 @@
 #include "PoiActionRunner.h"
 
 PoiActionRunner::PoiActionRunner(PoiTimer& ptimer, LogLevel logLevel) :
-    _currentAction(NO_PROGRAM), _currentSyncId(0), _currentScene(0),
-    _ptimer(ptimer),
-    _logLevel(logLevel), _progHandler(_playHandler, logLevel)
-    {
-      // initialize register and map
-      if (_logLevel != MUTE) printf("Initializing image map and register.\n" );
-      rgbVal black = makeRGBVal(0,0,0);
-      for (int i= 0; i< N_REGISTERS; i++){
-        _fillRegister(i, black);
-      }
-
-      // memory section is a bit larger than required, but exactly the size
-      // we reserve on flash
-      _pixelMap = (uint8_t *) malloc(_flashMemory.getSizeOfImageSection());
-      if (_pixelMap == 0){
-        printf("Error. Cannot allocate pixelMap with size %d.\n",
-          N_FRAMES * N_PIXELS * 3);
-      }
-      _fillMap(black); // not sure whether required...
+  _currentAction(NO_PROGRAM), _currentSyncId(0), _currentScene(0),
+  _ptimer(ptimer),
+  _progHandler(_playHandler, _flashMemory, logLevel),
+  _logLevel(logLevel)
+{
+    // initialize register and map
+    if (_logLevel != MUTE) printf("Initializing image map and register.\n" );
+    rgbVal black = makeRGBVal(0,0,0);
+    for (int i= 0; i< N_REGISTERS; i++){
+      _fillRegister(i, black);
     }
 
-void PoiActionRunner::setup(){
+    // memory section is a bit larger than required, but exactly the size
+    // we reserve on flash
+    _pixelMap = (uint8_t *) malloc(_flashMemory.getSizeOfImageSection());
+    if (_pixelMap == 0){
+      printf("Error. Cannot allocate pixelMap with size %d.\n",
+        N_FRAMES * N_PIXELS * 3);
+    }
+    _fillMap(black); // not sure whether required...
+}
 
-  printf("Size of pixelmap: %d\n", sizeof(_pixelMap));
+void PoiActionRunner::clearImageMap(){
+	rgbVal black = makeRGBVal(0,0,0);
+    _fillMap(black);
+}
+
+void PoiActionRunner::setup(){
   // Create semaphore to inform us when the timer has fired
   _timerSemaphore = xSemaphoreCreateBinary();
+  _flashMemory.setup(_logLevel);
   _progHandler.setup();
 }
 
@@ -129,6 +134,8 @@ void PoiActionRunner::_displayFrame(uint8_t frame){
 
 void PoiActionRunner::resetFlash(){
     _flashMemory.eraseNvsFlashPartition();
+    _flashMemory.eraseImages();
+    _flashMemory.setup(_logLevel);
 }
 
 void PoiActionRunner::setPixel(uint8_t scene_idx, uint8_t frame_idx, uint8_t pixel_idx,
@@ -154,7 +161,6 @@ void PoiActionRunner::_setPixel(uint8_t frame_idx, uint8_t pixel_idx,  uint8_t r
 }
 
 void PoiActionRunner::saveScene(uint8_t scene){
-
   if (_logLevel != MUTE) printf("Saving image of scene %d to flash.\n", _currentScene);
   if (_flashMemory.saveImage(scene, _pixelMap)){
     _currentScene = scene;
@@ -166,7 +172,7 @@ void PoiActionRunner::saveScene(uint8_t scene){
 }
 
 void PoiActionRunner::_updateSceneFromFlash(uint8_t scene){
-//    if (scene != _currentScene){
+  if (scene != _currentScene){
     if (_flashMemory.loadImage(scene, _pixelMap)){
       _currentScene = scene;
       if (_logLevel != MUTE) printf("Scene %d loaded from Flash.\n", _currentScene);
@@ -174,11 +180,10 @@ void PoiActionRunner::_updateSceneFromFlash(uint8_t scene){
     else{
       printf("Error. Cannot load scene %d\n", scene);
     }
-//  }
+  }
 }
 
 void PoiActionRunner::showStaticFrame(uint8_t scene, uint8_t frame, uint8_t timeOutMSB, uint8_t timeOutLSB){
-
   _currentAction = SHOW_STATIC_FRAME;
   _updateSceneFromFlash(scene);
   uint8_t timeout = (uint16_t)timeOutMSB *256 + timeOutLSB;
@@ -192,7 +197,6 @@ void PoiActionRunner::showStaticFrame(uint8_t scene, uint8_t frame, uint8_t time
 }
 
 void PoiActionRunner::playScene(uint8_t scene, uint8_t startFrame, uint8_t endFrame, uint8_t speed, uint8_t loops){
-
   _currentAction = PLAY_DIRECT;
   _updateSceneFromFlash(scene);
   _playHandler.init(startFrame, endFrame, speed, loops);

@@ -1,26 +1,33 @@
 #include "PoiProgramHandler.h"
 
-PoiProgramHandler::PoiProgramHandler(PlayHandler& PlayHandler, LogLevel logLevel) :
+PoiProgramHandler::PoiProgramHandler(PlayHandler& PlayHandler, PoiFlashMemory& flashMemory, LogLevel logLevel) :
 	_active(false), _duringProgramming(false), _delayChanged(false), _inLoop(false),
 	_numProgSteps(0),_currentProgStep(0),
 	_numLoops(0), _currentLoop(0), _currentScene(0), _playHandler(PlayHandler),
-	_logLevel(logLevel){}
+	_flashMemory(flashMemory), _logLevel(logLevel){}
 
 void PoiProgramHandler::setup(){
 	if (_logLevel != MUTE) printf("Loading program from flash...\n");
 	_duringProgramming = true;
 	bool loadingSuccess = false;
-	if (_flashMemory.loadProgram(&_prog[0][0])){
-		if (_flashMemory.loadNumProgramSteps(&_numProgSteps)){
-			loadingSuccess = true;
+	if (_flashMemory.loadNumProgramSteps(&_numProgSteps)){
+		if (_numProgSteps > 0){
+			if (_flashMemory.loadProgram(&_prog[0][0])){
 
-			if (_logLevel != MUTE) {
-				printf("Program loaded from flash.\n");
-				printf("Program read (%d lines):\n", _numProgSteps);
-				_printProgram();
+					loadingSuccess = true;
+
+					if (_logLevel != MUTE) {
+						printf("Program loaded from flash.\n");
+						printf("Program read (%d lines):\n", _numProgSteps);
+						_printProgram();
+					}
+				}
+			}
+			else {
+				loadingSuccess = true;
+				printf("No program on flash.\n");
 			}
 		}
-	}
 
 	if (!loadingSuccess){
 		printf("Error loading program from flash.\n");
@@ -132,6 +139,7 @@ void PoiProgramHandler::addCmdToProgram(char cmd[7]){
       if (_logLevel != MUTE) printf("Program loaded: %d cmds, %d labels, %d sync points.\n",
       _numProgSteps, _labelMap.size(), _syncMap.size());
 			if (_logLevel != MUTE) printf("Saving program to flash (%d lines)...\n", _numProgSteps);
+			// always write complete program buffer since program array _prog has that size
 			if (_flashMemory.saveProgram(&_prog[0][0], N_PROG_STEPS, N_PROG_FIELDS)){
 				if (_flashMemory.saveNumProgramSteps(_numProgSteps)){
 					if (_logLevel != MUTE) printf("Program saved to flash.\n");

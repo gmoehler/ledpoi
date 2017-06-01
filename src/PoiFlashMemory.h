@@ -9,23 +9,36 @@
 #include <ws2812.h>
 #include "ledpoi.h"
 
-#define STORAGE_NAMESPACE "poiStorage"
-#define IMAGE_NAMESPACE "poiImage"
-#define PROGRAM_NAMESPACE "poiProgram"
+#define NVS_IMAGE_NAMESPACE "poiImage"
+#define NVS_PROGRAM_NAMESPACE "poiProgram"
 
-#define IMAGE_KEY "image"
-#define PROGRAM_KEY "program"
-#define NUM_PROG_STEPS_KEY "numProgSteps"
+#define NVS_PROGRAM_KEY "program"
+#define NVS_NUM_PROG_STEPS_KEY "numProgSteps"
+#define NVS_NUM_SCENES_KEY "numScenes"
 
 /**
- * Interface to flash partition memory for image and Non-volatile (flash) memory for the program
- * Image data on flash is organized into fiyed image memory segements of size
+ * Interface to flash partition memory for image and Non-volatile (NVS) memory for the program
+ * Image data on flash is organized into fixed image memory segements of size
  * N_NUM_IMAGE_SECTIONS *
+ *
+ * in case of startup issues with flash do this
+ *  PoiFlashMemory flashMem;
+ *  flashMem.eraseNvsFlashPartition();
+ *  flashMem.eraseImages();
+ * or call runner.resetFlash()
+ * A flash hard reset works like this:
+ * .~/.platformio/packages/framework-arduinoespressif32/tools/esptool.py --chip esp32 --port COM6 --baud 115200
+ *  --before default_reset --after hard_reset erase_flash
  **/
+
+
 
 class PoiFlashMemory
 {
 public:
+
+  void setup(LogLevel logLevel); // to be called during setup
+
   bool saveImage(uint8_t scene, uint8_t* imageData);
   bool loadImage(uint8_t scene, uint8_t* imageData);
 
@@ -35,16 +48,23 @@ public:
   bool saveNumProgramSteps(uint8_t numProgSteps);
   bool loadNumProgramSteps(uint8_t* numProgSteps);
 
+  bool saveNumScenes(uint8_t numScenes);
+  bool loadNumScenes(uint8_t* numScenes);
+
   bool eraseImages();
-  bool eraseProgram();
-  bool eraseNvsFlashPartition();
+  bool eraseNvsFlashPartition(); // all NVS stuff
+  bool eraseProgram();  // only program on nvs, reset prog steps to 0
+
+
+  void listPartitions();
+  void printContents();
 
   uint32_t getSizeOfImageSection();
 
 private:
   const esp_partition_t* _getDataPartition();
   esp_err_t _nvs_save_uint8_array(const char* mynamespace, const char* key, uint8_t *data,
-      uint8_t size_x, uint8_t size_y, uint8_t size_z=1);
+      uint8_t size_x, uint8_t size_y);
   esp_err_t _nvs_save_uint8(const char* mynamespace, const char* key, uint8_t value);
   esp_err_t _nvs_read_uint8_array(const char* mynamespace, const char* key, uint8_t *data);
   esp_err_t _nvs_read_uint8(const char* mynamespace, const char* key, uint8_t *value);

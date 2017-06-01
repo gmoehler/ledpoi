@@ -9,6 +9,11 @@
 #define N_FRAMES 227
 #define N_PIXELS 60
 
+// assuming a 2MB flash partition, this is less than 
+// 2M / ( 4096 * N_NUM_IMAGE_SECTIONS )
+#define N_SCENES 50
+
+
 #define N_PROG_STEPS 50
 #define N_PROG_FIELDS 5
 

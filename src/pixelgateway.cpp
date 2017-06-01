@@ -161,13 +161,6 @@ void client_disconnect(){
 
 void setup()
 {
-  // in case of startup issues with flash do this
-  //  PoiFlashMemory flashMem;
-  //  flashMem.eraseNvsFlashPartition();
-  // a flash hard reset works like this:
-  // .~/.platformio/packages/framework-arduinoespressif32/tools/esptool.py --chip esp32 --port COM6 --baud 115200
-  //  --before default_reset --after hard_reset erase_flash
-
   //  pinMode(BUTTON_PIN, INPUT_PULLUP);
   pinMode(LED_PIN, OUTPUT);
   //  blink(5);
@@ -422,7 +415,7 @@ void loop()
           // TODO: add start command for image loading (with scene id)
           //       which will remove current image from memory
           // TODO: then remove this line again - it does not work anyway ;-)
-          runner. showStaticRgb(0,0,0);
+          runner.clearImageMap();
         }
         loadingImgData = true;
       }
