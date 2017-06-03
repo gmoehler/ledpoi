@@ -293,7 +293,7 @@ void protocoll_receive_data(){
   // data available
   if (client.available()){
     char c = client.read();
-    printf("READ: %d\n", c);
+    //printf("READ: %d\n", c);
 
     // start byte detected
     if (c== 255) {
