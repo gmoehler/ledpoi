@@ -1,6 +1,6 @@
 #include "PoiFlashMemory.h"
 
-void PoiFlashMemory::setup(LogLevel logLevel){
+void PoiFlashMemory::setup(LogLevel logLevel, uint8_t *initImageData){
   // check whether flash is initialized
   // it is when it contains the correct number of scenes
   uint8_t numScenes = 0;
@@ -8,6 +8,10 @@ void PoiFlashMemory::setup(LogLevel logLevel){
       // initialize image partition
       printf("Initializing the image partition of the flash memory\n" );
       eraseImages();
+      // initialize with initImageData (black)
+      for (int i=0; i< N_SCENES; i++){
+        saveImage(i, initImageData);
+      }
       saveNumScenes(N_SCENES);
   }
   uint8_t numProgSteps = 0;

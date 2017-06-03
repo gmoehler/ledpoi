@@ -31,8 +31,10 @@ void PoiActionRunner::clearImageMap(){
 void PoiActionRunner::setup(){
   // Create semaphore to inform us when the timer has fired
   _timerSemaphore = xSemaphoreCreateBinary();
-  _flashMemory.setup(_logLevel);
-  _progHandler.setup();
+  clearImageMap();
+  _flashMemory.setup(_logLevel, _pixelMap);
+  _progHandler.setup(); // load program
+  _updateSceneFromFlash(0); // load scene 0 into flash
 }
 
 /**********************
@@ -72,6 +74,10 @@ void PoiActionRunner::_fillMap(rgbVal rgb){
 }
 
 void PoiActionRunner::_copyFrameToRegister(uint8_t registerId, uint8_t frame_idx, float factor){
+  if (frame_idx + 1 > N_FRAMES){
+    printf("Error. Cannot copy frame %d (> %d) to regsiter %d\n", frame_idx, N_FRAMES, registerId);
+    return;
+  }
   if (registerId +1 > N_REGISTERS){
     printf("Error. Register %d does not exist\n", registerId);
     return;
@@ -135,7 +141,8 @@ void PoiActionRunner::_displayFrame(uint8_t frame){
 void PoiActionRunner::resetFlash(){
     _flashMemory.eraseNvsFlashPartition();
     _flashMemory.eraseImages();
-    _flashMemory.setup(_logLevel);
+    clearImageMap();
+    _flashMemory.setup(_logLevel, _pixelMap);
 }
 
 void PoiActionRunner::setPixel(uint8_t scene_idx, uint8_t frame_idx, uint8_t pixel_idx,
@@ -171,15 +178,14 @@ void PoiActionRunner::saveScene(uint8_t scene){
   }
 }
 
+// load scene from flash into memory
 void PoiActionRunner::_updateSceneFromFlash(uint8_t scene){
-  if (scene != _currentScene){
-    if (_flashMemory.loadImage(scene, _pixelMap)){
-      _currentScene = scene;
-      if (_logLevel != MUTE) printf("Scene %d loaded from Flash.\n", _currentScene);
-    }
-    else{
-      printf("Error. Cannot load scene %d\n", scene);
-    }
+  if (_flashMemory.loadImage(scene, _pixelMap)){
+    _currentScene = scene;
+    if (_logLevel != MUTE) printf("Scene %d loaded from Flash.\n", _currentScene);
+  }
+  else{
+    printf("Error. Cannot load scene %d\n", scene);
   }
 }
 
@@ -198,7 +204,10 @@ void PoiActionRunner::showStaticFrame(uint8_t scene, uint8_t frame, uint8_t time
 
 void PoiActionRunner::playScene(uint8_t scene, uint8_t startFrame, uint8_t endFrame, uint8_t speed, uint8_t loops){
   _currentAction = PLAY_DIRECT;
-  _updateSceneFromFlash(scene);
+  if (scene != _currentScene){
+    _updateSceneFromFlash(scene);
+    _currentScene = scene;
+  }
   _playHandler.init(startFrame, endFrame, speed, loops);
   if (_logLevel != MUTE) _playHandler.printInfo();
 

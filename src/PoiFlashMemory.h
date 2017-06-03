@@ -37,7 +37,7 @@ class PoiFlashMemory
 {
 public:
 
-  void setup(LogLevel logLevel); // to be called during setup
+  void setup(LogLevel logLevel, uint8_t *initImageData); // to be called during setup
 
   bool saveImage(uint8_t scene, uint8_t* imageData);
   bool loadImage(uint8_t scene, uint8_t* imageData);
