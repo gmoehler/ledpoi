@@ -233,22 +233,18 @@ void realize_cmd(){
       break;
 
       case 7:
-      //savePix(cmd[2],cmd[3]);
-      break;
-
-      case 8:
       //setIP(cmd[2],cmd[3],cmd[4],cmd[5]);
       break;
 
-      case 9:
+      case 8:
       //setGW(cmd[2],cmd[3],cmd[4],cmd[5]);
       break;
 
-      case 10:
+      case 9:
       if (logLevel != MUTE) Serial.println("Connection close command received.");
       client_disconnect();
       nextPoiState = POI_CLIENT_CONNECTING;
-      return;
+      break;
 
       default:
       if (logLevel != MUTE) {
@@ -297,6 +293,7 @@ void protocoll_receive_data(){
   // data available
   if (client.available()){
     char c = client.read();
+    printf("READ: %d\n", c);
 
     // start byte detected
     if (c== 255) {

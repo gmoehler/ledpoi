@@ -11,7 +11,7 @@
 class PlayHandler
 {
 public:
-  PlayHandler(); 
+  PlayHandler();
   void init(uint8_t startFrame, uint8_t endFrame, uint16_t delay, uint16_t loops);
   void setActiveScene(uint8_t scene);
 
@@ -34,6 +34,7 @@ private:
   uint8_t _currentFrame;
   uint16_t _currentLoop;
   bool _active;
+  bool _forward; // false for backward
 
 };
 #endif

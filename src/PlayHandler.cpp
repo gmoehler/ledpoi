@@ -14,24 +14,45 @@ void PlayHandler::init(uint8_t startFrame, uint8_t endFrame, uint16_t delay, uin
   _currentFrame = _startFrame;
   _currentLoop = 0;
   _active = true;
+  _forward = endFrame >= startFrame;
 }
 
 void PlayHandler::next(){
 
-  if (_currentFrame + 1  >  _endFrame){
-    // last frame reached
-    if (_currentLoop + 1 >= _numLoops){
-      // end of final loop reached
-      _active = false;
-      return;
+  if (_forward){
+    if (_currentFrame + 1  >  _endFrame){
+      // last frame reached
+      if (_currentLoop + 1 >= _numLoops){
+        // end of final loop reached
+        _active = false;
+        return;
+      }
+      // next loop starts
+      _currentLoop++;
+      _currentFrame = _startFrame;
     }
-    // next loop starts
-    _currentLoop++;
-    _currentFrame = _startFrame;
+    else {
+      // normal operation: next frame
+      _currentFrame++;
+    }
   }
   else {
-    // normal operation: next frame
-    _currentFrame++;
+    if (_currentFrame - 1  <  _endFrame){
+      // last frame reached
+      if (_currentLoop + 1 >= _numLoops){
+        // end of final loop reached
+        _active = false;
+        return;
+      }
+      // next loop starts
+      _currentLoop++;
+      _currentFrame = _startFrame;
+    }
+    else {
+      // normal operation: next frame
+      _currentFrame--;
+    }
+
   }
 }
 
