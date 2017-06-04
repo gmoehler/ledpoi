@@ -6,18 +6,22 @@
 #include "ledpoi.h"
 #include "PoiActionRunner.h"
 #include "PoiTimer.h"
+#include "OneButton.h"
 
 enum PoiState { POI_INIT,               // 0
                 POI_NETWORK_SEARCH,     // 1
                 POI_CLIENT_CONNECTING,  // 2
                 POI_RECEIVING_DATA,     // 3
                 POI_DEMO_MODE,          // 4
+                POI_IP_CONFIG,          // 5
                 NUM_POI_STATES};        // only used for enum size
 
 LogLevel logLevel = QUIET; // CHATTY, QUIET or MUTE
 
 const int DATA_PIN = 23; // was 18 Avoid using any of the strapping pins on the ESP32
 const int LED_PIN = 2;
+const int BUTTON_PIN = 0;
+OneButton button1(BUTTON_PIN, true);
 
 const int connTimeout=20;     // client connection timeout in secs
 const int maxLEDLevel = 200;  // restrict max LED brightness due to protocol
@@ -40,12 +44,16 @@ PoiTimer ptimer(logLevel);
 PoiActionRunner runner(ptimer, logLevel);
 
 uint32_t lastSignalTime = 0; // time when last wifi signal was received, for timeout
-char cmd[7];                 // command read from server
+char cmd [7];                 // command read from server
 int cmdIndex=0;              // index into command read from server
 char c;
 bool loadingImgData = false; // tag to suppress log during image loading
 
-bool startDemoOnReset = true; // demo mode: instantly start with the program after reset
+bool startDemoOnReset = false; // demo mode: instantly start with the program after reset
+
+uint8_t ipIncrement = 0; // increment to set the ip
+rgbVal ipSetupLed[N_POIS];
+uint8_t baseIpAdress[4] = {192, 168, 1, 127};
 
 
 void blink(int m){
@@ -86,7 +94,9 @@ void printWifiStatus() {
 
 // synchronous method connecting to wifi
 void wifi_connect(){
-  IPAddress myIP(192, 168, 1, 127);
+  uint8_t ip4 = baseIpAdress[3] + ipIncrement;
+  printf("My address: %d.%d.%d.%d\n", baseIpAdress[0],baseIpAdress[1],baseIpAdress[2],ip4);
+  IPAddress myIP(baseIpAdress[0],baseIpAdress[1],baseIpAdress[2],ip4);
   IPAddress gateway(192, 168, 1, 1);
   IPAddress subnet(255, 255, 255, 0);
 
@@ -161,6 +171,56 @@ void client_disconnect(){
   if (logLevel != MUTE) Serial.println("Connection closed.");
 }
 
+void longPressStop1() {
+  if (poiState == POI_IP_CONFIG) {
+    ipSetupLed[ipIncrement]= makeRGBVal(0,0,0);
+    ws2812_setColors(N_POIS, ipSetupLed);
+    nextPoiState = POI_NETWORK_SEARCH;
+  }
+  else {
+    nextPoiState = POI_IP_CONFIG;
+    ipSetupLed[ipIncrement]= makeRGBVal(8, 8, 8);
+    ws2812_setColors(N_POIS, ipSetupLed);
+  }
+}
+
+void click1() {
+  if (poiState == POI_IP_CONFIG){
+    // set back the ip led to black
+    ipSetupLed[ipIncrement]= makeRGBVal(0,0,0);
+    ipIncrement++;
+    if (ipIncrement + 1 > N_POIS){
+      ipIncrement = 0;
+    }
+    // display colored led (first one less bright for each)
+    uint8_t b = 64;
+    if (ipIncrement %2 == 0){
+      b=8;
+    }
+    rgbVal color = makeRGBVal(b, b, b);
+    switch(ipIncrement/2){
+      case 1:
+      color = makeRGBVal(b, 0, 0);
+      break;
+
+      case 2:
+      color = makeRGBVal(0, b, 0);
+      break;
+
+      case 3:
+      color = makeRGBVal(0, 0, b);
+      break;
+
+      case 4:
+      color = makeRGBVal(b, 0, b);
+      break;
+    }
+    ipSetupLed[ipIncrement]= color;
+    ws2812_setColors(N_POIS, ipSetupLed);
+    //printf("IP Increment: %d\n", ipIncrement);
+  }
+}
+
 void setup()
 {
   //  pinMode(BUTTON_PIN, INPUT_PULLUP);
@@ -173,6 +233,8 @@ void setup()
     Serial.println("Starting...");
   }
 
+  button1.attachLongPressStop(longPressStop1);
+  button1.attachClick(click1);
   // init runner
   runner.setup();
 
@@ -340,7 +402,7 @@ void protocoll_receive_data(){
 // state machine with entry actions, state actions and exit actions
 void loop()
 {
-
+  button1.tick();
   bool state_changed = nextPoiState != poiState;
 
   // exit actions
@@ -362,6 +424,8 @@ void loop()
         digitalWrite(LED_PIN,LOW);
       break;
 
+      case POI_IP_CONFIG:
+      break;
 
       default:
       break;
@@ -405,6 +469,10 @@ void loop()
     runner.startProg();
     printf("  Demo finished\n" );
     nextPoiState = POI_NETWORK_SEARCH;
+    break;
+
+    case POI_IP_CONFIG:
+
     break;
 
     case POI_RECEIVING_DATA:
