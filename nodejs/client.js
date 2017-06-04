@@ -8,16 +8,23 @@ var rd = readline.createInterface({
     console: false
 });
 
-var program = new Array();
+var program = null;
 var client = null;
 var i = 0;
 
 rd.on('line', function(line) {
-    var cmd = line.split(" ").map(Number);
+    var cmdString = line;
+    if (line.indexOf('#') !== -1){
+      cmdString= line.substr(0, line.indexOf('#'));
+    }
+    var cmd = cmdString.split(" ").map(Number);
     console.log(cmd.length);
     cmd.unshift(255);
     console.log(cmd)
-    program = cmd;
+    program = cmd
+/*    if (cmd.length>=6) {
+      program.push(cmd);
+    } */
 });
 rd.on('close', function(line) {
   console.log ("PRG:" + program);
@@ -26,15 +33,16 @@ rd.on('close', function(line) {
 });
 
 function client_disconnect(){
-  // send client disconnect cpommand and close connection
+  // send client disconnect command and close connection
   var buf = new Buffer([255, 254, 9, 0, 0, 0, 0]);
   client.write(buf);
   client.destroy();
 }
 
 function connected() {
-//  var buf = new Buffer([255, 253, 6, 0, 0, 0, 0, 255, 253, 3, 0, 30, 0, 100, 255, 253, 0, 0, 0, 0, 0]);
+  program=[255,253,6, 0, 0, 0, 0, 255, 253, 3, 0, 30, 0, 100, 255, 253, 0, 0, 0, 0, 0];
   var buf = new Buffer(program);
+  console.log ("xPRG:" + program.toString());
   client.write(buf);
   client_disconnect();
 }

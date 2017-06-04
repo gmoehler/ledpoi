@@ -11,7 +11,7 @@ enum PoiState { POI_INIT,               // 0
                 POI_NETWORK_SEARCH,     // 1
                 POI_CLIENT_CONNECTING,  // 2
                 POI_RECEIVING_DATA,     // 3
-                POI_DO_NOTHING,
+                POI_DEMO_MODE,          // 4
                 NUM_POI_STATES};        // only used for enum size
 
 LogLevel logLevel = QUIET; // CHATTY, QUIET or MUTE
@@ -44,6 +44,8 @@ char cmd[7];                 // command read from server
 int cmdIndex=0;              // index into command read from server
 char c;
 bool loadingImgData = false; // tag to suppress log during image loading
+
+bool startDemoOnReset = true; // demo mode: instantly start with the program after reset
 
 
 void blink(int m){
@@ -241,6 +243,7 @@ void realize_cmd(){
       break;
 
       case 9:
+      case 10:
       if (logLevel != MUTE) Serial.println("Connection close command received.");
       client_disconnect();
       nextPoiState = POI_CLIENT_CONNECTING;
@@ -374,7 +377,12 @@ void loop()
 
     case POI_INIT:
       // proceed to next state
-      nextPoiState = POI_NETWORK_SEARCH;
+      if (startDemoOnReset){
+        nextPoiState = POI_DEMO_MODE;
+      }
+      else {
+        nextPoiState = POI_NETWORK_SEARCH;
+      }
     break;
 
     case POI_NETWORK_SEARCH:
@@ -390,6 +398,13 @@ void loop()
       if (logLevel != MUTE) printf("Waiting for client...\n");
     }
     client_connect();
+    break;
+
+    case POI_DEMO_MODE:
+    printf("  Starting demo...\n" );
+    runner.startProg();
+    printf("  Demo finished\n" );
+    nextPoiState = POI_NETWORK_SEARCH;
     break;
 
     case POI_RECEIVING_DATA:
