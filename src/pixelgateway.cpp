@@ -365,7 +365,7 @@ void longPressStart1() {
   }
   else if (poiState == POI_IP_CONFIG) {
     runner.saveIpIncrement(ipIncrement);
-    nextPoiState = ipIncrement == 255 ? POI_PLAY_PROGRAM : POI_NETWORK_SEARCH;
+    nextPoiState = ipIncrement == 255 ? POI_AWAIT_PROGRAM_SYNC : POI_NETWORK_SEARCH;
   }
 }
 
@@ -458,7 +458,7 @@ void loop()
     currentTime = millis();
     if (currentTime-poi_network_display_entered > 5000){
       runner.playRainbow(N_POIS);
-      nextPoiState = ipIncrement == 255 ? POI_PLAY_PROGRAM : POI_NETWORK_SEARCH;
+      nextPoiState = ipIncrement == 255 ? POI_AWAIT_PROGRAM_SYNC : POI_NETWORK_SEARCH;
 
     }
     break;
