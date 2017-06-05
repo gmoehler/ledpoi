@@ -18,7 +18,8 @@ Byte[n] may not contain any 0xFF!
 ||jumpTo||6|syncId||||done|jump to label with syncId immediatelly - if syncId==0 jump to next syncId|
 ||setIP||7|IP1|IP2|IP3|IP4||0.0.0.0: use DHCP|
 ||setGW||8|GW1|GW2|GW3|GW4|||
-||clientDisconnect||9|||||done|tell poi (server) to disconnect from PC (client)|
+||clientDisconnect||9/10|||||done|tell poi (server) to disconnect from PC (client)|
+||demoMode||11||||||start playing the program after reset|
 |**setProg**||**253**|*progCMD*|*param0*|*param1*|*param2*|*param3*|||
 ||ProgramEnd||0|||||(done)|End of program|
 ||label||1|labelId|||||labelCode is *name* of label (labelCode > 0) - syncId for syncImpulse (syncId > 0), syncIds start with 1 |

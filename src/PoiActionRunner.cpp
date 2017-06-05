@@ -8,9 +8,8 @@ PoiActionRunner::PoiActionRunner(PoiTimer& ptimer, LogLevel logLevel) :
 {
     // initialize register and map
     if (_logLevel != MUTE) printf("Initializing image map and register.\n" );
-    rgbVal black = makeRGBVal(0,0,0);
     for (int i= 0; i< N_REGISTERS; i++){
-      _fillRegister(i, black);
+      _clearRegister(i);
     }
 
     // memory section is a bit larger than required, but exactly the size
@@ -20,6 +19,7 @@ PoiActionRunner::PoiActionRunner(PoiTimer& ptimer, LogLevel logLevel) :
       printf("Error. Cannot allocate pixelMap with size %d.\n",
         N_FRAMES * N_PIXELS * 3);
     }
+    rgbVal black = makeRGBVal(0,0,0);
     _fillMap(black); // not sure whether required...
 }
 
@@ -31,8 +31,10 @@ void PoiActionRunner::clearImageMap(){
 void PoiActionRunner::setup(){
   // Create semaphore to inform us when the timer has fired
   _timerSemaphore = xSemaphoreCreateBinary();
-  _flashMemory.setup(_logLevel);
-  _progHandler.setup();
+  clearImageMap();
+  _flashMemory.setup(_logLevel, _pixelMap);
+  _progHandler.setup(); // load program
+  _updateSceneFromFlash(0); // load scene 0 into flash
 }
 
 /**********************
@@ -63,6 +65,11 @@ void PoiActionRunner::_fillRegister(uint8_t registerId, rgbVal rgb){
   }
 }
 
+void PoiActionRunner::_clearRegister(uint8_t registerId) {
+  rgbVal black = makeRGBVal(0,0,0);
+  _fillRegister(registerId, black);
+}
+
 void PoiActionRunner::_fillMap(rgbVal rgb){
   for (int f=0; f<N_FRAMES; f++){
     for (int p=0; p<N_PIXELS; p++){
@@ -72,6 +79,10 @@ void PoiActionRunner::_fillMap(rgbVal rgb){
 }
 
 void PoiActionRunner::_copyFrameToRegister(uint8_t registerId, uint8_t frame_idx, float factor){
+  if (frame_idx + 1 > N_FRAMES){
+    printf("Error. Cannot copy frame %d (> %d) to regsiter %d\n", frame_idx, N_FRAMES, registerId);
+    return;
+  }
   if (registerId +1 > N_REGISTERS){
     printf("Error. Register %d does not exist\n", registerId);
     return;
@@ -135,7 +146,8 @@ void PoiActionRunner::_displayFrame(uint8_t frame){
 void PoiActionRunner::resetFlash(){
     _flashMemory.eraseNvsFlashPartition();
     _flashMemory.eraseImages();
-    _flashMemory.setup(_logLevel);
+    clearImageMap();
+    _flashMemory.setup(_logLevel, _pixelMap);
 }
 
 void PoiActionRunner::setPixel(uint8_t scene_idx, uint8_t frame_idx, uint8_t pixel_idx,
@@ -171,15 +183,14 @@ void PoiActionRunner::saveScene(uint8_t scene){
   }
 }
 
+// load scene from flash into memory
 void PoiActionRunner::_updateSceneFromFlash(uint8_t scene){
-  if (scene != _currentScene){
-    if (_flashMemory.loadImage(scene, _pixelMap)){
-      _currentScene = scene;
-      if (_logLevel != MUTE) printf("Scene %d loaded from Flash.\n", _currentScene);
-    }
-    else{
-      printf("Error. Cannot load scene %d\n", scene);
-    }
+  if (_flashMemory.loadImage(scene, _pixelMap)){
+    _currentScene = scene;
+    if (_logLevel != MUTE) printf("Scene %d loaded from Flash.\n", _currentScene);
+  }
+  else{
+    printf("Error. Cannot load scene %d\n", scene);
   }
 }
 
@@ -198,7 +209,10 @@ void PoiActionRunner::showStaticFrame(uint8_t scene, uint8_t frame, uint8_t time
 
 void PoiActionRunner::playScene(uint8_t scene, uint8_t startFrame, uint8_t endFrame, uint8_t speed, uint8_t loops){
   _currentAction = PLAY_DIRECT;
-  _updateSceneFromFlash(scene);
+  if (scene != _currentScene){
+    _updateSceneFromFlash(scene);
+    _currentScene = scene;
+  }
   _playHandler.init(startFrame, endFrame, speed, loops);
   if (_logLevel != MUTE) _playHandler.printInfo();
 
@@ -249,6 +263,76 @@ void PoiActionRunner::showCurrent(){
   _displayRegister(0);
 }
 
+void PoiActionRunner::playRainbow(uint8_t rainbowLen){
+  _clearRegister(0);
+  uint8_t val = 255;
+  rgbVal black = makeRGBVal(0, 0, 0);
+  rgbVal red = makeRGBVal(val, 0, 0);
+  rgbVal green = makeRGBVal(0, val, 0);
+  rgbVal blue = makeRGBVal(0, 0, val);
+  rgbVal yellow = makeRGBVal(val, val, 0);
+  rgbVal lila = makeRGBVal(val, 0, val);
+  rgbVal cyan = makeRGBVal(0, val, val);
+
+  // initialize register 0 with rainbow
+  rgbVal rainbow[6] = {lila, blue, cyan, green, red, yellow};
+  for (int i=0; i<6; i++){
+      _pixelRegister[0][i] = rainbow[i];
+  }
+  _displayRegister(0);
+
+  // shift rainbow up
+  for (int i=0; i<rainbowLen; i++){
+    for (int j=rainbowLen-1; j>0; j--){
+      _pixelRegister[0][j] = _pixelRegister[0][j-1];
+    }
+    _pixelRegister[0][0] = black;
+    _displayRegister(0);
+    delay(25);
+  }
+}
+
+void PoiActionRunner::displayIp(uint8_t ipIncrement){
+  // set back the ip led to black
+  _clearRegister(0);
+  // network off
+  if (ipIncrement == 255){
+    // first N_POIS leds show palewhite
+    rgbVal palewhite = makeRGBVal(8, 8, 8);
+    for (int i=0; i<N_POIS; i++){
+      _pixelRegister[0][i]=palewhite;
+    }
+  }
+  else {
+    // display colored led (first one less bright for each)
+    uint8_t b = 64;
+    if (ipIncrement %2 == 0){
+      b=8;
+    }
+    rgbVal color = makeRGBVal(b, 0, 0);
+    switch(ipIncrement/2){
+      case 1:
+      color = makeRGBVal(0, b, 0);
+      break;
+
+      case 2:
+      color = makeRGBVal(0, 0, b);
+      break;
+
+      case 3:
+      color = makeRGBVal(b, b, 0);
+      break;
+
+      case 4:
+      color = makeRGBVal(b, 0, b);
+      break;
+    }
+    _pixelRegister[0][ipIncrement]= color;
+  }
+
+  _displayRegister(0);
+}
+
 /****************************
   * Program related methods *
   ***************************/
@@ -289,6 +373,20 @@ void PoiActionRunner::jumptoSync(uint8_t syncId){
 void PoiActionRunner::continueProg() {
   _currentAction = PLAY_PROG;
   if (_logLevel != MUTE) printf("Program continuing.\n" );
+}
+
+bool PoiActionRunner::isProgramActive(){
+  return _progHandler.isActive();
+}
+
+uint8_t PoiActionRunner::getIpIncrement(){
+  uint8_t ipIncrement = 0;
+  _flashMemory.loadIpIncrement(&ipIncrement);
+  return ipIncrement;
+}
+
+void PoiActionRunner::saveIpIncrement(uint8_t ipIncrement){
+  _flashMemory.saveIpIncrement(ipIncrement);
 }
 
 /*******************************

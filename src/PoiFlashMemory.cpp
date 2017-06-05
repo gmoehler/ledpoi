@@ -1,6 +1,6 @@
 #include "PoiFlashMemory.h"
 
-void PoiFlashMemory::setup(LogLevel logLevel){
+void PoiFlashMemory::setup(LogLevel logLevel, uint8_t *initImageData){
   // check whether flash is initialized
   // it is when it contains the correct number of scenes
   uint8_t numScenes = 0;
@@ -8,6 +8,10 @@ void PoiFlashMemory::setup(LogLevel logLevel){
       // initialize image partition
       printf("Initializing the image partition of the flash memory\n" );
       eraseImages();
+      // initialize with initImageData (black)
+      for (int i=0; i< N_SCENES; i++){
+        saveImage(i, initImageData);
+      }
       saveNumScenes(N_SCENES);
   }
   uint8_t numProgSteps = 0;
@@ -133,6 +137,24 @@ bool PoiFlashMemory::loadProgram(uint8_t *programData){
   esp_err_t err = _nvs_read_uint8_array(NVS_PROGRAM_NAMESPACE, NVS_PROGRAM_KEY, programData);
   if (err != ESP_OK) {
     printf("Error (%4x) readimg program data from flash.\n", err);
+    return false;
+  }
+  return true;
+}
+
+bool PoiFlashMemory::saveIpIncrement(uint8_t ipIncrement){
+  esp_err_t err = _nvs_save_uint8(NVS_GENERAL_NAMESPACE, NVS_IP_INCREMENT_KEY, ipIncrement);
+  if (err != ESP_OK) {
+    printf("Error (%4x) writing ip increment to flash.\n", err);
+    return false;
+  }
+  return true;
+}
+
+bool PoiFlashMemory::loadIpIncrement(uint8_t *ipIncrement){
+  esp_err_t err = _nvs_read_uint8(NVS_GENERAL_NAMESPACE, NVS_IP_INCREMENT_KEY, ipIncrement);
+  if (err != ESP_OK) {
+    printf("Error (%4x) reading ip increment from flash.\n", err);
     return false;
   }
   return true;
