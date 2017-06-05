@@ -1,6 +1,7 @@
 #include "PoiTimer.h"
 
-PoiTimer::PoiTimer(LogLevel logLevel) : _logLevel (logLevel) {
+PoiTimer::PoiTimer(LogLevel logLevel, bool repeat) :
+	_logLevel (logLevel), _repeat(repeat) {
 	 _timer = timerBegin(3, 80, true);  // divider 80 = 1MHz
 }
 
@@ -20,7 +21,7 @@ void PoiTimer::_setInterval(uint16_t intervalMs){
 		printf("Setting timer interval to %d ms\n", intervalMs);
 	}
   // Alarm every intervalMs milli secs, auto-reload
-  timerAlarmWrite(_timer, 1000 * intervalMs, true);
+  timerAlarmWrite(_timer, 1000 * intervalMs, _repeat);
 }
 
 void PoiTimer::_enable(){

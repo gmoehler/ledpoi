@@ -142,6 +142,24 @@ bool PoiFlashMemory::loadProgram(uint8_t *programData){
   return true;
 }
 
+bool PoiFlashMemory::saveIpIncrement(uint8_t ipIncrement){
+  esp_err_t err = _nvs_save_uint8(NVS_GENERAL_NAMESPACE, NVS_IP_INCREMENT_KEY, ipIncrement);
+  if (err != ESP_OK) {
+    printf("Error (%4x) writing ip increment to flash.\n", err);
+    return false;
+  }
+  return true;
+}
+
+bool PoiFlashMemory::loadIpIncrement(uint8_t *ipIncrement){
+  esp_err_t err = _nvs_read_uint8(NVS_GENERAL_NAMESPACE, NVS_IP_INCREMENT_KEY, ipIncrement);
+  if (err != ESP_OK) {
+    printf("Error (%4x) reading ip increment from flash.\n", err);
+    return false;
+  }
+  return true;
+}
+
 bool PoiFlashMemory::saveNumProgramSteps(uint8_t numProgSteps){
   esp_err_t err = _nvs_save_uint8(NVS_PROGRAM_NAMESPACE, NVS_NUM_PROG_STEPS_KEY, numProgSteps);
   if (err != ESP_OK) {

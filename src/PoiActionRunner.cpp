@@ -8,9 +8,8 @@ PoiActionRunner::PoiActionRunner(PoiTimer& ptimer, LogLevel logLevel) :
 {
     // initialize register and map
     if (_logLevel != MUTE) printf("Initializing image map and register.\n" );
-    rgbVal black = makeRGBVal(0,0,0);
     for (int i= 0; i< N_REGISTERS; i++){
-      _fillRegister(i, black);
+      _clearRegister(i);
     }
 
     // memory section is a bit larger than required, but exactly the size
@@ -20,6 +19,7 @@ PoiActionRunner::PoiActionRunner(PoiTimer& ptimer, LogLevel logLevel) :
       printf("Error. Cannot allocate pixelMap with size %d.\n",
         N_FRAMES * N_PIXELS * 3);
     }
+    rgbVal black = makeRGBVal(0,0,0);
     _fillMap(black); // not sure whether required...
 }
 
@@ -63,6 +63,11 @@ void PoiActionRunner::_fillRegister(uint8_t registerId, rgbVal rgb){
   for (int i = 0; i < N_PIXELS; i++) {
     _pixelRegister[registerId][i] = rgb;
   }
+}
+
+void PoiActionRunner::_clearRegister(uint8_t registerId) {
+  rgbVal black = makeRGBVal(0,0,0);
+  _fillRegister(registerId, black);
 }
 
 void PoiActionRunner::_fillMap(rgbVal rgb){
@@ -258,6 +263,76 @@ void PoiActionRunner::showCurrent(){
   _displayRegister(0);
 }
 
+void PoiActionRunner::playRainbow(uint8_t rainbowLen){
+  _clearRegister(0);
+  uint8_t val = 255;
+  rgbVal black = makeRGBVal(0, 0, 0);
+  rgbVal red = makeRGBVal(val, 0, 0);
+  rgbVal green = makeRGBVal(0, val, 0);
+  rgbVal blue = makeRGBVal(0, 0, val);
+  rgbVal yellow = makeRGBVal(val, val, 0);
+  rgbVal lila = makeRGBVal(val, 0, val);
+  rgbVal cyan = makeRGBVal(0, val, val);
+
+  // initialize register 0 with rainbow
+  rgbVal rainbow[6] = {lila, blue, cyan, green, red, yellow};
+  for (int i=0; i<6; i++){
+      _pixelRegister[0][i] = rainbow[i];
+  }
+  _displayRegister(0);
+
+  // shift rainbow up
+  for (int i=0; i<rainbowLen; i++){
+    for (int j=rainbowLen-1; j>0; j--){
+      _pixelRegister[0][j] = _pixelRegister[0][j-1];
+    }
+    _pixelRegister[0][0] = black;
+    _displayRegister(0);
+    delay(25);
+  }
+}
+
+void PoiActionRunner::displayIp(uint8_t ipIncrement){
+  // set back the ip led to black
+  _clearRegister(0);
+  // network off
+  if (ipIncrement == 255){
+    // first N_POIS leds show palewhite
+    rgbVal palewhite = makeRGBVal(8, 8, 8);
+    for (int i=0; i<N_POIS; i++){
+      _pixelRegister[0][i]=palewhite;
+    }
+  }
+  else {
+    // display colored led (first one less bright for each)
+    uint8_t b = 64;
+    if (ipIncrement %2 == 0){
+      b=8;
+    }
+    rgbVal color = makeRGBVal(b, 0, 0);
+    switch(ipIncrement/2){
+      case 1:
+      color = makeRGBVal(0, b, 0);
+      break;
+
+      case 2:
+      color = makeRGBVal(0, 0, b);
+      break;
+
+      case 3:
+      color = makeRGBVal(b, b, 0);
+      break;
+
+      case 4:
+      color = makeRGBVal(b, 0, b);
+      break;
+    }
+    _pixelRegister[0][ipIncrement]= color;
+  }
+
+  _displayRegister(0);
+}
+
 /****************************
   * Program related methods *
   ***************************/
@@ -298,6 +373,20 @@ void PoiActionRunner::jumptoSync(uint8_t syncId){
 void PoiActionRunner::continueProg() {
   _currentAction = PLAY_PROG;
   if (_logLevel != MUTE) printf("Program continuing.\n" );
+}
+
+bool PoiActionRunner::isProgramActive(){
+  return _progHandler.isActive();
+}
+
+uint8_t PoiActionRunner::getIpIncrement(){
+  uint8_t ipIncrement = 0;
+  _flashMemory.loadIpIncrement(&ipIncrement);
+  return ipIncrement;
+}
+
+void PoiActionRunner::saveIpIncrement(uint8_t ipIncrement){
+  _flashMemory.saveIpIncrement(ipIncrement);
 }
 
 /*******************************

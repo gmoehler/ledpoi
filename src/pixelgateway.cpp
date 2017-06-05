@@ -9,11 +9,13 @@
 #include "OneButton.h"
 
 enum PoiState { POI_INIT,               // 0
-                POI_NETWORK_SEARCH,     // 1
-                POI_CLIENT_CONNECTING,  // 2
-                POI_RECEIVING_DATA,     // 3
-                POI_DEMO_MODE,          // 4
-                POI_IP_CONFIG,          // 5
+                POI_IP_DISPLAY,         // 1
+                POI_IP_CONFIG,          // 2
+                POI_NETWORK_SEARCH,     // 3
+                POI_CLIENT_CONNECTING,  // 4
+                POI_RECEIVING_DATA,     // 5
+                POI_AWAIT_PROGRAM_SYNC, // 6
+                POI_PLAY_PROGRAM,       // 7
                 NUM_POI_STATES};        // only used for enum size
 
 LogLevel logLevel = QUIET; // CHATTY, QUIET or MUTE
@@ -40,8 +42,9 @@ IPAddress clientIP;
 PoiState poiState =   POI_INIT;
 PoiState nextPoiState = poiState;
 
-PoiTimer ptimer(logLevel);
+PoiTimer ptimer(logLevel, true);
 PoiActionRunner runner(ptimer, logLevel);
+PoiFlashMemory _flashMemory;
 
 uint32_t lastSignalTime = 0; // time when last wifi signal was received, for timeout
 char cmd [7];                 // command read from server
@@ -51,9 +54,10 @@ bool loadingImgData = false; // tag to suppress log during image loading
 
 bool startDemoOnReset = false; // demo mode: instantly start with the program after reset
 
-uint8_t ipIncrement = 0; // increment to set the ip
-rgbVal ipSetupLed[N_POIS];
+uint8_t ipIncrement = 0; // increment to set the ip, 255 for network off
 uint8_t baseIpAdress[4] = {192, 168, 1, 127};
+uint32_t poi_network_display_entered = 0;
+uint32_t currentTime = 0;
 
 
 void blink(int m){
@@ -171,55 +175,9 @@ void client_disconnect(){
   if (logLevel != MUTE) Serial.println("Connection closed.");
 }
 
-void longPressStop1() {
-  if (poiState == POI_IP_CONFIG) {
-    ipSetupLed[ipIncrement]= makeRGBVal(0,0,0);
-    ws2812_setColors(N_POIS, ipSetupLed);
-    nextPoiState = POI_NETWORK_SEARCH;
-  }
-  else {
-    nextPoiState = POI_IP_CONFIG;
-    ipSetupLed[ipIncrement]= makeRGBVal(8, 8, 8);
-    ws2812_setColors(N_POIS, ipSetupLed);
-  }
-}
-
-void click1() {
-  if (poiState == POI_IP_CONFIG){
-    // set back the ip led to black
-    ipSetupLed[ipIncrement]= makeRGBVal(0,0,0);
-    ipIncrement++;
-    if (ipIncrement + 1 > N_POIS){
-      ipIncrement = 0;
-    }
-    // display colored led (first one less bright for each)
-    uint8_t b = 64;
-    if (ipIncrement %2 == 0){
-      b=8;
-    }
-    rgbVal color = makeRGBVal(b, b, b);
-    switch(ipIncrement/2){
-      case 1:
-      color = makeRGBVal(b, 0, 0);
-      break;
-
-      case 2:
-      color = makeRGBVal(0, b, 0);
-      break;
-
-      case 3:
-      color = makeRGBVal(0, 0, b);
-      break;
-
-      case 4:
-      color = makeRGBVal(b, 0, b);
-      break;
-    }
-    ipSetupLed[ipIncrement]= color;
-    ws2812_setColors(N_POIS, ipSetupLed);
-    //printf("IP Increment: %d\n", ipIncrement);
-  }
-}
+// defined below
+void longPressStart1();
+void click1();
 
 void setup()
 {
@@ -233,10 +191,11 @@ void setup()
     Serial.println("Starting...");
   }
 
-  button1.attachLongPressStop(longPressStop1);
+  button1.attachLongPressStart(longPressStart1);
   button1.attachClick(click1);
   // init runner
   runner.setup();
+  ipIncrement = runner.getIpIncrement();
 
   // init LEDs
   if(ws2812_init(DATA_PIN, LED_WS2812B)){
@@ -396,6 +355,37 @@ void protocoll_receive_data(){
 }
 
 // ===============================================
+// ====  BUTTONS ====================================
+// ===============================================
+
+void longPressStart1() {
+  printf("Long press1\n");
+  if (poiState == POI_IP_DISPLAY) {
+    nextPoiState = POI_IP_CONFIG;
+  }
+  else if (poiState == POI_IP_CONFIG) {
+    runner.saveIpIncrement(ipIncrement);
+    nextPoiState = ipIncrement == 255 ? POI_PLAY_PROGRAM : POI_NETWORK_SEARCH;
+  }
+}
+
+void click1() {
+  if (poiState == POI_IP_CONFIG){
+    // set back the ip led to black
+    ipIncrement++;
+    if (ipIncrement + 1 > N_POIS){
+      ipIncrement = 255; // network off
+    }
+    printf("IP Increment: %d\n", ipIncrement);
+    // display colored led (first one less bright for each)
+    runner.displayIp(ipIncrement);
+  }
+  else if (poiState == POI_AWAIT_PROGRAM_SYNC){
+    nextPoiState = POI_PLAY_PROGRAM;
+  }
+}
+
+// ===============================================
 // ====  LOOP ====================================
 // ===============================================
 
@@ -413,6 +403,15 @@ void loop()
       case POI_INIT:
       break;
 
+      case POI_IP_DISPLAY:
+      // switch off ip display
+      runner.showStaticRgb(0,0,0);
+      break;
+
+      case POI_IP_CONFIG:
+      runner.playRainbow(N_POIS);
+      break;
+
       case POI_NETWORK_SEARCH:
       break;
 
@@ -424,7 +423,11 @@ void loop()
         digitalWrite(LED_PIN,LOW);
       break;
 
-      case POI_IP_CONFIG:
+      case POI_AWAIT_PROGRAM_SYNC:
+      break;
+
+      case POI_PLAY_PROGRAM:
+      runner.showStaticRgb(0,0,0);
       break;
 
       default:
@@ -440,13 +443,32 @@ void loop()
   switch (poiState){
 
     case POI_INIT:
-      // proceed to next state
-      if (startDemoOnReset){
-        nextPoiState = POI_DEMO_MODE;
-      }
-      else {
-        nextPoiState = POI_NETWORK_SEARCH;
-      }
+    runner.playRainbow();
+    // proceed to next state
+    nextPoiState = POI_IP_DISPLAY;
+    break;
+
+    case POI_IP_DISPLAY:
+    // display network config for 2 seconds
+    // user needs to long press to adjust
+    if (state_changed){
+      poi_network_display_entered = millis();
+      runner.displayIp(ipIncrement);
+    }
+    currentTime = millis();
+    if (currentTime-poi_network_display_entered > 5000){
+      runner.playRainbow(N_POIS);
+      nextPoiState = ipIncrement == 255 ? POI_PLAY_PROGRAM : POI_NETWORK_SEARCH;
+
+    }
+    break;
+
+    case POI_IP_CONFIG:
+    if (state_changed){
+      runner.playRainbow(N_POIS);
+      runner.displayIp(ipIncrement);
+    }
+    // operation is done thru click1
     break;
 
     case POI_NETWORK_SEARCH:
@@ -462,17 +484,6 @@ void loop()
       if (logLevel != MUTE) printf("Waiting for client...\n");
     }
     client_connect();
-    break;
-
-    case POI_DEMO_MODE:
-    printf("  Starting demo...\n" );
-    runner.startProg();
-    printf("  Demo finished\n" );
-    nextPoiState = POI_NETWORK_SEARCH;
-    break;
-
-    case POI_IP_CONFIG:
-
     break;
 
     case POI_RECEIVING_DATA:
@@ -506,6 +517,21 @@ void loop()
       // carry out and clean command
       realize_cmd();
       protocoll_clean_cmd();
+    }
+    break;
+
+    case POI_AWAIT_PROGRAM_SYNC:
+    // just wait for click to start program
+    break;
+
+    case POI_PLAY_PROGRAM:
+    if (state_changed){
+      printf("  Starting demo...\n" );
+      runner.startProg();
+    }
+    else if (!runner.isProgramActive()){
+      printf("  Demo finished\n" );
+      nextPoiState = POI_AWAIT_PROGRAM_SYNC;
     }
     break;
 

@@ -9,9 +9,11 @@
 #include <ws2812.h>
 #include "ledpoi.h"
 
+#define NVS_GENERAL_NAMESPACE "poiGeneral"
 #define NVS_IMAGE_NAMESPACE "poiImage"
 #define NVS_PROGRAM_NAMESPACE "poiProgram"
 
+#define NVS_IP_INCREMENT_KEY "ipIncrement"
 #define NVS_PROGRAM_KEY "program"
 #define NVS_NUM_PROG_STEPS_KEY "numProgSteps"
 #define NVS_NUM_SCENES_KEY "numScenes"
@@ -47,6 +49,9 @@ public:
 
   bool saveNumProgramSteps(uint8_t numProgSteps);
   bool loadNumProgramSteps(uint8_t* numProgSteps);
+
+  bool saveIpIncrement(uint8_t ipIncrement);
+  bool loadIpIncrement(uint8_t* ipIncrement);
 
   bool saveNumScenes(uint8_t numScenes);
   bool loadNumScenes(uint8_t* numScenes);

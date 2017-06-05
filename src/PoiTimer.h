@@ -11,7 +11,7 @@
 class PoiTimer
 {
 public:
-  PoiTimer(LogLevel logLevel);
+  PoiTimer(LogLevel logLevel, bool repeat);
   ~PoiTimer();
 
   void init(void (*timer_intr_func)());
@@ -23,6 +23,7 @@ private:
   void _enable();
 
   hw_timer_t *_timer;
+  bool _repeat;
   LogLevel _logLevel;
 };
 

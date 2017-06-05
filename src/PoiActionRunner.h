@@ -46,12 +46,17 @@ public:
   void fadeToBlack(uint8_t fadeMSB, uint8_t fadeLSB);
   void showCurrent();
   void jumptoSync(uint8_t syncId);
+  void playRainbow(uint8_t rainbowLen=N_PIXELS); // intro animation after switch on or reset
+  void displayIp(uint8_t ipIncrement);
 
   // program related methods
   void addCmdToProgram(char cmd[7]);
   void startProg();
   void pauseProg();
   void continueProg();
+  bool isProgramActive();
+  uint8_t getIpIncrement();
+  void saveIpIncrement(uint8_t ipIncrement);
 
   void setup();             // to be called in setup()
   void loop();               // to be called in the loop
@@ -84,7 +89,8 @@ private:
   void _updateSceneFromFlash(uint8_t scene);
   void _copyFrameToRegister(uint8_t registerId, uint8_t frame_idx, float factor=1);
   void _copyRegisterToRegister(uint8_t registerId1, uint8_t registerId2, float factor=1);
-  void _fillRegister(uint8_t register Id, rgbVal rgb);
+  void _fillRegister(uint8_t registerId, rgbVal rgb);
+  void _clearRegister(uint8_t registerId); // fill with black
   void _fillMap(rgbVal rgb);
 
   // display functions
