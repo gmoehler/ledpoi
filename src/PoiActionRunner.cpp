@@ -263,22 +263,68 @@ void PoiActionRunner::showCurrent(){
   _displayRegister(0);
 }
 
-void PoiActionRunner::playRainbow(uint8_t rainbowLen){
+rgbVal PoiActionRunner::_makeRGBVal(Color color, uint8_t brightness){
+  rgbVal rgbmakeRGBVal(0,0,0);
+  uint8_t b = brightness;
+  switch (color){
+  	case WHITE:
+      rgb = makeRGBVal(b,b,b);
+      break;
+      
+  	case BLACK:
+      rgb = makeRGBVal(0,0,0);
+      break;
+      
+      case RED:
+      rgb = makeRGBVal(b,0,0);
+      break;    
+      
+      case GREEN:
+      rgb = makeRGBVal(0,b,0);
+      break;
+      
+      case BLUE:
+      rgb = makeRGBVal(0,0,b);
+      break;
+      
+      case YELLOW:
+      rgb = makeRGBVal(b,b,0);
+      break;
+      
+      case LILA:
+      rgb = makeRGBVal(b,0,b);
+      break;   
+      
+      case CYAN:
+      rgb = makeRGBVal(0,b,b);
+      break;
+      
+      //RAINBOW is not handled here -> black
+      }
+      return rgb;
+}
+
+void PoiActionRunner::playWorm(Color color, uint8_t rainbowLen){
   _clearRegister(0);
-  uint8_t val = 255;
-  rgbVal black = makeRGBVal(0, 0, 0);
-  rgbVal red = makeRGBVal(val, 0, 0);
-  rgbVal green = makeRGBVal(0, val, 0);
-  rgbVal blue = makeRGBVal(0, 0, val);
-  rgbVal yellow = makeRGBVal(val, val, 0);
-  rgbVal lila = makeRGBVal(val, 0, val);
-  rgbVal cyan = makeRGBVal(0, val, val);
+  rgbVal black = _makeRGBVal( BLACK);
+  rgbVal red = _makeRGBVal(RED );
+  rgbVal green = _makeRGBVal( GREEN);
+  rgbVal blue = _makeRGBVal(BLUE );
+  rgbVal yellow = _makeRGBVal( YELLOW);
+  rgbVal lila = _makeRGBVal(LILA );
+  rgbVal cyan = _makeRGBVal(CYAN );
 
   // initialize register 0 with rainbow
-  rgbVal rainbow[6] = {lila, blue, cyan, green, red, yellow};
-  for (int i=0; i<6; i++){
-      _pixelRegister[0][i] = rainbow[i];
-  }
+  if  (color == RAINBOW){
+      rgbVal rainbow[6] = {lila, blue, cyan, green, red, yellow};
+      for (int i=0; i<6; i++){
+        _pixelRegister[0][i] = rainbow[i];
+      }
+   }
+   else {
+      _pixelRegister[0][0] = _makeRGBVal(color );
+   }
+      
   _displayRegister(0);
 
   // shift rainbow up

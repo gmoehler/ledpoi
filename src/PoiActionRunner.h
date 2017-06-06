@@ -23,6 +23,17 @@ enum PoiAction { NO_PROGRAM,
                   PAUSE_PROG
                 };
 
+// currently only used for playWorm()
+enum Color {WHITE,
+                   RED,
+                   GREEN,
+                   BLUE,
+                   YELLOW,
+                   LILA,
+                   CYAN,
+                   RAINBOW
+                   };
+
 /**
  * Class responsible for running the poi led program
  * After each action the last frame is always copied to Register 0
@@ -46,7 +57,7 @@ public:
   void fadeToBlack(uint8_t fadeMSB, uint8_t fadeLSB);
   void showCurrent();
   void jumptoSync(uint8_t syncId);
-  void playRainbow(uint8_t rainbowLen=N_PIXELS); // intro animation after switch on or reset
+  void playWorm(Color color, uint8_t rainbowLen=N_PIXELS); // intro animation after switch on or reset
   void displayIp(uint8_t ipIncrement);
 
   // program related methods
@@ -92,7 +103,8 @@ private:
   void _fillRegister(uint8_t registerId, rgbVal rgb);
   void _clearRegister(uint8_t registerId); // fill with black
   void _fillMap(rgbVal rgb);
-
+  rgbVal _makeRGBVal(Color color, uint8_t brightness=255);
+  
   // display functions
   void _displayFrame(uint8_t frame);
   void _displayRegister(uint8_t register Id);
