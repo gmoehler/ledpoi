@@ -116,7 +116,7 @@ void wifi_connect(){
 
   bool connectedToWifi=false;
   WiFi.config(myIP,gateway,subnet);
-   while (!connectedToWifi){
+  while (!connectedToWifi){
      WiFi.begin(WIFI_SSID, WIFI_PASS);
      if (logLevel != MUTE) Serial.print("Connecting...");
 
@@ -132,7 +132,7 @@ void wifi_connect(){
      }
      else {
        blink(10);
-       connectedToWifi=1;
+       connectedToWifi=true;
        if (logLevel != MUTE) {
          Serial.println("Connected.");
          printWifiStatus();
