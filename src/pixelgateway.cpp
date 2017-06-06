@@ -156,7 +156,6 @@ bool reachedTimeout(){
 }
 
 // connect to a client if available
-//TODO: make asynchronous
 void client_connect(){
   client = server.available();
 
