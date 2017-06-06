@@ -36,6 +36,7 @@ void PlayHandler::next(){
       _currentFrame++;
     }
   }
+  // backward
   else {
     if (_currentFrame - 1  <  _endFrame){
       // last frame reached

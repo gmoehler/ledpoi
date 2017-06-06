@@ -116,7 +116,7 @@ void wifi_connect(){
 
   bool connectedToWifi=false;
   WiFi.config(myIP,gateway,subnet);
-   while (!connectedToWifi){
+  while (!connectedToWifi){
      WiFi.begin(WIFI_SSID, WIFI_PASS);
      if (logLevel != MUTE) Serial.print("Connecting...");
 
@@ -132,7 +132,7 @@ void wifi_connect(){
      }
      else {
        blink(10);
-       connectedToWifi=1;
+       connectedToWifi=true;
        if (logLevel != MUTE) {
          Serial.println("Connected.");
          printWifiStatus();
@@ -365,7 +365,11 @@ void longPressStart1() {
   }
   else if (poiState == POI_IP_CONFIG) {
     runner.saveIpIncrement(ipIncrement);
-    nextPoiState = ipIncrement == 255 ? POI_PLAY_PROGRAM : POI_NETWORK_SEARCH;
+    nextPoiState = ipIncrement == 255 ? POI_AWAIT_PROGRAM_SYNC : POI_NETWORK_SEARCH;
+  }
+  else {
+    // like a reset
+    nextPoiState = POI_INIT;
   }
 }
 
@@ -392,7 +396,8 @@ void click1() {
 // state machine with entry actions, state actions and exit actions
 void loop()
 {
-  button1.tick();
+  button1.tick(); // read button data
+
   bool state_changed = nextPoiState != poiState;
 
   // exit actions
@@ -409,24 +414,28 @@ void loop()
       break;
 
       case POI_IP_CONFIG:
-      runner.playRainbow(N_POIS);
+      runner.playWorm(RAINBOW, N_POIS, 1);
       break;
 
       case POI_NETWORK_SEARCH:
       break;
 
       case POI_CLIENT_CONNECTING:
+      runner.playWorm(GREEN, N_PIXELS, 1);
       break;
 
       case POI_RECEIVING_DATA:
         // switch off led if we leave this state
         digitalWrite(LED_PIN,LOW);
+        runner.pauseAction();
       break;
 
       case POI_AWAIT_PROGRAM_SYNC:
       break;
 
       case POI_PLAY_PROGRAM:
+      // on exit stop the program
+      runner.pauseProg();
       runner.showStaticRgb(0,0,0);
       break;
 
@@ -443,7 +452,7 @@ void loop()
   switch (poiState){
 
     case POI_INIT:
-    runner.playRainbow();
+    runner.playWorm(RAINBOW, N_PIXELS, 1);
     // proceed to next state
     nextPoiState = POI_IP_DISPLAY;
     break;
@@ -457,15 +466,15 @@ void loop()
     }
     currentTime = millis();
     if (currentTime-poi_network_display_entered > 5000){
-      runner.playRainbow(N_POIS);
-      nextPoiState = ipIncrement == 255 ? POI_PLAY_PROGRAM : POI_NETWORK_SEARCH;
+      runner.playWorm(RAINBOW, N_POIS, 1);
+      nextPoiState = ipIncrement == 255 ? POI_AWAIT_PROGRAM_SYNC : POI_NETWORK_SEARCH;
 
     }
     break;
 
     case POI_IP_CONFIG:
     if (state_changed){
-      runner.playRainbow(N_POIS);
+      runner.playWorm(RAINBOW, N_POIS, 1);
       runner.displayIp(ipIncrement);
     }
     // operation is done thru click1
@@ -474,6 +483,8 @@ void loop()
     case POI_NETWORK_SEARCH:
     if (state_changed){
       digitalWrite(LED_PIN,LOW);
+      // async no possible since wifi_connect is synchronous
+      runner.playWorm(RED, N_PIXELS, 1);
     }
     wifi_connect();
     break;
@@ -481,6 +492,7 @@ void loop()
     case POI_CLIENT_CONNECTING:
     if (state_changed){
       resetTimeout();
+      runner.playWorm(YELLOW, N_PIXELS, 0, false); // async forever
       if (logLevel != MUTE) printf("Waiting for client...\n");
     }
     client_connect();

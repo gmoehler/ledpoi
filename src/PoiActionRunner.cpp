@@ -1,7 +1,7 @@
 #include "PoiActionRunner.h"
 
 PoiActionRunner::PoiActionRunner(PoiTimer& ptimer, LogLevel logLevel) :
-  _currentAction(NO_PROGRAM), _currentSyncId(0), _currentScene(0),
+  _currentAction(NO_ACTION), _currentSyncId(0), _currentScene(0),
   _ptimer(ptimer),
   _progHandler(_playHandler, _flashMemory, logLevel),
   _logLevel(logLevel)
@@ -19,7 +19,8 @@ PoiActionRunner::PoiActionRunner(PoiTimer& ptimer, LogLevel logLevel) :
       printf("Error. Cannot allocate pixelMap with size %d.\n",
         N_FRAMES * N_PIXELS * 3);
     }
-    rgbVal black = makeRGBVal(0,0,0);
+
+    rgbVal black = _makeRGBVal(BLACK);
     _fillMap(black); // not sure whether required...
 }
 
@@ -125,6 +126,15 @@ void PoiActionRunner::_copyRegisterToRegister(uint8_t registerId1, uint8_t regis
                          ((double)rgb.b) * factor );
     }
   }
+}
+
+// cyclic shift
+void PoiActionRunner::_shiftRegister(uint8_t registerId1, uint8_t shiftRegisterLength, bool cyclic) {
+  for (int j=shiftRegisterLength-1; j>0; j--){
+    _pixelRegister[registerId1][j] = _pixelRegister[registerId1][j-1];
+  }
+  _pixelRegister[registerId1][0] = cyclic ?
+    _pixelRegister[registerId1][shiftRegisterLength-1] : _makeRGBVal(BLACK, 0);
 }
 
 
@@ -263,32 +273,91 @@ void PoiActionRunner::showCurrent(){
   _displayRegister(0);
 }
 
-void PoiActionRunner::playRainbow(uint8_t rainbowLen){
-  _clearRegister(0);
-  uint8_t val = 255;
-  rgbVal black = makeRGBVal(0, 0, 0);
-  rgbVal red = makeRGBVal(val, 0, 0);
-  rgbVal green = makeRGBVal(0, val, 0);
-  rgbVal blue = makeRGBVal(0, 0, val);
-  rgbVal yellow = makeRGBVal(val, val, 0);
-  rgbVal lila = makeRGBVal(val, 0, val);
-  rgbVal cyan = makeRGBVal(0, val, val);
+rgbVal PoiActionRunner::_makeRGBVal(Color color, uint8_t brightness){
+  rgbVal rgb = makeRGBVal(0,0,0);
+  uint8_t b = brightness;
+  switch (color){
+  	case WHITE:
+      rgb = makeRGBVal(b,b,b);
+      break;
 
-  // initialize register 0 with rainbow
-  rgbVal rainbow[6] = {lila, blue, cyan, green, red, yellow};
-  for (int i=0; i<6; i++){
+  	case BLACK:
+      rgb = makeRGBVal(0,0,0);
+      break;
+
+      case RED:
+      rgb = makeRGBVal(b,0,0);
+      break;
+
+      case GREEN:
+      rgb = makeRGBVal(0,b,0);
+      break;
+
+      case BLUE:
+      rgb = makeRGBVal(0,0,b);
+      break;
+
+      case YELLOW:
+      rgb = makeRGBVal(b,b,0);
+      break;
+
+      case LILA:
+      rgb = makeRGBVal(b,0,b);
+      break;
+
+      case CYAN:
+      rgb = makeRGBVal(0,b,b);
+      break;
+
+      //RAINBOW is not handled here -> black
+      }
+      return rgb;
+}
+
+void PoiActionRunner::playWorm(Color color, uint8_t registerLength, uint8_t numLoops, bool synchronous){
+
+  _currentAction = ANIMATION_WORM;
+  _animationHandler.init(ANIMATIONTYPE_WORM, registerLength, numLoops);
+  if (_logLevel != MUTE) _animationHandler.printInfo();
+
+  uint16_t delayMs = 25;
+  if (_logLevel != MUTE)  printf("Play Worm Animation: Color %d Len: %d delay: %d \n",
+    color, registerLength, delayMs);
+
+  _clearRegister(0);
+  if  (color == RAINBOW){
+    rgbVal red = _makeRGBVal(RED);
+    rgbVal green = _makeRGBVal(GREEN);
+    rgbVal blue = _makeRGBVal(BLUE);
+    rgbVal yellow = _makeRGBVal(YELLOW);
+    rgbVal lila = _makeRGBVal(LILA);
+    rgbVal cyan = _makeRGBVal(CYAN);
+
+    // initialize register 0 with rainbow
+    rgbVal rainbow[6] = {lila, blue, cyan, green, red, yellow};
+    for (int i=0; i<6; i++){
       _pixelRegister[0][i] = rainbow[i];
+    }
   }
+  else {
+    _pixelRegister[0][0] = _makeRGBVal( color );
+  }
+
+  // play initial state of register right away
+  _ptimer.disable();
   _displayRegister(0);
 
-  // shift rainbow up
-  for (int i=0; i<rainbowLen; i++){
-    for (int j=rainbowLen-1; j>0; j--){
-      _pixelRegister[0][j] = _pixelRegister[0][j-1];
+  if (synchronous){
+    while (_animationHandler.isActive()){
+      _animationHandler.next();
+      _shiftRegister(0, _animationHandler.getRegisterLength(), !_animationHandler.isLastLoop());
+      _displayRegister(0);
+      delay( delayMs);
     }
-    _pixelRegister[0][0] = black;
-    _displayRegister(0);
-    delay(25);
+    _currentAction = NO_ACTION;
+  }
+  else {
+    _ptimer.setIntervalAndEnable( delayMs );
   }
 }
 
@@ -309,22 +378,22 @@ void PoiActionRunner::displayIp(uint8_t ipIncrement){
     if (ipIncrement %2 == 0){
       b=8;
     }
-    rgbVal color = makeRGBVal(b, 0, 0);
+    rgbVal color = _makeRGBVal(RED, b);
     switch(ipIncrement/2){
       case 1:
-      color = makeRGBVal(0, b, 0);
+      color = _makeRGBVal(GREEN, b);
       break;
 
       case 2:
-      color = makeRGBVal(0, 0, b);
+      color = _makeRGBVal(BLUE, b);
       break;
 
       case 3:
-      color = makeRGBVal(b, b, 0);
+      color = _makeRGBVal(YELLOW, b);
       break;
 
       case 4:
-      color = makeRGBVal(b, 0, b);
+      color = _makeRGBVal(LILA, b);
       break;
     }
     _pixelRegister[0][ipIncrement]= color;
@@ -358,6 +427,11 @@ void PoiActionRunner::startProg(){
 void PoiActionRunner::pauseProg(){
   _currentAction = PAUSE_PROG;
   if (_logLevel != MUTE) printf("Program paused.\n" );
+}
+
+void PoiActionRunner::pauseAction(){
+  _currentAction = PAUSE_PROG;
+  if (_logLevel != MUTE) printf("Action paused.\n" );
 }
 
 void PoiActionRunner::jumptoSync(uint8_t syncId){
@@ -396,7 +470,7 @@ void PoiActionRunner::saveIpIncrement(uint8_t ipIncrement){
 // no printf in interrupt!
 void IRAM_ATTR PoiActionRunner::onInterrupt(){
 
-  if (_currentAction != NO_PROGRAM){
+  if (_currentAction != NO_ACTION){
     //Serial.println("play next frame");
     // Give a semaphore that we can check in the loop
     xSemaphoreGiveFromISR(_timerSemaphore, NULL);
@@ -417,7 +491,7 @@ void PoiActionRunner::loop(){
         _displayFrame(_playHandler.getCurrentFrame());
       }
       else {
-        _currentAction = NO_PROGRAM;
+        _currentAction = NO_ACTION;
         // remember last frame in register 0
         _copyFrameToRegister(0, _playHandler.getCurrentFrame());
         if (_logLevel != MUTE) printf("End of program PLAY_DIRECT.\n");
@@ -426,7 +500,7 @@ void PoiActionRunner::loop(){
 
       case PLAY_PROG:
       if (!_progHandler.checkProgram()){
-        _currentAction = NO_PROGRAM;
+        _currentAction = NO_ACTION;
         return;
       }
       _progHandler.next();
@@ -445,7 +519,7 @@ void PoiActionRunner::loop(){
           _ptimer.setIntervalAndEnable( _progHandler.getDelayMs() ); }
       }
       else {
-        _currentAction = NO_PROGRAM;
+        _currentAction = NO_ACTION;
         // remember last frame in register 0
         _copyFrameToRegister(0,_progHandler.getCurrentFrame());
         if (_logLevel != MUTE) printf("End of program PLAY_PROG.\n");
@@ -454,7 +528,7 @@ void PoiActionRunner::loop(){
 
       case SHOW_STATIC_FRAME:
       // reached timeout
-      _currentAction = NO_PROGRAM;
+      _currentAction = NO_ACTION;
       if (_logLevel != MUTE) printf("Timeout of SHOW_STATIC_FRAME reached.\n");
       break;
 
@@ -467,12 +541,25 @@ void PoiActionRunner::loop(){
         _displayRegister(0);
       }
       else {
-        _currentAction = NO_PROGRAM;
+        _currentAction = NO_ACTION;
         if (_logLevel != MUTE) printf("End of program FADE_TO_BLACK.\n");
       }
       break;
 
-      case NO_PROGRAM:
+      case ANIMATION_WORM:
+      _animationHandler.next();
+      if (_logLevel == CHATTY)  _animationHandler.printState();
+      if (_animationHandler.isActive()){
+        _shiftRegister(0, _animationHandler.getRegisterLength(), !_animationHandler.isLastLoop());
+        _displayRegister(0);
+      }
+      else {
+        _currentAction = NO_ACTION;
+        if (_logLevel != MUTE) printf("End of program ANIMATION_WORM.\n");
+      }
+      break;
+
+      case NO_ACTION:
       case PAUSE_PROG:
       // do nothing
       break;
