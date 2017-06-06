@@ -1,5 +1,5 @@
-#ifndef FRAME_PLAYER_H
-#define FRAME_PLAYER_H
+#ifndef PLAY_HANDLER_H
+#define PLAY_HANDLER_H
 
 #include <Arduino.h>
 #include "ledpoi.h"

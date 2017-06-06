@@ -396,7 +396,8 @@ void click1() {
 // state machine with entry actions, state actions and exit actions
 void loop()
 {
-  button1.tick();
+  button1.tick(); // read button data
+
   bool state_changed = nextPoiState != poiState;
 
   // exit actions
@@ -413,13 +414,14 @@ void loop()
       break;
 
       case POI_IP_CONFIG:
-      runner.playWorm(RAINBOW, N_POIS);
+      runner.playWorm(RAINBOW, N_POIS, 1);
       break;
 
       case POI_NETWORK_SEARCH:
       break;
 
       case POI_CLIENT_CONNECTING:
+      runner.playWorm(GREEN, N_PIXELS, 1);
       break;
 
       case POI_RECEIVING_DATA:
@@ -450,7 +452,7 @@ void loop()
   switch (poiState){
 
     case POI_INIT:
-    runner.playWorm(RAINBOW);
+    runner.playWorm(RAINBOW, N_PIXELS, 1);
     // proceed to next state
     nextPoiState = POI_IP_DISPLAY;
     break;
@@ -464,7 +466,7 @@ void loop()
     }
     currentTime = millis();
     if (currentTime-poi_network_display_entered > 5000){
-      runner.playWorm(RAINBOW, N_POIS);
+      runner.playWorm(RAINBOW, N_POIS, 1);
       nextPoiState = ipIncrement == 255 ? POI_AWAIT_PROGRAM_SYNC : POI_NETWORK_SEARCH;
 
     }
@@ -472,7 +474,7 @@ void loop()
 
     case POI_IP_CONFIG:
     if (state_changed){
-      runner.playWorm(RAINBOW, N_POIS);
+      runner.playWorm(RAINBOW, N_POIS, 1);
       runner.displayIp(ipIncrement);
     }
     // operation is done thru click1
@@ -481,7 +483,8 @@ void loop()
     case POI_NETWORK_SEARCH:
     if (state_changed){
       digitalWrite(LED_PIN,LOW);
-      runner.playWorm(WHITE);
+      // async no possible since wifi_connect is synchronous
+      runner.playWorm(RED, N_PIXELS, 1);
     }
     wifi_connect();
     break;
@@ -489,7 +492,7 @@ void loop()
     case POI_CLIENT_CONNECTING:
     if (state_changed){
       resetTimeout();
-      runner.playWorm(YELLOW);
+      runner.playWorm(YELLOW, N_PIXELS, 0, false); // async forever
       if (logLevel != MUTE) printf("Waiting for client...\n");
     }
     client_connect();

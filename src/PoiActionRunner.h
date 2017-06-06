@@ -9,29 +9,32 @@
 #include "PlayHandler.h"
 #include "FadeHandler.h"
 #include "PoiProgramHandler.h"
+#include "AnimationHandler.h"
 
 #define N_REGISTERS 2
 #define N_PROG_STEPS 50
 
-enum PoiAction { NO_PROGRAM,
+enum PoiAction {  NO_ACTION,
                   SHOW_STATIC_RGB,
                   PLAY_DIRECT,
                   SHOW_CURRENT_FRAME,
                   SHOW_STATIC_FRAME,
                   FADE_TO_BLACK,
                   PLAY_PROG,
-                  PAUSE_PROG
+                  PAUSE_PROG,
+                  ANIMATION_WORM
                 };
 
 // currently only used for playWorm()
-enum Color {WHITE,
+enum Color {       WHITE,   // 0
+                   BLACK,   // 1
                    RED,
                    GREEN,
                    BLUE,
                    YELLOW,
                    LILA,
                    CYAN,
-                   RAINBOW
+                   RAINBOW  // 8
                    };
 
 /**
@@ -58,7 +61,7 @@ public:
   void showCurrent();
   void pauseAction();
   void jumptoSync(uint8_t syncId);
-  void playWorm(Color color, uint8_t rainbowLen=N_PIXELS); // intro animation after switch on or reset
+  void playWorm(Color color, uint8_t registerLength, uint8_t numLoops, bool synchronous = true);
   void displayIp(uint8_t ipIncrement);
 
   // program related methods
@@ -87,6 +90,7 @@ private:
   PlayHandler _playHandler;
   FadeHandler _fadeHandler;
   PoiProgramHandler _progHandler;
+  AnimationHandler _animationHandler;
 
   // data stores
   // after each action the last frame is stored in _pixelRegister[0]
@@ -103,9 +107,10 @@ private:
   void _copyRegisterToRegister(uint8_t registerId1, uint8_t registerId2, float factor=1);
   void _fillRegister(uint8_t registerId, rgbVal rgb);
   void _clearRegister(uint8_t registerId); // fill with black
+  void _shiftRegister(uint8_t registerId1, uint8_t shiftRegisterLength, bool cyclic=false);
   void _fillMap(rgbVal rgb);
   rgbVal _makeRGBVal(Color color, uint8_t brightness=255);
-  
+
   // display functions
   void _displayFrame(uint8_t frame);
   void _displayRegister(uint8_t register Id);
