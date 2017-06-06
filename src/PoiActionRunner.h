@@ -56,6 +56,7 @@ public:
   void displayOff();
   void fadeToBlack(uint8_t fadeMSB, uint8_t fadeLSB);
   void showCurrent();
+  void pauseAction();
   void jumptoSync(uint8_t syncId);
   void playWorm(Color color, uint8_t rainbowLen=N_PIXELS); // intro animation after switch on or reset
   void displayIp(uint8_t ipIncrement);

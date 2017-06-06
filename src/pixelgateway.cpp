@@ -156,6 +156,7 @@ bool reachedTimeout(){
 }
 
 // connect to a client if available
+//TODO: make asynchronous
 void client_connect(){
   client = server.available();
 
@@ -425,6 +426,7 @@ void loop()
       case POI_RECEIVING_DATA:
         // switch off led if we leave this state
         digitalWrite(LED_PIN,LOW);
+        runner.pauseAction();
       break;
 
       case POI_AWAIT_PROGRAM_SYNC:

@@ -306,13 +306,13 @@ rgbVal PoiActionRunner::_makeRGBVal(Color color, uint8_t brightness){
 
 void PoiActionRunner::playWorm(Color color, uint8_t rainbowLen){
   _clearRegister(0);
-  rgbVal black = _makeRGBVal( BLACK);
-  rgbVal red = _makeRGBVal(RED );
-  rgbVal green = _makeRGBVal( GREEN);
-  rgbVal blue = _makeRGBVal(BLUE );
-  rgbVal yellow = _makeRGBVal( YELLOW);
-  rgbVal lila = _makeRGBVal(LILA );
-  rgbVal cyan = _makeRGBVal(CYAN );
+  rgbVal black = _makeRGBVal(BLACK);
+  rgbVal red = _makeRGBVal(RED);
+  rgbVal green = _makeRGBVal(GREEN);
+  rgbVal blue = _makeRGBVal(BLUE);
+  rgbVal yellow = _makeRGBVal(YELLOW);
+  rgbVal lila = _makeRGBVal(LILA);
+  rgbVal cyan = _makeRGBVal(CYAN);
 
   // initialize register 0 with rainbow
   if  (color == RAINBOW){
@@ -327,7 +327,8 @@ void PoiActionRunner::playWorm(Color color, uint8_t rainbowLen){
       
   _displayRegister(0);
 
-  // shift rainbow up
+  // shift rainbow up 
+  // TODO: make asynchronous
   for (int i=0; i<rainbowLen; i++){
     for (int j=rainbowLen-1; j>0; j--){
       _pixelRegister[0][j] = _pixelRegister[0][j-1];
@@ -355,22 +356,22 @@ void PoiActionRunner::displayIp(uint8_t ipIncrement){
     if (ipIncrement %2 == 0){
       b=8;
     }
-    rgbVal color = makeRGBVal(b, 0, 0);
+    rgbVal color = _makeRGBVal(RED, b);
     switch(ipIncrement/2){
       case 1:
-      color = makeRGBVal(0, b, 0);
+      color = _makeRGBVal(GREEN, b);
       break;
 
       case 2:
-      color = makeRGBVal(0, 0, b);
+      color = _makeRGBVal(BLUE, b);
       break;
 
       case 3:
-      color = makeRGBVal(b, b, 0);
+      color = _makeRGBVal(YELLOW, b);
       break;
 
       case 4:
-      color = makeRGBVal(b, 0, b);
+      color = _makeRGBVal(LILA, b);
       break;
     }
     _pixelRegister[0][ipIncrement]= color;
@@ -404,6 +405,11 @@ void PoiActionRunner::startProg(){
 void PoiActionRunner::pauseProg(){
   _currentAction = PAUSE_PROG;
   if (_logLevel != MUTE) printf("Program paused.\n" );
+}
+
+void PoiActionRunner::pauseAction(){
+  _currentAction = PAUSE_PROG;
+  if (_logLevel != MUTE) printf("Action paused.\n" );
 }
 
 void PoiActionRunner::jumptoSync(uint8_t syncId){
