@@ -226,7 +226,7 @@ void realize_cmd(){
     case 254:
     switch (cmd[1]){  // setAction
       case 0:
-      runner.saveScene();
+      runner.saveScene(cmd[2]);
       break;
 
       case 1:
