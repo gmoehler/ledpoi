@@ -4,22 +4,32 @@
 #include <WiFi.h>
 #include "WiFiCredentials.h"
 #include "ledpoi.h"
-#include "PoiProgramRunner.h"
+#include "PoiActionRunner.h"
 #include "PoiTimer.h"
+#include "OneButton.h"
 
 enum PoiState { POI_INIT,               // 0
-                POI_NETWORK_SEARCH,     // 1
-                POI_CLIENT_CONNECTING,  // 2
-                POI_RECEIVING_DATA,     // 3
+                POI_IP_DISPLAY,         // 1
+                POI_IP_CONFIG,          // 2
+                POI_NETWORK_SEARCH,     // 3
+                POI_CLIENT_CONNECTING,  // 4
+                POI_RECEIVING_DATA,     // 5
+                POI_AWAIT_PROGRAM_SYNC, // 6
+                POI_PLAY_PROGRAM,       // 7
                 NUM_POI_STATES};        // only used for enum size
 
 LogLevel logLevel = QUIET; // CHATTY, QUIET or MUTE
 
 const int DATA_PIN = 23; // was 18 Avoid using any of the strapping pins on the ESP32
 const int LED_PIN = 2;
+const int BUTTON_PIN = 0;
+OneButton button1(BUTTON_PIN, true);
 
 const int connTimeout=20;     // client connection timeout in secs
 const int maxLEDLevel = 200;  // restrict max LED brightness due to protocol
+
+const uint8_t aliveTickModulo = 10;
+uint8_t aliveTickCnt = 0;
 
 // WiFi credentials (as defined in WiFiCredentials.h)
 extern const char* WIFI_SSID;
@@ -29,17 +39,25 @@ WiFiServer server(1110);
 WiFiClient client;
 IPAddress clientIP;
 
-PoiState poiState = POI_INIT;
+PoiState poiState =   POI_INIT;
 PoiState nextPoiState = poiState;
 
-PoiTimer ptimer(logLevel);
-PoiProgramRunner runner(ptimer, logLevel);
+PoiTimer ptimer(logLevel, true);
+PoiActionRunner runner(ptimer, logLevel);
+PoiFlashMemory _flashMemory;
 
 uint32_t lastSignalTime = 0; // time when last wifi signal was received, for timeout
-char cmd[7];                 // command read from server
+char cmd [7];                 // command read from server
 int cmdIndex=0;              // index into command read from server
 char c;
 bool loadingImgData = false; // tag to suppress log during image loading
+
+bool startDemoOnReset = false; // demo mode: instantly start with the program after reset
+
+uint8_t ipIncrement = 0; // increment to set the ip, 255 for network off
+uint8_t baseIpAdress[4] = {192, 168, 1, 127};
+uint32_t poi_network_display_entered = 0;
+uint32_t currentTime = 0;
 
 
 void blink(int m){
@@ -80,7 +98,9 @@ void printWifiStatus() {
 
 // synchronous method connecting to wifi
 void wifi_connect(){
-  IPAddress myIP(192, 168, 1, 127);
+  uint8_t ip4 = baseIpAdress[3] + ipIncrement;
+  printf("My address: %d.%d.%d.%d\n", baseIpAdress[0],baseIpAdress[1],baseIpAdress[2],ip4);
+  IPAddress myIP(baseIpAdress[0],baseIpAdress[1],baseIpAdress[2],ip4);
   IPAddress gateway(192, 168, 1, 1);
   IPAddress subnet(255, 255, 255, 0);
 
@@ -96,7 +116,7 @@ void wifi_connect(){
 
   bool connectedToWifi=false;
   WiFi.config(myIP,gateway,subnet);
-   while (!connectedToWifi){
+  while (!connectedToWifi){
      WiFi.begin(WIFI_SSID, WIFI_PASS);
      if (logLevel != MUTE) Serial.print("Connecting...");
 
@@ -112,7 +132,7 @@ void wifi_connect(){
      }
      else {
        blink(10);
-       connectedToWifi=1;
+       connectedToWifi=true;
        if (logLevel != MUTE) {
          Serial.println("Connected.");
          printWifiStatus();
@@ -155,6 +175,10 @@ void client_disconnect(){
   if (logLevel != MUTE) Serial.println("Connection closed.");
 }
 
+// defined below
+void longPressStart1();
+void click1();
+
 void setup()
 {
   //  pinMode(BUTTON_PIN, INPUT_PULLUP);
@@ -167,12 +191,15 @@ void setup()
     Serial.println("Starting...");
   }
 
+  button1.attachLongPressStart(longPressStart1);
+  button1.attachClick(click1);
   // init runner
   runner.setup();
+  ipIncrement = runner.getIpIncrement();
 
   // init LEDs
-  if(ws2812_init(DATA_PIN, LED_WS2812B) && logLevel != MUTE){
-    Serial.println("LED Pixel init error");
+  if(ws2812_init(DATA_PIN, LED_WS2812B)){
+    Serial.println("LED Pixel init error.");
   }
   #if DEBUG_WS2812_DRIVER
   dumpDebugBuffer(-2, ws2812_debugBuffer);
@@ -199,16 +226,15 @@ void realize_cmd(){
     case 254:
     switch (cmd[1]){  // setAction
       case 0:
-      runner.showCurrent();
+      runner.saveScene(cmd[2]);
       break;
 
       case 1:
       runner.showStaticFrame(cmd[2], cmd[3], cmd[4], cmd[5]);
       break;
 
-      case 2:  // black with options
-      if (cmd[2]==0) runner.displayOff();
-      else runner.fadeToBlack(cmd[2], cmd[3]);
+      case 2:  // (fade to) black
+      runner.fadeToBlack(cmd[2], cmd[3]);
       break;
 
       case 3:
@@ -224,37 +250,31 @@ void realize_cmd(){
       break;
 
       case 6:
-      //runner.saveProg();
+      // TODO: changet this back to jumptoSync
+      //runner.jumptoSync(cmd[2]);
+      runner.saveScene(cmd[2]);
       break;
 
       case 7:
-      //savePix(cmd[2],cmd[3]);
-      break;
-
-      case 8:
       //setIP(cmd[2],cmd[3],cmd[4],cmd[5]);
       break;
 
-      case 9:
+      case 8:
       //setGW(cmd[2],cmd[3],cmd[4],cmd[5]);
       break;
 
+      case 9:
       case 10:
-      if (logLevel != MUTE)   Serial.println("Connection close command received.");
+      if (logLevel != MUTE) Serial.println("Connection close command received.");
       client_disconnect();
       nextPoiState = POI_CLIENT_CONNECTING;
-      return;
-
-      case 11:
-      // keep alive signal
-      if (logLevel != MUTE) Serial.print("*");
       break;
 
       default:
-        if (logLevel != MUTE) {
-          printf("Protocoll Error: Unknown command received: " );
-          print_cmd();
-        }
+      if (logLevel != MUTE) {
+        printf("Protocoll Error: Unknown command received: " );
+        print_cmd();
+      }
       break;
     };  // end setAction
     break;
@@ -269,8 +289,7 @@ void realize_cmd(){
 
     // 0...200
     default:
-    rgbVal pixel = makeRGBVal(cmd[3],cmd[4],cmd[5]);
-    runner.setPixel(cmd[1],cmd[2],cmd[0], pixel);
+    runner.setPixel(cmd[1], cmd[2], cmd[0], cmd[3], cmd[4], cmd[5]);
     break;
   }
 
@@ -298,16 +317,21 @@ void protocoll_receive_data(){
   // data available
   if (client.available()){
     char c = client.read();
+    //printf("READ: %d\n", c);
 
     // start byte detected
     if (c== 255) {
-      if (logLevel == CHATTY) printf("Start byte detected.\n");
+      aliveTickCnt++;
+      if (logLevel != MUTE && !loadingImgData && (aliveTickCnt % aliveTickModulo) == 0) {
+        Serial.print("*");
+        aliveTickCnt = 0;
+      }
       protocoll_clean_cmd();
       resetTimeout();
     }
 
     else if (cmdIndex > 5){
-      if (logLevel != MUTE) Serial.println("Protocol Error. More than 6 bytes transmitted.");
+      Serial.println("Protocol Error. More than 6 bytes transmitted.");
     }
 
     // command
@@ -331,12 +355,48 @@ void protocoll_receive_data(){
 }
 
 // ===============================================
+// ====  BUTTONS ====================================
+// ===============================================
+
+void longPressStart1() {
+  printf("Long press1\n");
+  if (poiState == POI_IP_DISPLAY) {
+    nextPoiState = POI_IP_CONFIG;
+  }
+  else if (poiState == POI_IP_CONFIG) {
+    runner.saveIpIncrement(ipIncrement);
+    nextPoiState = ipIncrement == 255 ? POI_AWAIT_PROGRAM_SYNC : POI_NETWORK_SEARCH;
+  }
+  else {
+    // like a reset
+    nextPoiState = POI_INIT;
+  }
+}
+
+void click1() {
+  if (poiState == POI_IP_CONFIG){
+    // set back the ip led to black
+    ipIncrement++;
+    if (ipIncrement + 1 > N_POIS){
+      ipIncrement = 255; // network off
+    }
+    printf("IP Increment: %d\n", ipIncrement);
+    // display colored led (first one less bright for each)
+    runner.displayIp(ipIncrement);
+  }
+  else if (poiState == POI_AWAIT_PROGRAM_SYNC){
+    nextPoiState = POI_PLAY_PROGRAM;
+  }
+}
+
+// ===============================================
 // ====  LOOP ====================================
 // ===============================================
 
 // state machine with entry actions, state actions and exit actions
 void loop()
 {
+  button1.tick(); // read button data
 
   bool state_changed = nextPoiState != poiState;
 
@@ -348,17 +408,36 @@ void loop()
       case POI_INIT:
       break;
 
+      case POI_IP_DISPLAY:
+      // switch off ip display
+      runner.showStaticRgb(0,0,0);
+      break;
+
+      case POI_IP_CONFIG:
+      runner.playWorm(RAINBOW, N_POIS, 1);
+      break;
+
       case POI_NETWORK_SEARCH:
       break;
 
       case POI_CLIENT_CONNECTING:
+      runner.playWorm(GREEN, N_PIXELS, 1);
       break;
 
       case POI_RECEIVING_DATA:
         // switch off led if we leave this state
         digitalWrite(LED_PIN,LOW);
+        runner.pauseAction();
       break;
 
+      case POI_AWAIT_PROGRAM_SYNC:
+      break;
+
+      case POI_PLAY_PROGRAM:
+      // on exit stop the program
+      runner.pauseProg();
+      runner.showStaticRgb(0,0,0);
+      break;
 
       default:
       break;
@@ -373,13 +452,39 @@ void loop()
   switch (poiState){
 
     case POI_INIT:
-      // proceed to next state
-      nextPoiState = POI_NETWORK_SEARCH;
+    runner.playWorm(RAINBOW, N_PIXELS, 1);
+    // proceed to next state
+    nextPoiState = POI_IP_DISPLAY;
+    break;
+
+    case POI_IP_DISPLAY:
+    // display network config for 2 seconds
+    // user needs to long press to adjust
+    if (state_changed){
+      poi_network_display_entered = millis();
+      runner.displayIp(ipIncrement);
+    }
+    currentTime = millis();
+    if (currentTime-poi_network_display_entered > 5000){
+      runner.playWorm(RAINBOW, N_POIS, 1);
+      nextPoiState = ipIncrement == 255 ? POI_AWAIT_PROGRAM_SYNC : POI_NETWORK_SEARCH;
+
+    }
+    break;
+
+    case POI_IP_CONFIG:
+    if (state_changed){
+      runner.playWorm(RAINBOW, N_POIS, 1);
+      runner.displayIp(ipIncrement);
+    }
+    // operation is done thru click1
     break;
 
     case POI_NETWORK_SEARCH:
     if (state_changed){
       digitalWrite(LED_PIN,LOW);
+      // async no possible since wifi_connect is synchronous
+      runner.playWorm(RED, N_PIXELS, 1);
     }
     wifi_connect();
     break;
@@ -387,6 +492,7 @@ void loop()
     case POI_CLIENT_CONNECTING:
     if (state_changed){
       resetTimeout();
+      runner.playWorm(YELLOW, N_PIXELS, 0, false); // async forever
       if (logLevel != MUTE) printf("Waiting for client...\n");
     }
     client_connect();
@@ -408,6 +514,11 @@ void loop()
         // only print once
         if (logLevel != MUTE && !loadingImgData){
           printf("Reading image data... \n");
+          // currently required since we write directly into image memory
+          // TODO: add start command for image loading (with scene id)
+          //       which will remove current image from memory
+          // TODO: then remove this line again - it does not work anyway ;-)
+          runner.clearImageMap();
         }
         loadingImgData = true;
       }
@@ -418,6 +529,21 @@ void loop()
       // carry out and clean command
       realize_cmd();
       protocoll_clean_cmd();
+    }
+    break;
+
+    case POI_AWAIT_PROGRAM_SYNC:
+    // just wait for click to start program
+    break;
+
+    case POI_PLAY_PROGRAM:
+    if (state_changed){
+      printf("  Starting demo...\n" );
+      runner.startProg();
+    }
+    else if (!runner.isProgramActive()){
+      printf("  Demo finished\n" );
+      nextPoiState = POI_AWAIT_PROGRAM_SYNC;
     }
     break;
 
