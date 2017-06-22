@@ -5,7 +5,7 @@
 #include <stdint.h>
 #include <stdlib.h>
 
-// functions mocking Arduino.h
+// functions mocking Arduino.h to be used
 
 #define LOW 0
 #define HIGH 1
