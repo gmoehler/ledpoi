@@ -45,7 +45,8 @@ TESTSOURCES  := $(TESTDIR)/test.cpp \
 								$(TESTDIR)/mock_PoiFlashMemory.cpp \
 								$(TESTDIR)/test_PlayHandler.cpp \
 								$(TESTDIR)/test_FadeHandler.cpp \
-								$(TESTDIR)/test_AnimationHandler.cpp
+								$(TESTDIR)/test_AnimationHandler.cpp \
+								$(TESTDIR)/test_PoiFlashMemory.cpp
 EXSOURCES    :=
 
 OBJECTS     := $(patsubst $(SRCDIR)/%,$(BUILDDIR)/%,$(SOURCES:.$(SRCEXT)=.$(OBJEXT))) \
