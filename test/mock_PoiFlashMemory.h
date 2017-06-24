@@ -63,9 +63,9 @@ public:
   uint32_t getSizeOfImageSection();
 
 private:
-  uint8_t _numScenes;
-  uint8_t _numProgSteps;
-  uint8_t _ipIncrement;
+  uint8_t _numScenes = 0;
+  uint8_t _numProgSteps = 0;
+  uint8_t _ipIncrement = 0;
   uint8_t _prog[N_PROG_STEPS][N_PROG_FIELDS];
 };
 

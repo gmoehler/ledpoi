@@ -24,7 +24,8 @@ public:
   void setup();
   void addCmdToProgram(char cmd[7]);
   void init(); // init program start
-  void next();
+
+  void next(); // next program line
 
   bool checkProgram();
   bool syncNow(uint8_t syncId);
