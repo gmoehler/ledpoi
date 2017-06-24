@@ -1,7 +1,11 @@
 #ifndef FRAME_FADER_H
 #define FRAME_FADER_H
 
-#include <Arduino.h>
+#ifndef WITHIN_UNITTEST
+  #include <Arduino.h>
+#else
+  #include "../test/mock_Arduino.h"
+#endif
 #include "ledpoi.h"
 
 #define N_FADE_STEPS_DEFAULT 50
@@ -32,7 +36,8 @@ private:
   uint16_t _numFadeSteps;
   uint16_t _delayMs;
 
-  bool _active;
   uint8_t _currentFadeStep;
+  bool _active;
+
 };
 #endif

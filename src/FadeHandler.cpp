@@ -1,7 +1,7 @@
 #include "FadeHandler.h"
 
 FadeHandler::FadeHandler() :
-_fadeTime(0), _numFadeSteps(0), _delayMs(100),
+_fadeTime(0), _numFadeSteps(0), _delayMs(0),
 _currentFadeStep(0), _active(false) {}
 
 
@@ -14,24 +14,27 @@ void FadeHandler::init(uint16_t fadeTime) {
     _delayMs = MIN_FADE_TIME;
     _numFadeSteps = fadeTime / _delayMs;
   }
+  if (_numFadeSteps < 1){
+    _numFadeSteps = 1;
+  }
   // dont touch _scene, _startFrame, _endFrame and _numLoops
   _currentFadeStep = 0; // will iterate this one up to _numFadeSteps
   _active = true;
 }
 
 void FadeHandler::next(){
-
-_currentFadeStep++;
-
-  if (_currentFadeStep > _numFadeSteps){
+  if (_currentFadeStep + 1 > _numFadeSteps){
     // finished fading
     _active = false;
     return;
   }
+  _currentFadeStep++;
 }
 
 float FadeHandler::getCurrentFadeFactor(){
-  return (float)(_numFadeSteps - _currentFadeStep) / _numFadeSteps;
+  return _numFadeSteps > 0 ?
+    (float)(_numFadeSteps - _currentFadeStep) / _numFadeSteps
+    : 0.0;
 }
 
 bool FadeHandler::isActive(){
@@ -44,7 +47,7 @@ uint8_t FadeHandler::getDelayMs(){
 
 
 void FadeHandler::printInfo(){
-  printf("Fade to black - fade time: %ld fade-steps: %d.\n", _fadeTime, _numFadeSteps);
+  printf("Fade to black - fade time: %d fade-steps: %d.\n", _fadeTime, _numFadeSteps);
 }
 
 void FadeHandler::printState(){
