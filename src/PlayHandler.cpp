@@ -63,6 +63,10 @@ bool PlayHandler::isActive(){
   return _active;
 }
 
+bool PlayHandler::isLastIteration(){
+  return (_currentFrame = _endFrame && _currentLoop == _numLoops -1 && _active);
+}
+
 uint16_t PlayHandler::getDelayMs(){
   return _delayMs;
 }

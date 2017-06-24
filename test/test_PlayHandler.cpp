@@ -46,12 +46,14 @@ TEST(PlayHandler_tests, testFinished){
   EXPECT_EQ(playHandler.getCurrentFrame(), 12);
   EXPECT_EQ(playHandler.getCurrentLoop(), 2);
   EXPECT_TRUE(playHandler.isActive());
+  EXPECT_TRUE(playHandler.isLastIteration());
 
   // finished
   playHandler.next();
   EXPECT_EQ(playHandler.getCurrentFrame(), 12);
   EXPECT_EQ(playHandler.getCurrentLoop(), 2);
   EXPECT_FALSE(playHandler.isActive());
+  EXPECT_FALSE(playHandler.isLastIteration());
 }
 
 TEST(PlayHandler_tests, testBackwardComplete){
