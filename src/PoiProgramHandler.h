@@ -40,6 +40,7 @@ public:
 
   void printInfo();
   void printState();
+  uint8_t getNumProgSteps();
 
 private:
   bool _active;

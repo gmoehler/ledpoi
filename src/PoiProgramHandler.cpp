@@ -312,3 +312,7 @@ void PoiProgramHandler::printState(){
 		_prog[_currentProgStep][2], _prog[_currentProgStep][3], _prog[_currentProgStep][4]);
 	_playHandler.printState();
 }
+
+uint8_t PoiProgramHandler::getNumProgSteps(){
+	return _numProgSteps;
+}
