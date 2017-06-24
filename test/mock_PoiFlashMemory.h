@@ -4,6 +4,8 @@
 #include "../test/mock_Arduino.h"
 #include "ledpoi.h"
 
+#define SPI_FLASH_SEC_SIZE 4096
+
 #define NVS_GENERAL_NAMESPACE "poiGeneral"
 #define NVS_IMAGE_NAMESPACE "poiImage"
 #define NVS_PROGRAM_NAMESPACE "poiProgram"
@@ -28,8 +30,6 @@
  * .~/.platformio/packages/framework-arduinoespressif32/tools/esptool.py --chip esp32 --port COM6 --baud 115200
  *  --before default_reset --after hard_reset erase_flash
  **/
-
-
 
 class PoiFlashMemory
 {
@@ -61,6 +61,12 @@ public:
   void printContents();
 
   uint32_t getSizeOfImageSection();
+
+private:
+  uint8_t _numScenes;
+  uint8_t _numProgSteps;
+  uint8_t _ipIncrement;
+  uint8_t _prog[N_PROG_STEPS][N_PROG_FIELDS];
 };
 
 
