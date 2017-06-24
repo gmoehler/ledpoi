@@ -307,7 +307,8 @@ void PoiProgramHandler::printInfo(){
 }
 
 void PoiProgramHandler::printState(){
-  printf("ProgramHandler: Active: %d Current cmd: %d [%d %d %d %d %d].\n", _currentProgStep,
-		_prog[_currentProgStep][0], _prog[_currentProgStep][1], _prog[_currentProgStep][2], _prog[_currentProgStep][3], _prog[_currentProgStep][4]);
+  printf("ProgramHandler: Active: %d Current cmd: %d [%d %d %d %d].\n",
+		_currentProgStep, _prog[_currentProgStep][0], _prog[_currentProgStep][1],
+		_prog[_currentProgStep][2], _prog[_currentProgStep][3], _prog[_currentProgStep][4]);
 	_playHandler.printState();
 }

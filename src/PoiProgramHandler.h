@@ -1,12 +1,17 @@
 #ifndef POI_PROGRAM_HANDLER_H
 #define POI_PROGRAM_HANDLER_H
 
-#include <Arduino.h>
+#ifndef WITHIN_UNITTEST
+  #include <Arduino.h>
+  #include "PoiFlashMemory.h"
+#else
+  #include "../test/mock_Arduino.h"
+  #include "../test/mock_PoiFlashMemory.h"
+#endif
+
 #include <map>
 #include "ledpoi.h"
-#include "PoiTimer.h"
 #include "PlayHandler.h"
-#include "PoiFlashMemory.h"
 
 /**
  * Holds the information for a fade action on a given frame in the scene
