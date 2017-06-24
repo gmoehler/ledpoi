@@ -25,6 +25,7 @@ public:
   void next();
 
   bool isActive();
+  bool isLastIteration();
   uint8_t getDelayMs();
   float getCurrentFadeFactor();
 

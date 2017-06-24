@@ -41,6 +41,10 @@ bool FadeHandler::isActive(){
   return _active;
 }
 
+bool FadeHandler::isLastIteration(){
+  return (_currentFadeStep  == _numFadeSteps && _active);
+}
+
 uint8_t FadeHandler::getDelayMs(){
   return _delayMs;
 }
