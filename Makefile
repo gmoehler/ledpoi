@@ -37,10 +37,12 @@ INCDEP      := -I$(INCDIR) -I$(TESTINCDIR) -I$(GOOGLETEST_DIR)/include
 #---------------------------------------------------------------------------------
 #SOURCES     := $(shell find $(SRCDIR) -type f -name *.$(SRCEXT))
 SOURCES      := $(SRCDIR)/PlayHandler.cpp \
- 								$(SRCDIR)/FadeHandler.cpp
+ 								$(SRCDIR)/FadeHandler.cpp \
+								$(SRCDIR)/AnimationHandler.cpp
 TESTSOURCES  := $(TESTDIR)/mock_Arduino.cpp $(TESTDIR)/test.cpp \
 								$(TESTDIR)/test_PlayHandler.cpp \
-								$(TESTDIR)/test_FadeHandler.cpp
+								$(TESTDIR)/test_FadeHandler.cpp \
+								$(TESTDIR)/test_AnimationHandler.cpp
 EXSOURCES    :=
 
 OBJECTS     := $(patsubst $(SRCDIR)/%,$(BUILDDIR)/%,$(SOURCES:.$(SRCEXT)=.$(OBJEXT))) \

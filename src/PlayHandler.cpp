@@ -63,7 +63,7 @@ bool PlayHandler::isActive(){
   return _active;
 }
 
-bool PlayHandler::isLastIteration(){
+bool PlayHandler::isLastStep(){
   return (_currentFrame == _endFrame && _currentLoop == _numLoops - 1 && _active);
 }
 

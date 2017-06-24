@@ -23,7 +23,7 @@ public:
   void next();
 
   bool isActive();
-  bool isLastIteration();
+  bool isLastStep();
 
   uint16_t getDelayMs();
   uint8_t getCurrentFrame();

@@ -41,21 +41,21 @@ TEST(PlayHandler_tests, testFinished){
   EXPECT_EQ(playHandler.getCurrentLoop(), 0);
   for (int i=0; i<3*3-2; i++) {
     playHandler.next();
-    EXPECT_FALSE(playHandler.isLastIteration());
+    EXPECT_FALSE(playHandler.isLastStep());
   }
   // last iteration
   playHandler.next();
   EXPECT_EQ(playHandler.getCurrentFrame(), 12);
   EXPECT_EQ(playHandler.getCurrentLoop(), 2);
   EXPECT_TRUE(playHandler.isActive());
-  EXPECT_TRUE(playHandler.isLastIteration());
+  EXPECT_TRUE(playHandler.isLastStep());
 
   // finished
   playHandler.next();
   EXPECT_EQ(playHandler.getCurrentFrame(), 12);
   EXPECT_EQ(playHandler.getCurrentLoop(), 2);
   EXPECT_FALSE(playHandler.isActive());
-  EXPECT_FALSE(playHandler.isLastIteration());
+  EXPECT_FALSE(playHandler.isLastStep());
 }
 
 TEST(PlayHandler_tests, testBackwardComplete){
@@ -73,19 +73,19 @@ TEST(PlayHandler_tests, testBackwardComplete){
 
   for (int i=0; i<3*3-3; i++) {
     playHandler.next();
-    EXPECT_FALSE(playHandler.isLastIteration());
+    EXPECT_FALSE(playHandler.isLastStep());
   }
   // last iteration
   playHandler.next();
   EXPECT_EQ(playHandler.getCurrentFrame(), 10);
   EXPECT_EQ(playHandler.getCurrentLoop(), 2);
   EXPECT_TRUE(playHandler.isActive());
-  EXPECT_TRUE(playHandler.isLastIteration());
+  EXPECT_TRUE(playHandler.isLastStep());
 
   // finished
   playHandler.next();
   EXPECT_EQ(playHandler.getCurrentFrame(), 10);
   EXPECT_EQ(playHandler.getCurrentLoop(), 2);
   EXPECT_FALSE(playHandler.isActive());
-  EXPECT_FALSE(playHandler.isLastIteration());
+  EXPECT_FALSE(playHandler.isLastStep());
 }
