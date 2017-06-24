@@ -41,6 +41,8 @@ TEST(PlayHandler_tests, testFinished){
   EXPECT_EQ(playHandler.getCurrentLoop(), 0);
   for (int i=0; i<3*3-1; i++) {
     playHandler.next();
+    playHandler.printState();
+    EXPECT_FALSE(playHandler.isLastIteration());
   }
   // last iteration
   EXPECT_EQ(playHandler.getCurrentFrame(), 12);
@@ -71,15 +73,18 @@ TEST(PlayHandler_tests, testBackwardComplete){
 
   for (int i=0; i<3*3-2; i++) {
     playHandler.next();
+    EXPECT_FALSE(playHandler.isLastIteration());
   }
   // last iteration
   EXPECT_EQ(playHandler.getCurrentFrame(), 10);
   EXPECT_EQ(playHandler.getCurrentLoop(), 2);
   EXPECT_TRUE(playHandler.isActive());
+  EXPECT_TRUE(playHandler.isLastIteration());
 
   // finished
   playHandler.next();
   EXPECT_EQ(playHandler.getCurrentFrame(), 10);
   EXPECT_EQ(playHandler.getCurrentLoop(), 2);
   EXPECT_FALSE(playHandler.isActive());
+  EXPECT_FALSE(playHandler.isLastIteration());
 }
