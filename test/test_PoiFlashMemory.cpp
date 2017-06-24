@@ -24,15 +24,22 @@ TEST(PoiFlashMemory_tests, testnvm){
 }
 
 TEST(PoiFlashMemory_tests, saveProgram){
-  /*
+
   PoiFlashMemory flash;
   uint8_t prog[N_PROG_STEPS][N_PROG_FIELDS];
   for (int i=0; i< N_PROG_STEPS; i++){
     for (int j=0; j< N_PROG_FIELDS; j++){
-      prog [i][j] = i;
+      prog [i][j] = j;
     }
   }
-  flash.saveProgram(&prog[0][0], N_PROG_STEPS, N_PROG_FIELDS);
+
+  uint8_t* arr = &prog[0][0];
+  for (int i=0; i< 30 /*N_PROG_STEPS*N_PROG_FIELDS*/; i++){
+    printf("%d: %d\n", i, arr [i]);
+  }
+
+  flash.saveProgram(arr, N_PROG_STEPS, N_PROG_FIELDS);
+
   // clear data
   for (int i=0; i< N_PROG_STEPS; i++){
     for (int j=0; j< N_PROG_FIELDS; j++){
@@ -42,9 +49,8 @@ TEST(PoiFlashMemory_tests, saveProgram){
   flash.loadProgram(&prog[0][0]);
   for (int i=0; i< N_PROG_STEPS; i++){
     for (int j=0; j< N_PROG_FIELDS; j++){
-      EXPECT_EQ(prog [i][j],i);
+      EXPECT_EQ(prog [i][j],j);
     }
   }
-*/
 
 }

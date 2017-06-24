@@ -15,17 +15,18 @@
   }
 
   bool PoiFlashMemory::saveProgram(uint8_t* programData, uint8_t size_x, uint8_t size_y){
-    for (int i=0; i< N_PROG_STEPS; i++){
+   for (int i=0; i< N_PROG_STEPS; i++){
       for (int j=0; j< N_PROG_FIELDS; j++){
-        _prog[i][j] = 0; // ((uint8_t**) programData) [i][j];
+        _prog[i][j] = programData [ i*N_PROG_FIELDS+j];
       }
     }
     return true;
   }
+
   bool PoiFlashMemory::loadProgram(uint8_t* programData) {
     for (int i=0; i< N_PROG_STEPS; i++){
       for (int j=0; j< N_PROG_FIELDS; j++){
-        ((uint8_t**)  programData) [i][j] = _prog[i][j];
+         programData [ i*N_PROG_FIELDS+j] = _prog[i][j];
       }
     }
     return true;

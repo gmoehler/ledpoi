@@ -58,7 +58,7 @@ EXOBJECTS   := $(patsubst $(SRCDIR)/%,$(BUILDDIR)/%,$(SOURCES:.$(SRCEXT)=.$(OBJE
 #$(info $$EXOBJECTS is [${EXOBJECTS}])
 
 #Defauilt Make
-all: $(TARGET) $(EXAMPLE)
+all: $(TARGET) #$(EXAMPLE)
 
 #Remake
 remake: cleaner all
