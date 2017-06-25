@@ -1,3 +1,7 @@
+# Setup
+
+pio lib install "NeoPixelBus"
+
 # Protocol
 
 Transmit word by word:		0xFF+Byte[0]..Byte[5]
