@@ -47,7 +47,7 @@ PoiActionRunner runner(ptimer, logLevel);
 PoiFlashMemory _flashMemory;
 
 uint32_t lastSignalTime = 0; // time when last wifi signal was received, for timeout
-char cmd [7];                 // command read from server
+unsigned char cmd [7];                 // command read from server
 int cmdIndex=0;              // index into command read from server
 char c;
 bool loadingImgData = false; // tag to suppress log during image loading
@@ -336,7 +336,7 @@ void protocoll_receive_data(){
 
     // command
     else {
-      cmd[cmdIndex++]=c;
+      cmd[cmdIndex++]=static_cast<unsigned char>c;
     }
   }
 

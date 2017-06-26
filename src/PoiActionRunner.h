@@ -65,7 +65,7 @@ public:
   void displayIp(uint8_t ipIncrement);
 
   // program related methods
-  void addCmdToProgram(char cmd[7]);
+  void addCmdToProgram(unsigned char cmd[7]);
   void startProg();
   void pauseProg();
   void continueProg();

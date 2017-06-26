@@ -406,7 +406,7 @@ void PoiActionRunner::displayIp(uint8_t ipIncrement){
   * Program related methods *
   ***************************/
 
-void PoiActionRunner::addCmdToProgram(char cmd[7]){
+void PoiActionRunner::addCmdToProgram(unsigned char cmd[7]){
   _progHandler.addCmdToProgram(cmd);
 }
 

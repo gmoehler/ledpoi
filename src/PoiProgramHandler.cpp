@@ -125,7 +125,7 @@ CmdType PoiProgramHandler::_getCommandType(uint8_t cmd[6]){
   return (CmdType) cmd[0];
 }
 
-void PoiProgramHandler::addCmdToProgram(char cmd[7]){
+void PoiProgramHandler::addCmdToProgram(unsigned char cmd[7]){
 
   if (_numProgSteps >= N_PROG_STEPS){
     printf("Error. Number of programming steps exceeds maximum (%d).\n", N_PROG_STEPS);
