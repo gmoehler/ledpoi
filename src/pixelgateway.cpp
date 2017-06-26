@@ -336,7 +336,7 @@ void protocoll_receive_data(){
 
     // command
     else {
-      cmd[cmdIndex++]=static_cast<unsigned char>c;
+      cmd[cmdIndex++]=(unsigned char)c;
     }
   }
 
