@@ -1,15 +1,17 @@
 #include "AnimationHandler.h"
 
 AnimationHandler::AnimationHandler()  :
-  _currentLoop(0), _active(false) {}
+  _currentLoop(0), _delayMs(0), _active(false) {}
 
-void AnimationHandler::init(AnimationType animation, uint8_t registerLength, uint8_t numLoops) {
+void AnimationHandler::init(AnimationType animation, uint8_t registerLength,
+  uint8_t numLoops, uint16_t delay) {
   _animation = animation;
   _registerLength = registerLength;
   _numLoops = numLoops;
   _currentLoop = 0;
   _currentStep = 0;
   _active = true;
+  _delayMs = delay;
 }
 
 
@@ -19,8 +21,8 @@ void AnimationHandler::next(){
   if (_numLoops == 0){
     return;
   }
-  if (_currentStep + 1 > _registerLength) {
-    if (_numLoops + 1 > _numLoops){
+  if (_currentStep + 2 > _registerLength) {
+    if (_currentLoop + 1 >= _numLoops){
       _active = false;
       return;
     }
@@ -36,8 +38,16 @@ bool AnimationHandler::isActive(){
   return _active;
 }
 
+bool AnimationHandler::isLastStep(){
+  return (_currentStep == _registerLength - 1 && _currentLoop == _numLoops - 1 && _active);
+}
+
 bool AnimationHandler::isLastLoop(){
-  return (_numLoops > 0 && _currentLoop + 1 >= _numLoops);
+  return (_numLoops > 0 && _currentLoop + 1 >= _numLoops && _active);
+}
+
+uint16_t AnimationHandler::getDelayMs(){
+  return _delayMs;
 }
 
 uint8_t AnimationHandler::getCurrentLoop(){

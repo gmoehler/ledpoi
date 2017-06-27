@@ -125,7 +125,7 @@ CmdType PoiProgramHandler::_getCommandType(uint8_t cmd[6]){
   return (CmdType) cmd[0];
 }
 
-void PoiProgramHandler::addCmdToProgram(char cmd[7]){
+void PoiProgramHandler::addCmdToProgram(unsigned char cmd[7]){
 
   if (_numProgSteps >= N_PROG_STEPS){
     printf("Error. Number of programming steps exceeds maximum (%d).\n", N_PROG_STEPS);
@@ -307,7 +307,12 @@ void PoiProgramHandler::printInfo(){
 }
 
 void PoiProgramHandler::printState(){
-  printf("ProgramHandler: Active: %d Current cmd: %d [%d %d %d %d %d].\n", _currentProgStep,
-		_prog[_currentProgStep][0], _prog[_currentProgStep][1], _prog[_currentProgStep][2], _prog[_currentProgStep][3], _prog[_currentProgStep][4]);
+  printf("ProgramHandler: Active: %d Current cmd: %d [%d %d %d %d].\n",
+		_currentProgStep, _prog[_currentProgStep][0], _prog[_currentProgStep][1],
+		_prog[_currentProgStep][2], _prog[_currentProgStep][3], _prog[_currentProgStep][4]);
 	_playHandler.printState();
+}
+
+uint8_t PoiProgramHandler::getNumProgSteps(){
+	return _numProgSteps;
 }

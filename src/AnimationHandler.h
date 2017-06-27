@@ -1,7 +1,11 @@
 #ifndef ANIMATION_HANDLER_H
 #define ANIMATION_HANDLER_H
 
-#include <Arduino.h>
+#ifndef WITHIN_UNITTEST
+  #include <Arduino.h>
+#else
+  #include "../test/mock_Arduino.h"
+#endif
 #include "ledpoi.h"
 
 enum AnimationType {
@@ -16,11 +20,14 @@ class AnimationHandler
 {
 public:
   AnimationHandler();
-  void init(AnimationType animation, uint8_t registerLength, uint8_t numLoops);
+  void init(AnimationType animation, uint8_t registerLength, uint8_t numLoops, uint16_t delay=0);
 
   void next();
   bool isActive();
+  bool isLastStep();
   bool isLastLoop();
+
+  uint16_t getDelayMs();
   uint8_t getRegisterLength();
   uint8_t getCurrentLoop();
 
@@ -33,6 +40,7 @@ private:
   uint8_t _numLoops;
   uint8_t _currentStep;
   uint8_t _currentLoop;
+  uint16_t _delayMs;
   bool _active;
 };
 
