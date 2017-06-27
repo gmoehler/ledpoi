@@ -33,3 +33,4 @@ src/WiFiCredentials.h
 .piolibdeps
 .clang_complete
 .gcc-flags.json
+.vscode
