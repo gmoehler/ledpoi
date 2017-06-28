@@ -20,6 +20,8 @@
 #define N_PROG_STEPS 50
 #define N_PROG_FIELDS 5
 
+#define N_REGISTERS 2
+
 enum LogLevel { CHATTY, QUIET, MUTE};
 
 enum CmdType {  PROG_END,

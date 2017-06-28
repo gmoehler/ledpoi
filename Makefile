@@ -40,9 +40,11 @@ INCDEP      := -I$(INCDIR) -I$(TESTINCDIR) -I$(GOOGLETEST_DIR)/include
 SOURCES      := $(SRCDIR)/PlayHandler.cpp \
  								$(SRCDIR)/FadeHandler.cpp \
 								$(SRCDIR)/AnimationHandler.cpp \
-								$(SRCDIR)/PoiProgramHandler.cpp
+								$(SRCDIR)/PoiProgramHandler.cpp \
+								$(SRCDIR)/ImageCache.cpp
 TESTSOURCES  := $(TESTDIR)/test.cpp \
 								$(TESTDIR)/mock_Arduino.cpp \
+								$(TESTDIR)/mock_ws2812.cpp \
 								$(TESTDIR)/mock_PoiFlashMemory.cpp \
 								$(TESTDIR)/test_PlayHandler.cpp \
 								$(TESTDIR)/test_FadeHandler.cpp \

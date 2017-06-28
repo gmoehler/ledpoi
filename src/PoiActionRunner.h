@@ -11,9 +11,6 @@
 #include "PoiProgramHandler.h"
 #include "AnimationHandler.h"
 
-#define N_REGISTERS 2
-#define N_PROG_STEPS 50
-
 enum PoiAction {  NO_ACTION,
                   SHOW_STATIC_RGB,
                   PLAY_DIRECT,
