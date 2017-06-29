@@ -1,5 +1,5 @@
 #include "test.h"
-//#include "mock_wd2812.h"
+#include "mock_ws2812.h"
 #include "ImageCache.h"
 
 TEST(ImageCache_tests, afterDecl){
@@ -8,7 +8,7 @@ TEST(ImageCache_tests, afterDecl){
   
   for (int i=0; i< N_REGISTERS; i++){
 	rgbVal* r = icache.getRegister(i);
-    for (int j=0; j< N_PIXELS; j++){
+    for (int j=0; j< N_PIXELS; j+=10){
     	EXPECT_EQ(r[i].r, 0);
     	EXPECT_EQ(r[i].g, 0);
     	EXPECT_EQ(r[i].b, 0);

@@ -10,4 +10,12 @@ typedef union {
   uint32_t num;
 } rgbVal;
 
+inline rgbVal makeRGBVal(uint8_t r, uint8_t g, uint8_t b)
+{
+  rgbVal v;
+  v.r = r;
+  v.g = g;
+  v.b = b;
+  return v;
+}
 #endif
