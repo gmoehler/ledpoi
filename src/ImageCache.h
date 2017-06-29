@@ -14,6 +14,7 @@
 
 class ImageCache
 {
+public:
   ImageCache(uint32_t size, LogLevel loglevel);
   rgbVal* getRegister(uint8_t i);
   void _setPixel(uint8_t frame_idx, uint8_t pixel_idx,  uint8_t r, uint8_t g, uint8_t b);
