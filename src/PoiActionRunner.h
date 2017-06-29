@@ -22,18 +22,6 @@ enum PoiAction {  NO_ACTION,
                   ANIMATION_WORM
                 };
 
-// currently only used for playWorm()
-enum Color {       WHITE,   // 0
-                   BLACK,   // 1
-                   RED,
-                   GREEN,
-                   BLUE,
-                   YELLOW,
-                   LILA,
-                   CYAN,
-                   RAINBOW  // 8
-                   };
-
 /**
  * Class responsible for running the poi led program
  * After each action the last frame is always copied to Register 0

@@ -35,5 +35,16 @@ enum CmdType {  PROG_END,
                 FADE_TO_FRAME
               };
 
+// currently mainly used for playWorm()
+enum Color {       WHITE,   // 0
+                   BLACK,   // 1
+                   RED,
+                   GREEN,
+                   BLUE,
+                   YELLOW,
+                   LILA,
+                   CYAN,
+                   RAINBOW  // 8
+                   };
 
 #endif
