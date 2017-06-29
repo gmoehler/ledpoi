@@ -10,6 +10,7 @@
 #include "FadeHandler.h"
 #include "PoiProgramHandler.h"
 #include "AnimationHandler.h"
+#include "ImageCache.h"
 
 enum PoiAction {  NO_ACTION,
                   SHOW_STATIC_RGB,
@@ -78,23 +79,24 @@ private:
   AnimationHandler _animationHandler;
 
   // data stores
+  ImageCache _imageCache;
   // after each action the last frame is stored in _pixelRegister[0]
-  rgbVal _pixelRegister[2][N_PIXELS];
-  uint8_t *_pixelMap;
+  //rgbVal _pixelRegister[2][N_PIXELS];
+  //uint8_t *_pixelMap;
 
   // access functions
-  rgbVal _makeRGBValue(uint8_t rgb_array[3]);
-  void _setPixel(uint8_t frame_idx, uint8_t pixel_idx,  uint8_t r, uint8_t g, uint8_t b);
-  void _setPixel(uint8_t frame_idx, uint8_t pixel_idx, rgbVal pixel);
-  rgbVal _getPixel(uint8_t frame_idx, uint8_t pixel_idx);
+  //rgbVal _makeRGBValue(uint8_t rgb_array[3]);
+  //void _setPixel(uint8_t frame_idx, uint8_t pixel_idx,  uint8_t r, uint8_t g, uint8_t b);
+  //void _setPixel(uint8_t frame_idx, uint8_t pixel_idx, rgbVal pixel);
+  //rgbVal _getPixel(uint8_t frame_idx, uint8_t pixel_idx);
   void _updateSceneFromFlash(uint8_t scene);
-  void _copyFrameToRegister(uint8_t registerId, uint8_t frame_idx, float factor=1);
-  void _copyRegisterToRegister(uint8_t registerId1, uint8_t registerId2, float factor=1);
-  void _fillRegister(uint8_t registerId, rgbVal rgb);
-  void _clearRegister(uint8_t registerId); // fill with black
-  void _shiftRegister(uint8_t registerId1, uint8_t shiftRegisterLength, bool cyclic=false);
-  void _fillMap(rgbVal rgb);
-  rgbVal _makeRGBVal(Color color, uint8_t brightness=255);
+  //void _copyFrameToRegister(uint8_t registerId, uint8_t frame_idx, float factor=1);
+  //void _copyRegisterToRegister(uint8_t registerId1, uint8_t registerId2, float factor=1);
+  //void _fillRegister(uint8_t registerId, rgbVal rgb);
+  //void _clearRegister(uint8_t registerId); // fill with black
+  //void _shiftRegister(uint8_t registerId1, uint8_t shiftRegisterLength, bool cyclic=false);
+  //void _fillMap(rgbVal rgb);
+  //rgbVal _makeRGBVal(Color color, uint8_t brightness=255);
 
   // display functions
   void _displayFrame(uint8_t frame);

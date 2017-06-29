@@ -19,6 +19,10 @@ ImageCache::ImageCache(uint32_t size, LogLevel logLevel):
     }
 }
 
+uint8_t* ImageCache::getRawImageData(){
+    return _pixelMap;
+}
+
 /**********************
   * Utility functions *
   *********************/

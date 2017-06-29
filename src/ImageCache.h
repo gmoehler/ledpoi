@@ -18,6 +18,7 @@ class ImageCache
 {
 public:
   ImageCache(uint32_t size, LogLevel loglevel);
+  uint8_t* getRawImageData();
   rgbVal _makeRGBValue(uint8_t rgb_array[3]);
   rgbVal _makeRGBValue(Color color, uint8_t brightness=255);
 
