@@ -140,7 +140,7 @@ rgbVal ImageCache::_getPixel(uint8_t frame_idx, uint8_t pixel_idx) {
   return _makeRGBValue(&_pixelMap[frame_idx * N_PIXELS * 3 + pixel_idx * 3] );
 }
 
-void ImageCache::_fillMap(rgbVal rgb){
+void ImageCache::_fillImageMap(rgbVal rgb){
   for (int f=0; f<N_FRAMES; f++){
     for (int p=0; p<N_PIXELS; p++){
       _setPixel(f, p, rgb);
@@ -150,7 +150,7 @@ void ImageCache::_fillMap(rgbVal rgb){
 
 void ImageCache ::clearImageMap(){
 	rgbVal black = makeRGBVal(0,0,0);
-    _fillMap(black);
+    _fillImageMap(black);
 }
 
 /**************************

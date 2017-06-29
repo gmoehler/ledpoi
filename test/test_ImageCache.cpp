@@ -59,7 +59,7 @@ TEST(ImageCache_tests, fillImagemap){
   uint8_t rgbArray[3] = {11,111,222};
   rgbVal rgb = icache._makeRGBValue(rgbArray);
 
-  icache._fillMap(rgb);
+  icache._fillImageMap(rgb);
 
   for (int i=0; i< N_FRAMES; i++){
     for (int j=0; j< N_PIXELS; j+=10){
