@@ -5,34 +5,12 @@ PoiActionRunner::PoiActionRunner(PoiTimer& ptimer, LogLevel logLevel) :
   _imageCache(_flashMemory.getSizeOfImageSection(), logLevel), _ptimer(ptimer),
   _progHandler(_playHandler, _flashMemory, logLevel),
   _logLevel(logLevel)
-{/*
-    // initialize register and map
-    if (_logLevel != MUTE) printf("Initializing image map and register.\n" );
-    for (int i= 0; i< N_REGISTERS; i++){
-      _clearRegister(i);
-    }
+{}
 
-    // memory section is a bit larger than required, but exactly the size
-    // we reserve on flash
-    _pixelMap = (uint8_t *) malloc(_flashMemory.getSizeOfImageSection());
-    if (_pixelMap == 0){
-      printf("Error. Cannot allocate pixelMap with size %d.\n",
-        N_FRAMES * N_PIXELS * 3);
-    }
-
-    rgbVal black = _makeRGBVal(BLACK);
-    _fillMap(black); // not sure whether required...
-    */
-}
 void PoiActionRunner::clearImageMap(){
   _imageCache.clearImageMap();
 }
-/*
-void PoiActionRunner::clearImageMap(){
-	rgbVal black = makeRGBVal(0,0,0);
-    _fillMap(black);
-}
-*/
+
 void PoiActionRunner::setup(){
   // Create semaphore to inform us when the timer has fired
   _timerSemaphore = xSemaphoreCreateBinary();
@@ -45,102 +23,6 @@ void PoiActionRunner::setup(){
 /**********************
   * Utility functions *
   *********************/
-/*
-// version that takes an rgb array
-rgbVal PoiActionRunner::_makeRGBValue(uint8_t *rgb_array){
-  return makeRGBVal(rgb_array[0], rgb_array[1], rgb_array[2]);
-}
-
-rgbVal PoiActionRunner::_getPixel(uint8_t frame_idx, uint8_t pixel_idx) {
-  if (frame_idx >= N_FRAMES || pixel_idx >= N_PIXELS){
-    printf("Error. Pixel index exceeds boundaries for getPixel: %d >= %d || %d >= %d ",
-      frame_idx, N_FRAMES, pixel_idx, N_PIXELS);
-    return makeRGBVal(0, 0, 0);
-  }
-  return _makeRGBValue(&_pixelMap[frame_idx * N_PIXELS * 3 + pixel_idx * 3] );
-}
-
-void PoiActionRunner::_fillRegister(uint8_t registerId, rgbVal rgb){
-  if (registerId +1 > N_REGISTERS){
-    printf("Error. Register %d does not exist\n", registerId);
-    return;
-  }
-  for (int i = 0; i < N_PIXELS; i++) {
-    _pixelRegister[registerId][i] = rgb;
-  }
-}
-
-void PoiActionRunner::_clearRegister(uint8_t registerId) {
-  rgbVal black = makeRGBVal(0,0,0);
-  _fillRegister(registerId, black);
-}
-
-void PoiActionRunner::_fillMap(rgbVal rgb){
-  for (int f=0; f<N_FRAMES; f++){
-    for (int p=0; p<N_PIXELS; p++){
-      _setPixel(f, p, rgb);
-    }
-  }
-}
-
-void PoiActionRunner::_copyFrameToRegister(uint8_t registerId, uint8_t frame_idx, float factor){
-  if (frame_idx + 1 > N_FRAMES){
-    printf("Error. Cannot copy frame %d (> %d) to regsiter %d\n", frame_idx, N_FRAMES, registerId);
-    return;
-  }
-  if (registerId +1 > N_REGISTERS){
-    printf("Error. Register %d does not exist\n", registerId);
-    return;
-  }
-
-  //printf("Copying frame to register:\n");
-  for (int i = 0; i < N_PIXELS; i++) {
-    rgbVal rgb = _getPixel(frame_idx, i);
-    if (factor == 1){
-      _pixelRegister[registerId][i] = rgb;
-    }
-    else {
-      _pixelRegister[registerId][i] =
-            makeRGBVal(  ((double)rgb.r) * factor,
-                         ((double)rgb.g) * factor,
-                         ((double)rgb.b) * factor );
-    }
-  }
-}
-
-void PoiActionRunner::_copyRegisterToRegister(uint8_t registerId1, uint8_t registerId2, float factor){
-  if (registerId1 +1 > N_REGISTERS){
-    printf("Error. Register %d does not exist\n", registerId1);
-    return;
-  }
-  if (registerId2 +1 > N_REGISTERS){
-    printf("Error. Register %d does not exist\n", registerId2);
-    return;
-  }
-
-  for (int i = 0; i < N_PIXELS; i++) {
-    rgbVal rgb = _pixelRegister[registerId1][i];
-    if (factor == 1){
-      _pixelRegister[registerId2][i] = rgb;
-    }
-    else {
-      _pixelRegister[registerId2][i] =
-            makeRGBVal(  ((double)rgb.r) * factor,
-                         ((double)rgb.g) * factor,
-                         ((double)rgb.b) * factor );
-    }
-  }
-}
-
-// cyclic shift
-void PoiActionRunner::_shiftRegister(uint8_t registerId1, uint8_t shiftRegisterLength, bool cyclic) {
-  for (int j=shiftRegisterLength-1; j>0; j--){
-    _pixelRegister[registerId1][j] = _pixelRegister[registerId1][j-1];
-  }
-  _pixelRegister[registerId1][0] = cyclic ?
-    _pixelRegister[registerId1][shiftRegisterLength-1] : _makeRGBVal(BLACK, 0);
-}
-*/
 
 void PoiActionRunner::_displayRegister(uint8_t registerId){
     ws2812_setColors(N_PIXELS, _imageCache.getRegister(registerId));
@@ -170,22 +52,7 @@ void PoiActionRunner::setPixel(uint8_t scene_idx, uint8_t frame_idx, uint8_t pix
   _currentScene = scene_idx;
   _imageCache._setPixel(frame_idx, pixel_idx, r, g, b);
 }
-/*
-void PoiActionRunner::_setPixel(uint8_t frame_idx, uint8_t pixel_idx, rgbVal pixel){
-  _setPixel(frame_idx, pixel_idx,  pixel.r, pixel.g, pixel.b);
-}
 
-void PoiActionRunner::_setPixel(uint8_t frame_idx, uint8_t pixel_idx,  uint8_t r, uint8_t g, uint8_t b){
-  if (frame_idx >= N_FRAMES || pixel_idx >= N_PIXELS){
-    printf("Error. Pixel index exceeds boundaries for setPixel:  %d >= %d || %d >= %d ",
-      frame_idx, N_FRAMES, pixel_idx, N_PIXELS);
-    return;
-  }
-  _pixelMap[frame_idx * N_PIXELS * 3 + pixel_idx * 3]     = r;
-  _pixelMap[frame_idx * N_PIXELS * 3 + pixel_idx * 3 + 1] = g;
-  _pixelMap[frame_idx * N_PIXELS * 3 + pixel_idx * 3 + 2] = b;
-}
-*/
 void PoiActionRunner::saveScene(uint8_t scene){
   if (_logLevel != MUTE) printf("Saving image of scene %d to flash.\n", _currentScene);
   if (_flashMemory.saveImage(scene, _imageCache.getRawImageData())){
@@ -236,9 +103,9 @@ void PoiActionRunner::playScene(uint8_t scene, uint8_t startFrame, uint8_t endFr
   _ptimer.setIntervalAndEnable( _playHandler.getDelayMs() );
 }
 
-void PoiActionRunner::showStaticRgb(uint8_t r, uint8_t g, uint8_t b) {
+void PoiActionRunner::showStaticRgb(uint8_t r, uint8_t g, uint8_t b, uint8_t nLeds) {
   // directly "play" out of register
-  _imageCache._fillRegister(0, makeRGBVal(r,g,b));
+  _imageCache._fillRegister(0, makeRGBVal(r,g,b), nLeds);
 
   _currentAction = SHOW_STATIC_RGB;
   _ptimer.disable();
@@ -277,48 +144,6 @@ void PoiActionRunner::showCurrent(){
   _displayRegister(0);
 }
 
-/*
-rgbVal PoiActionRunner::_makeRGBVal(Color color, uint8_t brightness){
-  rgbVal rgb = makeRGBVal(0,0,0);
-  uint8_t b = brightness;
-  switch (color){
-  	case WHITE:
-      rgb = makeRGBVal(b,b,b);
-      break;
-
-  	case BLACK:
-      rgb = makeRGBVal(0,0,0);
-      break;
-
-      case RED:
-      rgb = makeRGBVal(b,0,0);
-      break;
-
-      case GREEN:
-      rgb = makeRGBVal(0,b,0);
-      break;
-
-      case BLUE:
-      rgb = makeRGBVal(0,0,b);
-      break;
-
-      case YELLOW:
-      rgb = makeRGBVal(b,b,0);
-      break;
-
-      case LILA:
-      rgb = makeRGBVal(b,0,b);
-      break;
-
-      case CYAN:
-      rgb = makeRGBVal(0,b,b);
-      break;
-
-      //RAINBOW is not handled here -> black
-      }
-      return rgb;
-}
-*/
 void PoiActionRunner::playWorm(Color color, uint8_t registerLength, uint8_t numLoops, bool synchronous){
 
   _currentAction = ANIMATION_WORM;
@@ -371,40 +196,30 @@ void PoiActionRunner::displayIp(uint8_t ipIncrement){
   // set back the ip led to black
   _imageCache._clearRegister(0);
   rgbVal* reg0 =  _imageCache.getRegister(0);
-  // network off
-  if (ipIncrement == 255){
-    // first N_POIS leds show palewhite
-    rgbVal palewhite = makeRGBVal(8, 8, 8);
-    for (int i=0; i<N_POIS; i++){
-      reg0[i]=palewhite;
-    }
-  }
-  else {
     // display colored led (first one less bright for each)
-    uint8_t b = 64;
-    if (ipIncrement %2 == 0){
-      b=8;
-    }
-    rgbVal color =  _imageCache._makeRGBValue(RED, b);
-    switch(ipIncrement/2){
-      case 1:
-      color =  _imageCache._makeRGBValue(GREEN, b);
-      break;
-
-      case 2:
-      color =  _imageCache._makeRGBValue(BLUE, b);
-      break;
-
-      case 3:
-      color =  _imageCache._makeRGBValue(YELLOW, b);
-      break;
-
-      case 4:
-      color =  _imageCache._makeRGBValue(LILA, b);
-      break;
-    }
-    reg0[ipIncrement]= color;
+  uint8_t b = 64;
+  if (ipIncrement %2 == 0){
+    b=8;
   }
+  rgbVal color =  _imageCache._makeRGBValue(RED, b);
+  switch(ipIncrement/2){
+    case 1:
+    color =  _imageCache._makeRGBValue(GREEN, b);
+    break;
+
+    case 2:
+    color =  _imageCache._makeRGBValue(BLUE, b);
+    break;
+
+    case 3:
+    color =  _imageCache._makeRGBValue(YELLOW, b);
+    break;
+
+    case 4:
+    color =  _imageCache._makeRGBValue(LILA, b);
+    break;
+  }
+  reg0[ipIncrement]= color;
 
   _displayRegister(0);
 }

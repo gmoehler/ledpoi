@@ -24,7 +24,7 @@ public:
 
   rgbVal* getRegister(uint8_t i);
   void printRegister(uint8_t i);
-  void _fillRegister(uint8_t registerId, rgbVal rgb);
+  void _fillRegister(uint8_t registerId, rgbVal rgb, uint8_t nLeds=N_PIXELS);
   void _clearRegister(uint8_t registerId); // fill with black
   void _shiftRegister(uint8_t registerId1, uint8_t shiftRegisterLength, bool cyclic=false);
 

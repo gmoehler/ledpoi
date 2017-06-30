@@ -90,12 +90,12 @@ void ImageCache::printRegister(uint8_t registerId){
   }  
 }
 
-void ImageCache::_fillRegister(uint8_t registerId, rgbVal rgb){
+void ImageCache::_fillRegister(uint8_t registerId, rgbVal rgb, uint8_t nLeds){
   if (registerId +1 > N_REGISTERS){
     printf("Error. Register %d does not exist\n", registerId);
     return;
   }
-  for (int i = 0; i < N_PIXELS; i++) {
+  for (int i = 0; i < constrain(nLeds, 0, N_PIXELS); i++) {
     _pixelRegister[registerId][i] = rgb;
   }
 }
