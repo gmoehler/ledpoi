@@ -25,11 +25,12 @@ LIBDIR      := test/lib/$(PLATFORM)
 
 #Flags, Libraries and Includes
 #CFLAGS      := -ggdb -static-libgcc -static-libstdc++ -fopenmp -Wall -O3 -g -std=gnu++11 -DWITHIN_UNITTEST
-CFLAGS      := -ggdb -fopenmp -Wall -O3 -g -std=gnu++11 -DWITHIN_UNITTEST
-LIB         := -fopenmp -lm -L$(LIBDIR) -lgtest_main -lgtest -pthread
+CFLAGS      := -ggdb -Wall -O3 -g -std=gnu++11 -DWITHIN_UNITTEST
+#LIB         := -fopenmp -lm -L$(LIBDIR) -lgtest_main -lgtest -pthread
+LIB         :=  -lm -L$(LIBDIR) -lgtest_main -lgtest -pthread
 EXLIB       := -lm -L$(LIBDIR) -lgtest_main -lgtest -pthread
-GOOGLETEST_DIR := ../GitHub/googletest/googletest
-INC         := -I$(INCDIR) -I$(TESTINCDIR) -Itest/include -I/usr/local/include -I$(GOOGLETEST_DIR)/include
+#GOOGLETEST_DIR := ../GitHub/googletest/googletest
+INC         := -I$(INCDIR) -I$(TESTINCDIR) -Itest/include -I/usr/local/include #-I$(GOOGLETEST_DIR)/include
 INCDEP      := -I$(INCDIR) -I$(TESTINCDIR) -I$(GOOGLETEST_DIR)/include
 
 #---------------------------------------------------------------------------------
@@ -39,15 +40,18 @@ INCDEP      := -I$(INCDIR) -I$(TESTINCDIR) -I$(GOOGLETEST_DIR)/include
 SOURCES      := $(SRCDIR)/PlayHandler.cpp \
  								$(SRCDIR)/FadeHandler.cpp \
 								$(SRCDIR)/AnimationHandler.cpp \
-								$(SRCDIR)/PoiProgramHandler.cpp
+								$(SRCDIR)/PoiProgramHandler.cpp \
+								$(SRCDIR)/ImageCache.cpp
 TESTSOURCES  := $(TESTDIR)/test.cpp \
 								$(TESTDIR)/mock_Arduino.cpp \
+								$(TESTDIR)/mock_ws2812.cpp \
 								$(TESTDIR)/mock_PoiFlashMemory.cpp \
 								$(TESTDIR)/test_PlayHandler.cpp \
 								$(TESTDIR)/test_FadeHandler.cpp \
 								$(TESTDIR)/test_AnimationHandler.cpp \
 								$(TESTDIR)/test_PoiFlashMemory.cpp \
-								$(TESTDIR)/test_PoiProgramHandler.cpp
+								$(TESTDIR)/test_PoiProgramHandler.cpp \
+								$(TESTDIR)/test_ImageCache.cpp
 EXSOURCES    :=
 
 OBJECTS     := $(patsubst $(SRCDIR)/%,$(BUILDDIR)/%,$(SOURCES:.$(SRCEXT)=.$(OBJEXT))) \

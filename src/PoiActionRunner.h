@@ -10,9 +10,7 @@
 #include "FadeHandler.h"
 #include "PoiProgramHandler.h"
 #include "AnimationHandler.h"
-
-#define N_REGISTERS 2
-#define N_PROG_STEPS 50
+#include "ImageCache.h"
 
 enum PoiAction {  NO_ACTION,
                   SHOW_STATIC_RGB,
@@ -24,18 +22,6 @@ enum PoiAction {  NO_ACTION,
                   PAUSE_PROG,
                   ANIMATION_WORM
                 };
-
-// currently only used for playWorm()
-enum Color {       WHITE,   // 0
-                   BLACK,   // 1
-                   RED,
-                   GREEN,
-                   BLUE,
-                   YELLOW,
-                   LILA,
-                   CYAN,
-                   RAINBOW  // 8
-                   };
 
 /**
  * Class responsible for running the poi led program
@@ -55,7 +41,7 @@ public:
   void saveScene(uint8_t scene);
   void playScene(uint8_t scene, uint8_t frameStart,uint8_t frameEnd, uint8_t speed, uint8_t loops);
   void showStaticFrame(uint8_t scene, uint8_t frame, uint8_t timeOutMSB, uint8_t timeOutLSB);
-  void showStaticRgb(uint8_t r, uint8_t g, uint8_t b);
+  void showStaticRgb(uint8_t r, uint8_t g, uint8_t b, uint8_t nLeds=N_PIXELS);
   void displayOff();
   void fadeToBlack(uint8_t fadeMSB, uint8_t fadeLSB);
   void showCurrent();
@@ -93,23 +79,8 @@ private:
   AnimationHandler _animationHandler;
 
   // data stores
-  // after each action the last frame is stored in _pixelRegister[0]
-  rgbVal _pixelRegister[2][N_PIXELS];
-  uint8_t *_pixelMap;
-
-  // access functions
-  rgbVal _makeRGBValue(uint8_t rgb_array[3]);
-  void _setPixel(uint8_t frame_idx, uint8_t pixel_idx,  uint8_t r, uint8_t g, uint8_t b);
-  void _setPixel(uint8_t frame_idx, uint8_t pixel_idx, rgbVal pixel);
-  rgbVal _getPixel(uint8_t frame_idx, uint8_t pixel_idx);
+  ImageCache _imageCache;
   void _updateSceneFromFlash(uint8_t scene);
-  void _copyFrameToRegister(uint8_t registerId, uint8_t frame_idx, float factor=1);
-  void _copyRegisterToRegister(uint8_t registerId1, uint8_t registerId2, float factor=1);
-  void _fillRegister(uint8_t registerId, rgbVal rgb);
-  void _clearRegister(uint8_t registerId); // fill with black
-  void _shiftRegister(uint8_t registerId1, uint8_t shiftRegisterLength, bool cyclic=false);
-  void _fillMap(rgbVal rgb);
-  rgbVal _makeRGBVal(Color color, uint8_t brightness=255);
 
   // display functions
   void _displayFrame(uint8_t frame);
