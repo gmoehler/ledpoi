@@ -62,6 +62,7 @@ private:
 
   bool _isProgramFinished();
   void _clearProgram();
+  void _updateLabels();
   CmdType _getCommandType(uint8_t cmd[N_PROG_FIELDS]);
   void _nextProgramStep(bool initial=false);
   void _evaluateCommand(uint8_t index);

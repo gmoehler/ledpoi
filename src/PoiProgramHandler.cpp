@@ -14,11 +14,13 @@ void PoiProgramHandler::setup(){
 		if (_numProgSteps > 0){
 			if (_flashMemory.loadProgram(&_prog[0][0])){
 
+          _updateLabels();
 					loadingSuccess = true;
 
 					if (_logLevel != MUTE) {
 						printf("Program loaded from flash.\n");
-						printf("Program read (%d lines):\n", _numProgSteps);
+						printf("Program read (%d cmds, %d labels, %d sync points):\n", 
+              _numProgSteps, _labelMap.size(), _syncMap.size());
 						_printProgram();
 					}
 				}
@@ -34,6 +36,15 @@ void PoiProgramHandler::setup(){
 		_clearProgram();
 	}
 	_duringProgramming = false;
+}
+
+void PoiProgramHandler::_updateLabels(){
+  _labelMap.clear();
+	for (int i=0; i<_numProgSteps; i++){
+    if (_prog[i][0] == LABEL){
+      _labelMap[_prog[i][1]] = i;
+    }
+	}
 }
 
 void PoiProgramHandler::_printProgram(){
@@ -167,15 +178,7 @@ void PoiProgramHandler::addCmdToProgram(unsigned char cmd[7]){
 
   if ((CmdType) cmd[1] == LABEL){
     // keep labels separate in a map along with (next) cmd number
-    if (cmd[2] != 0) {
-      _labelMap[cmd[2]] = _numProgSteps;
-    }
-    else {
-      printf("Error. Label code cannot be zero.\n" );
-    }
-    if (cmd[3] != 0) {
-      _syncMap[cmd[3]] = _numProgSteps;
-    }
+    _labelMap[cmd[2]] = _numProgSteps;
   }
 
   // add cmd to program memory

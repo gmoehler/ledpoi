@@ -22,8 +22,8 @@ Byte[n] may not contain any 0xFF!
 ||clientDisconnect||10|||||done|tell poi (server) to disconnect from PC (client)|
 |**setProg**||**253**|*progCMD*|*param0*|*param1*|*param2*|*param3*|||
 ||ProgramEnd||0|||||(done)|End of program|
-||label||1|labelId|||||labelCode is *name* of label (labelCode > 0) - syncId for syncImpulse (syncId > 0), syncIds start with 1 |
-||syncPoint||2|sequenceId|||||sync points for jumpTo action|
+||label||1|labelId|||||define label with id |
+||syncPoint||2|sequenceId|||||define sync point for jumpTo action|
 ||play||3|frameStart|frameEnd|delayMSB|delay LSB|done|Play frames of active scene, or single frame with timeout|
 ||loop||4|loopCt MSB|loopCt LSB|loopStart labelCode||(done)|loop starting at label with labelCode - or prev command if labelCode=0 is not allowed|
 ||setActiveScene||5|scene||||(done)||
