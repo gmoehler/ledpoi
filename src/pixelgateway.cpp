@@ -52,14 +52,10 @@ int cmdIndex=0;              // index into command read from server
 char c;
 bool loadingImgData = false; // tag to suppress log during image loading
 
-bool startDemoOnReset = false; // demo mode: instantly start with the program after reset
-
-uint8_t ipIncrement = 0; // increment to set the ip, 255 for network off
-bool ipIncrementChanged = false;
 uint8_t baseIpAdress[4] = {192, 168, 1, 127};
+uint8_t ipIncrement = 0; // increment to base ip for different pois
 uint32_t poi_network_display_entered = 0;
 uint32_t currentTime = 0;
-
 
 void blink(int m){
   for (int n=0;n<m;n++){
@@ -369,7 +365,7 @@ void longPressStart1() {
   }
   else if (poiState == POI_IP_CONFIG) {
     runner.saveIpIncrement(ipIncrement);
-    nextPoiState = ipIncrementChanged ? POI_NETWORK_SEARCH : POI_AWAIT_PROGRAM_SYNC;
+    nextPoiState = POI_NETWORK_SEARCH;
   }
   else {
     // like a reset
@@ -379,7 +375,6 @@ void longPressStart1() {
 
 void click1() {
   if (poiState == POI_IP_CONFIG){
-    ipIncrementChanged = true;
     // set back the ip led to black
     ipIncrement++;
     if (ipIncrement + 1 > N_POIS){
@@ -416,7 +411,6 @@ void loop()
       case POI_IP_CONFIG_OPTION:
       // switch off ip display
       runner.showStaticRgb(0,0,0);
-      ipIncrementChanged = false;
       break;
 
       case POI_IP_CONFIG:
@@ -474,8 +468,7 @@ void loop()
     currentTime = millis();
     if (currentTime-poi_network_display_entered > 5000){
       runner.playWorm(RAINBOW, N_POIS, 1);
-      nextPoiState = ipIncrementChanged ? POI_NETWORK_SEARCH : POI_AWAIT_PROGRAM_SYNC;
-
+      nextPoiState = POI_AWAIT_PROGRAM_SYNC;
     }
     break;
 

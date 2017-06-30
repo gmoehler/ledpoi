@@ -376,6 +376,8 @@ void PoiActionRunner::loop(){
         _displayRegister(0);
       }
       else {
+         _imageCache._clearRegister(0);
+         _displayRegister(0);
         _currentAction = NO_ACTION;
         if (_logLevel != MUTE) printf("End of program ANIMATION_WORM.\n");
       }
