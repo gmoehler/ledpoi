@@ -9,7 +9,7 @@
 #include "OneButton.h"
 
 enum PoiState { POI_INIT,               // 0
-                POI_IP_DISPLAY,         // 1
+                POI_IP_CONFIG_OPTION,         // 1
                 POI_IP_CONFIG,          // 2
                 POI_NETWORK_SEARCH,     // 3
                 POI_CLIENT_CONNECTING,  // 4
@@ -52,13 +52,10 @@ int cmdIndex=0;              // index into command read from server
 char c;
 bool loadingImgData = false; // tag to suppress log during image loading
 
-bool startDemoOnReset = false; // demo mode: instantly start with the program after reset
-
-uint8_t ipIncrement = 0; // increment to set the ip, 255 for network off
 uint8_t baseIpAdress[4] = {192, 168, 1, 127};
+uint8_t ipIncrement = 0; // increment to base ip for different pois
 uint32_t poi_network_display_entered = 0;
 uint32_t currentTime = 0;
-
 
 void blink(int m){
   for (int n=0;n<m;n++){
@@ -363,12 +360,12 @@ void protocoll_receive_data(){
 
 void longPressStart1() {
   printf("Long press1\n");
-  if (poiState == POI_IP_DISPLAY) {
+  if (poiState == POI_IP_CONFIG_OPTION) {
     nextPoiState = POI_IP_CONFIG;
   }
   else if (poiState == POI_IP_CONFIG) {
     runner.saveIpIncrement(ipIncrement);
-    nextPoiState = ipIncrement == 255 ? POI_AWAIT_PROGRAM_SYNC : POI_NETWORK_SEARCH;
+    nextPoiState = POI_NETWORK_SEARCH;
   }
   else {
     // like a reset
@@ -381,7 +378,7 @@ void click1() {
     // set back the ip led to black
     ipIncrement++;
     if (ipIncrement + 1 > N_POIS){
-      ipIncrement = 255; // network off
+      ipIncrement = 0; // cyclic
     }
     printf("IP Increment: %d\n", ipIncrement);
     // display colored led (first one less bright for each)
@@ -411,7 +408,7 @@ void loop()
       case POI_INIT:
       break;
 
-      case POI_IP_DISPLAY:
+      case POI_IP_CONFIG_OPTION:
       // switch off ip display
       runner.showStaticRgb(0,0,0);
       break;
@@ -457,21 +454,21 @@ void loop()
     case POI_INIT:
     runner.playWorm(RAINBOW, N_PIXELS, 1);
     // proceed to next state
-    nextPoiState = POI_IP_DISPLAY;
+    nextPoiState = POI_IP_CONFIG_OPTION;
     break;
 
-    case POI_IP_DISPLAY:
-    // display network config for 2 seconds
-    // user needs to long press to adjust
+    case POI_IP_CONFIG_OPTION:
+    // display pale white for 2 seconds
+    // user needs to long press to set ip
     if (state_changed){
       poi_network_display_entered = millis();
-      runner.displayIp(ipIncrement);
+      // show a pale white
+      runner.showStaticRgb(8, 8, 8, N_POIS);
     }
     currentTime = millis();
     if (currentTime-poi_network_display_entered > 5000){
       runner.playWorm(RAINBOW, N_POIS, 1);
-      nextPoiState = ipIncrement == 255 ? POI_AWAIT_PROGRAM_SYNC : POI_NETWORK_SEARCH;
-
+      nextPoiState = POI_AWAIT_PROGRAM_SYNC;
     }
     break;
 

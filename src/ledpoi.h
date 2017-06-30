@@ -24,15 +24,16 @@
 
 enum LogLevel { CHATTY, QUIET, MUTE};
 
-enum CmdType {  PROG_END,
-                LABEL,
-                SYNC_POINT,
-                PLAY_FRAMES,
-                LOOP,
-                SET_SCENE,
-                PRESET_RGB,
-                FADE_TO_RGB,
-                FADE_TO_FRAME
+enum CmdType {  PROG_END,     // 0
+                LABEL,        // 1
+                SYNC_POINT,   // 2
+                PLAY_FRAMES,  // 3
+                LOOP,         // 4 
+                SET_SCENE,    // 5
+                PRESET_RGB,   // 6
+                FADE_TO_RGB,  // 7
+                FADE_TO_FRAME,// 8
+                JUMPTO          // 9
               };
 
 // currently mainly used for playWorm()
