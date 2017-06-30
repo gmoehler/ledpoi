@@ -268,7 +268,7 @@ void PoiProgramHandler::_evaluateCommand(uint8_t index) {
     }
     break;
 
-    case GOTO:
+    case JUMPTO:
     if (!_jumpToLabel(cmd[1])){
       printf("Error. Goto aborded.\n" );
     }

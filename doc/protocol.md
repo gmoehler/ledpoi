@@ -30,7 +30,7 @@ Byte[n] may not contain any 0xFF!
 ||presetRGB||6|r|g|b|||pre-set RGB color for following commands|
 ||FadetoRGB||7|scene|frame|delayMSB|delay LSB||goto next [scene/frame] - nofade|
 ||FadetoFrame||8|scene|frame|delayMSB|delay LSB||goto next [scene/frame] - nofade|
-||goto||9|labelId|||||jump to label with labelId|
+||jumpto||9|labelId|||||jump to label with labelId|
 ||||*default*||||||do nothing|
 |**playDirect**||**252**|scene|start|end|delay |loops|||
 |**endOfMessage**||**251**|||||||end of message  - client can disconnect|
