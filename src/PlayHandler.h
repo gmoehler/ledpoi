@@ -1,7 +1,12 @@
 #ifndef PLAY_HANDLER_H
 #define PLAY_HANDLER_H
 
-#include <Arduino.h>
+#ifndef WITHIN_UNITTEST
+  #include <Arduino.h>
+#else
+  #include "../test/mock_Arduino.h"
+#endif
+
 #include "ledpoi.h"
 
 /**
@@ -18,6 +23,8 @@ public:
   void next();
 
   bool isActive();
+  bool isLastStep();
+
   uint16_t getDelayMs();
   uint8_t getCurrentFrame();
   uint16_t getCurrentLoop();
@@ -35,6 +42,5 @@ private:
   uint16_t _currentLoop;
   bool _active;
   bool _forward; // false for backward
-
 };
 #endif
