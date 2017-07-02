@@ -196,9 +196,13 @@ void PoiActionRunner::playWorm(Color color, uint8_t registerLength, uint8_t numL
   }
 }
 
-void PoiActionRunner::displayIp(uint8_t ipIncrement){
+void PoiActionRunner::displayIp(uint8_t ipIncrement, bool withStaticBackground){
   // set back the ip led to black
   _imageCache._clearRegister(0);
+  if (withStaticBackground){
+    rgbVal paleWhite = makeRGBVal(8,8,8);
+    _imageCache._fillRegister(0, paleWhite, N_POIS);
+  }
   rgbVal* reg0 =  _imageCache.getRegister(0);
     // display colored led (first one less bright for each)
   uint8_t b = 64;
