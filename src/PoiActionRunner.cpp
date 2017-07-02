@@ -40,9 +40,9 @@ void PoiActionRunner::_displayFrame(uint8_t frame){
   ***************************/
 
 void PoiActionRunner::resetFlash(){
-    _flashMemory.eraseNvsFlashPartition();
-    _flashMemory.eraseImages();
     _imageCache.clearImageMap();
+    _flashMemory.eraseNvsFlashPartition();
+//    _flashMemory.initializeImageMemory(_imageCache.getRawImageData());
     _flashMemory.setup(_logLevel, _imageCache.getRawImageData());
 }
 

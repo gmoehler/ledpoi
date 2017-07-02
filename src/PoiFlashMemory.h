@@ -56,11 +56,9 @@ public:
   bool saveNumScenes(uint8_t numScenes);
   bool loadNumScenes(uint8_t* numScenes);
 
-  bool eraseImages();
   bool eraseNvsFlashPartition(); // all NVS stuff
-  bool eraseProgram();  // only program on nvs, reset prog steps to 0
 
-
+ 
   void listPartitions();
   void printContents();
 
@@ -68,6 +66,10 @@ public:
 
 private:
   const esp_partition_t* _getDataPartition();
+  bool _eraseImages();
+  bool _initializeProgramMemory();  // only program on nvs, reset prog steps to 0
+  bool _initializeImageMemory(uint8_t *initImageData);
+
   esp_err_t _nvs_save_uint8_array(const char* mynamespace, const char* key, uint8_t *data,
       uint8_t size_x, uint8_t size_y);
   esp_err_t _nvs_save_uint8(const char* mynamespace, const char* key, uint8_t value);

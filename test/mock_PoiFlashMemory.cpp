@@ -59,8 +59,9 @@
     return true;
   }
 
-  bool PoiFlashMemory::eraseImages(){
+  bool PoiFlashMemory::_initializeImageMemory(){
     //TODO
+    _numScenes=0;
     return true;
   }
   bool PoiFlashMemory::eraseNvsFlashPartition(){
@@ -69,12 +70,13 @@
     _ipIncrement = 0;
     return true;
   }
-  bool PoiFlashMemory::eraseProgram(){
+  bool PoiFlashMemory::_initializeProgramMemory(){
     for (int i=0; i< N_PROG_STEPS; i++){
       for (int j=0; j< N_PROG_FIELDS; j++){
           _prog[i][j] = 0;
       }
     }
+    _numProgSteps=0;
     return true;
   }
 

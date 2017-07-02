@@ -7,12 +7,9 @@ void PoiFlashMemory::setup(LogLevel logLevel, uint8_t *initImageData){
   if (!loadNumScenes(&numScenes) || numScenes != N_SCENES){
       // initialize image partition
       printf("Initializing the image partition of the flash memory\n" );
-      eraseImages();
-      // initialize with initImageData (black)
-      for (int i=0; i< N_SCENES; i++){
-        saveImage(i, initImageData);
+      if (!_initializeImageMemory(initImageData)){
+        printf("Error. Initializing the image partition of the flash memory failed.\n" );
       }
-      saveNumScenes(N_SCENES);
   }
   uint8_t numProgSteps = 0;
   if (!loadNumProgramSteps(&numProgSteps)){
@@ -196,8 +193,24 @@ bool PoiFlashMemory::loadNumScenes(uint8_t *numScenes){
   return true;
 }
 
+bool PoiFlashMemory::_initializeImageMemory(uint8_t *initImageData){
 
-bool PoiFlashMemory::eraseImages(){
+  if (!_eraseImages()){
+    return false;
+  }
+  // initialize with initImageData (black)
+  for (int i=0; i< N_SCENES; i++){
+    if (!saveImage(i, initImageData)){
+      return false;
+    }
+  }
+  if (!saveNumScenes(N_SCENES)){
+    return false;
+  }
+  return true;
+}
+
+bool PoiFlashMemory::_eraseImages(){
 
 	// first remove image data
   const esp_partition_t *p = _getDataPartition();
@@ -226,7 +239,7 @@ bool PoiFlashMemory::eraseImages(){
   return true;
 }
 
-bool PoiFlashMemory::eraseProgram(){
+bool PoiFlashMemory::_initializeProgramMemory(){
   esp_err_t  err = _nvs_eraseCompleteNamespace(NVS_PROGRAM_NAMESPACE);
   if (err != ESP_OK) {
     printf("Error (%4x) while erasing program.\n", err);

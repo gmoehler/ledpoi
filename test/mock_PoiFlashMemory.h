@@ -52,9 +52,9 @@ public:
   bool saveNumScenes(uint8_t numScenes);
   bool loadNumScenes(uint8_t* numScenes);
 
-  bool eraseImages();
   bool eraseNvsFlashPartition(); // all NVS stuff
-  bool eraseProgram();  // only program on nvs, reset prog steps to 0
+  bool _initializeProgramMemory();  // only program on nvs, reset prog steps to 0
+  bool _initializeImageMemory();
 
 
   void listPartitions();
