@@ -44,7 +44,8 @@ enum Color {       WHITE,   // 0
                    YELLOW,
                    LILA,
                    CYAN,
-                   RAINBOW  // 8
+                   RAINBOW,  // 8
+                   PALE_WHITE
                    };
 
 #endif

@@ -66,6 +66,10 @@ rgbVal ImageCache::_makeRGBValue(Color color, uint8_t brightness){
       rgb = makeRGBVal(0,b,b);
       break;
 
+      case PALE_WHITE:
+      rgb = makeRGBVal(8,8,8);
+      break;
+
       default:
       //RAINBOW is not handled here -> black
       break;

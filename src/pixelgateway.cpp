@@ -510,10 +510,11 @@ void loop()
         }
       }
 
-      if (protocol_is_data()){
+      if (protocol_is_data()){ // image data
         // only print once
         if (logLevel != MUTE && !loadingImgData){
           printf("Reading image data... \n");
+//          runner.playWorm(PALE_WHITE, N_POIS, 0, false); // async forever
           // currently required since we write directly into image memory
           // TODO: add start command for image loading (with scene id)
           //       which will remove current image from memory
@@ -523,6 +524,7 @@ void loop()
         loadingImgData = true;
       }
       else {
+//        runner.pauseAction(); // finish worm
         loadingImgData = false;
       }
 
