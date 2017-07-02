@@ -179,12 +179,16 @@ void PoiActionRunner::playWorm(Color color, uint8_t registerLength, uint8_t numL
   _displayRegister(0);
 
   if (synchronous){
-    while (_animationHandler.isActive()){
+    while (true){
       _animationHandler.next();
       _imageCache._shiftRegister(0, _animationHandler.getRegisterLength(), !_animationHandler.isLastLoop());
+      if (!_animationHandler.isActive()){
+        break;
+      }
       _displayRegister(0);
       delay( delayMs);
     }
+    displayOff();
     _currentAction = NO_ACTION;
   }
   else {
