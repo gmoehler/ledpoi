@@ -39,11 +39,9 @@ void PoiActionRunner::_displayFrame(uint8_t frame){
   * External action methods *
   ***************************/
 
-void PoiActionRunner::resetFlash(){
+void PoiActionRunner::initializeFlash(){
     _imageCache.clearImageMap();
-    _flashMemory.eraseNvsFlashPartition();
-//    _flashMemory.initializeImageMemory(_imageCache.getRawImageData());
-    _flashMemory.setup(_logLevel, _imageCache.getRawImageData());
+    _flashMemory.initializeFlash(_logLevel, _imageCache.getRawImageData());
 }
 
 void PoiActionRunner::setPixel(uint8_t scene_idx, uint8_t frame_idx, uint8_t pixel_idx,

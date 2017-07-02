@@ -62,7 +62,8 @@ public:
   void setup();             // to be called in setup()
   void loop();               // to be called in the loop
   void onInterrupt();   // to be called during the timer interrupt
-  void resetFlash();
+  
+  void initializeFlash();
   void clearImageMap();
 
 private:

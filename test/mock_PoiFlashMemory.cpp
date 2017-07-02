@@ -32,11 +32,11 @@
     return true;
   }
 
-  bool PoiFlashMemory::saveNumProgramSteps(uint8_t numProgSteps) {
+  bool PoiFlashMemory::saveNumProgramSteps(uint16_t numProgSteps) {
     _numProgSteps = numProgSteps;
     return true;
   }
-  bool PoiFlashMemory::loadNumProgramSteps(uint8_t* numProgSteps){
+  bool PoiFlashMemory::loadNumProgramSteps(uint16_t* numProgSteps){
     *numProgSteps = _numProgSteps;
     return true;
   }
@@ -81,7 +81,7 @@
   }
 
 
-  void PoiFlashMemory::listPartitions(){
+  void PoiFlashMemory::_listPartitions(){
     // not required for mock
     return;
   }

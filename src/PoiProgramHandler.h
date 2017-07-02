@@ -47,7 +47,7 @@ private:
   bool _duringProgramming;
   bool _delayChanged;
   bool _inLoop;
-  uint8_t _numProgSteps;
+  uint16_t _numProgSteps;
   uint8_t _currentProgStep;
   uint8_t _numLoops;
   uint16_t _currentLoop;

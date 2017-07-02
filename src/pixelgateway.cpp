@@ -262,7 +262,7 @@ void realize_cmd(){
 
       case 9:
       if (logLevel != MUTE) Serial.println("Completely erasing and initializing flash.");
-      runner.resetFlash();
+      runner.initializeFlash();
 
       case 10:
       if (logLevel != MUTE) Serial.println("Connection close command received.");
