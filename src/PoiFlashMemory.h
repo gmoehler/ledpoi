@@ -69,7 +69,7 @@ private:
   bool _eraseNvsFlashPartition(); // all NVS stuff
 
   esp_err_t _nvs_save_uint8_array(const char* mynamespace, const char* key, uint8_t *data,
-      uint8_t size_x, uint8_t size_y);
+      uint16_t size_x, uint8_t size_y);
   esp_err_t _nvs_save_uint8(const char* mynamespace, const char* key, uint8_t value);
   esp_err_t _nvs_save_uint16(const char* mynamespace, const char* key, uint16_t value);
   esp_err_t _nvs_read_uint8_array(const char* mynamespace, const char* key, uint8_t *data);

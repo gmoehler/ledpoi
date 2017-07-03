@@ -297,7 +297,7 @@ esp_err_t PoiFlashMemory::_nvs_save_uint8(const char* mynamespace, const char* k
 }
 
 esp_err_t PoiFlashMemory::_nvs_save_uint8_array(const char* mynamespace, const char* key,
-    uint8_t *data, uint8_t numLines, uint8_t numCommands){
+    uint8_t *data, uint16_t numLines, uint8_t numCommands){
   nvs_handle my_handle;
   esp_err_t err;
 

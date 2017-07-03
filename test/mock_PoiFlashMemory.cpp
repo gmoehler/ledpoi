@@ -14,7 +14,7 @@
     return true;
   }
 
-  bool PoiFlashMemory::saveProgram(uint8_t* programData, uint8_t size_x, uint8_t size_y){
+  bool PoiFlashMemory::saveProgram(uint8_t* programData, uint16_t size_x, uint8_t size_y){
    for (int i=0; i< N_PROG_STEPS; i++){
       for (int j=0; j< N_PROG_FIELDS; j++){
         _prog[i][j] = programData [ i*N_PROG_FIELDS+j ];

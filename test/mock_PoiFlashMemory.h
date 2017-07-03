@@ -31,11 +31,11 @@ public:
   bool saveImage(uint8_t scene, uint8_t* imageData);
   bool loadImage(uint8_t scene, uint8_t* imageData);
 
-  bool saveProgram(uint8_t* programData, uint8_t size_x, uint8_t size_y);
+  bool saveProgram(uint8_t* programData, uint16_t size_x, uint8_t size_y);
   bool loadProgram(uint8_t* programData);
 
-  bool saveNumProgramSteps(uint8_t numProgSteps);
-  bool loadNumProgramSteps(uint8_t* numProgSteps);
+  bool saveNumProgramSteps(uint16_t numProgSteps);
+  bool loadNumProgramSteps(uint16_t* numProgSteps);
 
   bool saveIpIncrement(uint8_t ipIncrement);
   bool loadIpIncrement(uint8_t* ipIncrement);
