@@ -15,7 +15,7 @@ ImageCache::ImageCache(uint32_t size, LogLevel logLevel):
     _pixelRegister = (rgbVal **) malloc(N_REGISTERS * sizeof(rgbVal*));
     for (uint8_t i=0; i<N_REGISTERS; i++){
         _pixelRegister[i] = (rgbVal *) malloc(N_FRAMES * sizeof(rgbVal));
-        _clearRegister(i);
+        clearRegister(i);
     }
 }
 
@@ -27,10 +27,10 @@ uint8_t* ImageCache::getRawImageData(){
   * Utility functions *
   *********************/
 // version that takes an rgb array
-rgbVal ImageCache::_makeRGBValue(uint8_t *rgb_array){
+rgbVal ImageCache::makeRGBValue(uint8_t *rgb_array){
   return makeRGBVal(rgb_array[0], rgb_array[1], rgb_array[2]);
 }
-rgbVal ImageCache::_makeRGBValue(Color color, uint8_t brightness){
+rgbVal ImageCache::makeRGBValue(Color color, uint8_t brightness){
   rgbVal rgb = makeRGBVal(0,0,0);
   uint8_t b = brightness;
   switch (color){
@@ -94,7 +94,7 @@ void ImageCache::printRegister(uint8_t registerId){
   }  
 }
 
-void ImageCache::_fillRegister(uint8_t registerId, rgbVal rgb, uint8_t nLeds){
+void ImageCache::fillRegister(uint8_t registerId, rgbVal rgb, uint8_t nLeds){
   if (registerId +1 > N_REGISTERS){
     printf("Error. Register %d does not exist\n", registerId);
     return;
@@ -104,19 +104,19 @@ void ImageCache::_fillRegister(uint8_t registerId, rgbVal rgb, uint8_t nLeds){
   }
 }
 
-void ImageCache::_clearRegister(uint8_t registerId) {
+void ImageCache::clearRegister(uint8_t registerId) {
   rgbVal black = makeRGBVal(0,0,0);
-  _fillRegister(registerId, black);
+  fillRegister(registerId, black);
 }
 
 // shifts values from a position to one higher position ending at position shiftRegisterLength
 // if cyclic is true, then value at shiftRegisterLength is shifted back to position 0
-void ImageCache::_shiftRegister(uint8_t registerId1, uint8_t shiftRegisterLength, bool cyclic) {
+void ImageCache::shiftRegister(uint8_t registerId1, uint8_t shiftRegisterLength, bool cyclic) {
   rgbVal valLast = _pixelRegister[registerId1][shiftRegisterLength-1];
   for (int j=shiftRegisterLength-1; j>0; j--){
     _pixelRegister[registerId1][j] = _pixelRegister[registerId1][j-1];
   }
-  _pixelRegister[registerId1][0] = cyclic ? valLast : _makeRGBValue(BLACK, 0);
+  _pixelRegister[registerId1][0] = cyclic ? valLast : makeRGBValue(BLACK, 0);
 }
 
 
@@ -125,10 +125,10 @@ void ImageCache::_shiftRegister(uint8_t registerId1, uint8_t shiftRegisterLength
  ****************************************/ 
 
 void ImageCache::_setPixel(uint8_t frame_idx, uint8_t pixel_idx, rgbVal pixel){
-  _setPixel(frame_idx, pixel_idx,  pixel.r, pixel.g, pixel.b);
+  setPixel(frame_idx, pixel_idx,  pixel.r, pixel.g, pixel.b);
 }
 
-void ImageCache::_setPixel(uint8_t frame_idx, uint8_t pixel_idx,  uint8_t r, uint8_t g, uint8_t b){
+void ImageCache::setPixel(uint8_t frame_idx, uint8_t pixel_idx,  uint8_t r, uint8_t g, uint8_t b){
   if (frame_idx >= N_FRAMES || pixel_idx >= N_PIXELS){
     printf("Error. Pixel index exceeds boundaries for setPixel:  %d >= %d || %d >= %d ",
       frame_idx, N_FRAMES, pixel_idx, N_PIXELS);
@@ -139,16 +139,16 @@ void ImageCache::_setPixel(uint8_t frame_idx, uint8_t pixel_idx,  uint8_t r, uin
   _pixelMap[frame_idx * N_PIXELS * 3 + pixel_idx * 3 + 2] = b;
 }
 
-rgbVal ImageCache::_getPixel(uint8_t frame_idx, uint8_t pixel_idx) {
+rgbVal ImageCache::getPixel(uint8_t frame_idx, uint8_t pixel_idx) {
   if (frame_idx >= N_FRAMES || pixel_idx >= N_PIXELS){
     printf("Error. Pixel index exceeds boundaries for getPixel: %d >= %d || %d >= %d ",
       frame_idx, N_FRAMES, pixel_idx, N_PIXELS);
     return makeRGBVal(0, 0, 0);
   }
-  return _makeRGBValue(&_pixelMap[frame_idx * N_PIXELS * 3 + pixel_idx * 3] );
+  return makeRGBValue(&_pixelMap[frame_idx * N_PIXELS * 3 + pixel_idx * 3] );
 }
 
-void ImageCache::_fillImageMap(rgbVal rgb){
+void ImageCache::fillImageMap(rgbVal rgb){
   for (int f=0; f<N_FRAMES; f++){
     for (int p=0; p<N_PIXELS; p++){
       _setPixel(f, p, rgb);
@@ -158,14 +158,14 @@ void ImageCache::_fillImageMap(rgbVal rgb){
 
 void ImageCache ::clearImageMap(){
 	rgbVal black = makeRGBVal(0,0,0);
-    _fillImageMap(black);
+    fillImageMap(black);
 }
 
 /**************************
  * Functions copying data *
  **************************/
 
-void ImageCache::_copyFrameToRegister(uint8_t registerId, uint8_t frame_idx, float factor){
+void ImageCache::copyFrameToRegister(uint8_t registerId, uint8_t frame_idx, float factor){
   if (frame_idx + 1 > N_FRAMES){
     printf("Error. Cannot copy frame %d (> %d) to regsiter %d\n", frame_idx, N_FRAMES, registerId);
     return;
@@ -177,7 +177,7 @@ void ImageCache::_copyFrameToRegister(uint8_t registerId, uint8_t frame_idx, flo
 
   //printf("Copying frame to register:\n");
   for (int i = 0; i < N_PIXELS; i++) {
-    rgbVal rgb = _getPixel(frame_idx, i);
+    rgbVal rgb = getPixel(frame_idx, i);
     if (factor == 1){
       _pixelRegister[registerId][i] = rgb;
     }
@@ -190,7 +190,7 @@ void ImageCache::_copyFrameToRegister(uint8_t registerId, uint8_t frame_idx, flo
   }
 }
 
-void ImageCache::_copyRegisterToRegister(uint8_t registerId1, uint8_t registerId2, float factor){
+void ImageCache::copyRegisterToRegister(uint8_t registerId1, uint8_t registerId2, float factor){
   if (registerId1 +1 > N_REGISTERS){
     printf("Error. Register %d does not exist\n", registerId1);
     return;

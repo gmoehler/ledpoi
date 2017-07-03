@@ -30,7 +30,7 @@ void PoiActionRunner::_displayRegister(uint8_t registerId){
 
 void PoiActionRunner::_displayFrame(uint8_t frame){
   //printf("Showing frame %d\n", frame);
-  _imageCache._copyFrameToRegister(0, frame);
+  _imageCache.copyFrameToRegister(0, frame);
   _displayRegister(0);
   // TODO : directly get it from image - needs rework of code
 }
@@ -48,7 +48,7 @@ void PoiActionRunner::setPixel(uint8_t scene_idx, uint8_t frame_idx, uint8_t pix
     uint8_t r, uint8_t g, uint8_t b){
   // TODO: possibly handle cases in which scene_idx changes
   _currentScene = scene_idx;
-  _imageCache._setPixel(frame_idx, pixel_idx, r, g, b);
+  _imageCache.setPixel(frame_idx, pixel_idx, r, g, b);
 }
 
 void PoiActionRunner::saveScene(uint8_t scene){
@@ -78,7 +78,7 @@ void PoiActionRunner::showStaticFrame(uint8_t scene, uint8_t frame, uint8_t time
   _updateSceneFromFlash(scene);
   uint8_t timeout = (uint16_t)timeOutMSB *256 + timeOutLSB;
   if (_logLevel != MUTE)  printf("Play static frame: %d timeout: %d \n", frame, timeout);
-  _imageCache._copyFrameToRegister(0, frame);
+  _imageCache.copyFrameToRegister(0, frame);
 
   // play initial frame right away
   _ptimer.disable();
@@ -103,7 +103,7 @@ void PoiActionRunner::playScene(uint8_t scene, uint8_t startFrame, uint8_t endFr
 
 void PoiActionRunner::showStaticRgb(uint8_t r, uint8_t g, uint8_t b, uint8_t nLeds) {
   // directly "play" out of register
-  _imageCache._fillRegister(0, makeRGBVal(r,g,b), nLeds);
+  _imageCache.fillRegister(0, makeRGBVal(r,g,b), nLeds);
 
   _currentAction = SHOW_STATIC_RGB;
   _ptimer.disable();
@@ -129,7 +129,7 @@ void PoiActionRunner::fadeToBlack(uint8_t fadeMSB, uint8_t fadeLSB){
 
    // we take what is in register 0 and remember it in register 1
    // later we will copy pixels back using a factor on the rgb values
-   _imageCache._copyRegisterToRegister(0, 1);
+   _imageCache.copyRegisterToRegister(0, 1);
 
   _ptimer.disable();
   _displayRegister(0);
@@ -152,15 +152,15 @@ void PoiActionRunner::playWorm(Color color, uint8_t registerLength, uint8_t numL
   if (_logLevel != MUTE)  printf("Play Worm Animation: Color %d Len: %d delay: %d \n",
     color, registerLength, delayMs);
 
-  _imageCache._clearRegister(0);
+  _imageCache.clearRegister(0);
   rgbVal* reg0 =  _imageCache.getRegister(0);
   if  (color == RAINBOW){
-    rgbVal red =  _imageCache._makeRGBValue(RED);
-    rgbVal green =  _imageCache._makeRGBValue(GREEN);
-    rgbVal blue =  _imageCache._makeRGBValue(BLUE);
-    rgbVal yellow =  _imageCache._makeRGBValue(YELLOW);
-    rgbVal lila =  _imageCache._makeRGBValue(LILA);
-    rgbVal cyan =  _imageCache._makeRGBValue(CYAN);
+    rgbVal red =  _imageCache.makeRGBValue(RED);
+    rgbVal green =  _imageCache.makeRGBValue(GREEN);
+    rgbVal blue =  _imageCache.makeRGBValue(BLUE);
+    rgbVal yellow =  _imageCache.makeRGBValue(YELLOW);
+    rgbVal lila =  _imageCache.makeRGBValue(LILA);
+    rgbVal cyan =  _imageCache.makeRGBValue(CYAN);
 
     // initialize register 0 with rainbow
     rgbVal rainbow[6] = {lila, blue, cyan, green, red, yellow};
@@ -169,7 +169,7 @@ void PoiActionRunner::playWorm(Color color, uint8_t registerLength, uint8_t numL
     }
   }
   else {
-   reg0[0] = _imageCache._makeRGBValue( color );
+   reg0[0] = _imageCache.makeRGBValue( color );
   }
 
   // play initial state of register right away
@@ -179,7 +179,7 @@ void PoiActionRunner::playWorm(Color color, uint8_t registerLength, uint8_t numL
   if (synchronous){
     while (true){
       _animationHandler.next();
-      _imageCache._shiftRegister(0, _animationHandler.getRegisterLength(), !_animationHandler.isLastLoop());
+      _imageCache.shiftRegister(0, _animationHandler.getRegisterLength(), !_animationHandler.isLastLoop());
       if (!_animationHandler.isActive()){
         break;
       }
@@ -196,10 +196,10 @@ void PoiActionRunner::playWorm(Color color, uint8_t registerLength, uint8_t numL
 
 void PoiActionRunner::displayIp(uint8_t ipIncrement, bool withStaticBackground){
   // set back the ip led to black
-  _imageCache._clearRegister(0);
+  _imageCache.clearRegister(0);
   if (withStaticBackground){
     rgbVal paleWhite = makeRGBVal(8,8,8);
-    _imageCache._fillRegister(0, paleWhite, N_POIS);
+    _imageCache.fillRegister(0, paleWhite, N_POIS);
   }
   rgbVal* reg0 =  _imageCache.getRegister(0);
     // display colored led (first one less bright for each)
@@ -207,22 +207,22 @@ void PoiActionRunner::displayIp(uint8_t ipIncrement, bool withStaticBackground){
   if (ipIncrement %2 == 0){
     b=8;
   }
-  rgbVal color =  _imageCache._makeRGBValue(RED, b);
+  rgbVal color =  _imageCache.makeRGBValue(RED, b);
   switch(ipIncrement/2){
     case 1:
-    color =  _imageCache._makeRGBValue(GREEN, b);
+    color =  _imageCache.makeRGBValue(GREEN, b);
     break;
 
     case 2:
-    color =  _imageCache._makeRGBValue(BLUE, b);
+    color =  _imageCache.makeRGBValue(BLUE, b);
     break;
 
     case 3:
-    color =  _imageCache._makeRGBValue(YELLOW, b);
+    color =  _imageCache.makeRGBValue(YELLOW, b);
     break;
 
     case 4:
-    color =  _imageCache._makeRGBValue(LILA, b);
+    color =  _imageCache.makeRGBValue(LILA, b);
     break;
   }
   reg0[ipIncrement]= color;
@@ -321,7 +321,7 @@ void PoiActionRunner::loop(){
       else {
         _currentAction = NO_ACTION;
         // remember last frame in register 0
-        _imageCache._copyFrameToRegister(0, _playHandler.getCurrentFrame());
+        _imageCache.copyFrameToRegister(0, _playHandler.getCurrentFrame());
         if (_logLevel != MUTE) printf("End of program PLAY_DIRECT.\n");
       }
       break;
@@ -349,7 +349,7 @@ void PoiActionRunner::loop(){
       else {
         _currentAction = NO_ACTION;
         // remember last frame in register 0
-        _imageCache._copyFrameToRegister(0,_progHandler.getCurrentFrame());
+        _imageCache.copyFrameToRegister(0,_progHandler.getCurrentFrame());
         if (_logLevel != MUTE) printf("End of program PLAY_PROG.\n");
       }
       break;
@@ -365,7 +365,7 @@ void PoiActionRunner::loop(){
       if (_logLevel == CHATTY)  _fadeHandler.printState();
       if (_fadeHandler.isActive()){
         // un-faded frame is in register 1
-        _imageCache._copyRegisterToRegister(1, 0, _fadeHandler.getCurrentFadeFactor());
+        _imageCache.copyRegisterToRegister(1, 0, _fadeHandler.getCurrentFadeFactor());
         _displayRegister(0);
       }
       else {
@@ -378,11 +378,11 @@ void PoiActionRunner::loop(){
       _animationHandler.next();
       if (_logLevel == CHATTY)  _animationHandler.printState();
       if (_animationHandler.isActive()){
-        _imageCache._shiftRegister(0, _animationHandler.getRegisterLength(), !_animationHandler.isLastLoop());
+        _imageCache.shiftRegister(0, _animationHandler.getRegisterLength(), !_animationHandler.isLastLoop());
         _displayRegister(0);
       }
       else {
-         _imageCache._clearRegister(0);
+         _imageCache.clearRegister(0);
          _displayRegister(0);
         _currentAction = NO_ACTION;
         if (_logLevel != MUTE) printf("End of program ANIMATION_WORM.\n");
