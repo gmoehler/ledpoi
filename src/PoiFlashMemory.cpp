@@ -7,35 +7,53 @@ void PoiFlashMemory::setup(LogLevel logLevel, uint8_t *initImageData){
   if (!loadNumScenes(&numScenes) || numScenes != N_SCENES){
       // initialize image partition
       printf("Initializing the image partition of the flash memory\n" );
-      eraseImages();
-      // initialize with initImageData (black)
-      for (int i=0; i< N_SCENES; i++){
-        saveImage(i, initImageData);
+      if (!_initializeImageMemory(initImageData)){
+        printf("Error. Initializing the image partition of the flash memory failed.\n" );
       }
-      saveNumScenes(N_SCENES);
   }
-  uint8_t numProgSteps = 0;
+
+  uint16_t numProgSteps = 0;
   if (!loadNumProgramSteps(&numProgSteps)){
     printf("Initializing the number of program steps to 0\n" );
     saveNumProgramSteps(numProgSteps); // initialize with 0
   }
 
+  uint8_t ipIncrement = 0;
+  if (!loadIpIncrement(&ipIncrement)){
+    printf("Initializing the ip increment to 0\n" );
+    saveIpIncrement(ipIncrement); // initialize with 0
+  }
+
   if (logLevel != MUTE) printContents();
+}
+
+void PoiFlashMemory::initializeFlash(LogLevel logLevel, uint8_t *initImageData) {
+
+  _eraseImagePartition();
+
+  // a more thorough NVS partition cleaning is done by _eraseNvsFlashPartition() 
+  // but it currently results in a cpu halt and, therefore, requires a hard reset:
+  // https://github.com/espressif/arduino-esp32/issues/365
+  // therefore erase all namespaces here:
+  _nvs_eraseCompleteNamespace(NVS_GENERAL_NAMESPACE);
+  _nvs_eraseCompleteNamespace(NVS_PROGRAM_NAMESPACE);
+  _nvs_eraseCompleteNamespace(NVS_IMAGE_NAMESPACE);
+  setup(logLevel, initImageData);
 }
 
 void PoiFlashMemory::printContents(){
 
-    listPartitions();
+    _listPartitions();
     uint8_t numScenes = 0;
     loadNumScenes(&numScenes);
-    uint8_t numProgSteps = 0;
+    uint16_t numProgSteps = 0;
     loadNumProgramSteps(&numProgSteps);
 
     printf("Flash memory has space for %d scenes and contains %d program steps.\n",
       numScenes, numProgSteps);
 }
 
-void PoiFlashMemory::listPartitions(){
+void PoiFlashMemory::_listPartitions(){
 
   printf("Available data partitions on flash memory:\n");
   esp_partition_iterator_t it = esp_partition_find(ESP_PARTITION_TYPE_DATA, ESP_PARTITION_SUBTYPE_ANY, NULL);
@@ -78,16 +96,16 @@ bool PoiFlashMemory::saveImage(uint8_t scene, uint8_t *imageData){
     printf("Error. Data partition does not exist.");
     return false;
   }
-  printf("Using partition %s at 0x%x, size 0x%x\n",
-    p->label, p->address, p->size);
+  printf("Saving scene %d to partition %s at 0x%x, size 0x%x\n",
+    scene, p->label, p->address, p->size);
 
   const uint32_t offset = scene * getSizeOfImageSection();
 
   printf("Erasing partition range %d at offset %d for image\n", getSizeOfImageSection(), offset);
   esp_err_t err = esp_partition_erase_range(p, offset, getSizeOfImageSection());
   if (err != ESP_OK){
-    printf("Error. Cannot erase partition section for new image (Errorcode: %d).\n", err);
-    return false;
+    printf("Error. Cannot erase partition section for new image (Errorcode: 0x%d).\n", err);
+    //return false;
   }
 
   printf("Writing image data\n");
@@ -124,8 +142,8 @@ bool PoiFlashMemory::loadImage(uint8_t scene, uint8_t *imageData){
   return true;
 }
 
-bool PoiFlashMemory::saveProgram(uint8_t *programData, uint8_t size_x, uint8_t size_y){
-  esp_err_t err = _nvs_save_uint8_array(NVS_PROGRAM_NAMESPACE, NVS_PROGRAM_KEY,  programData, size_x, size_y);
+bool PoiFlashMemory::saveProgram(uint8_t *programData, uint16_t numLines, uint8_t numCommands){
+  esp_err_t err = _nvs_save_uint8_array(NVS_PROGRAM_NAMESPACE, NVS_PROGRAM_KEY,  programData, numLines, numCommands);
   if (err != ESP_OK) {
     printf("Error (%4x) writing program data to flash.\n", err);
     return false;
@@ -160,8 +178,8 @@ bool PoiFlashMemory::loadIpIncrement(uint8_t *ipIncrement){
   return true;
 }
 
-bool PoiFlashMemory::saveNumProgramSteps(uint8_t numProgSteps){
-  esp_err_t err = _nvs_save_uint8(NVS_PROGRAM_NAMESPACE, NVS_NUM_PROG_STEPS_KEY, numProgSteps);
+bool PoiFlashMemory::saveNumProgramSteps(uint16_t numProgSteps){
+  esp_err_t err = _nvs_save_uint16(NVS_PROGRAM_NAMESPACE, NVS_NUM_PROG_STEPS_KEY, numProgSteps);
   if (err != ESP_OK) {
     printf("Error (%4x) writing mumber of program steps to flash.\n", err);
     return false;
@@ -169,8 +187,8 @@ bool PoiFlashMemory::saveNumProgramSteps(uint8_t numProgSteps){
   return true;
 }
 
-bool PoiFlashMemory::loadNumProgramSteps(uint8_t *numProgSteps){
-  esp_err_t err = _nvs_read_uint8(NVS_PROGRAM_NAMESPACE, NVS_NUM_PROG_STEPS_KEY, numProgSteps);
+bool PoiFlashMemory::loadNumProgramSteps(uint16_t *numProgSteps){
+  esp_err_t err = _nvs_read_uint16(NVS_PROGRAM_NAMESPACE, NVS_NUM_PROG_STEPS_KEY, numProgSteps);
   if (err != ESP_OK) {
     printf("Error (%4x) reading number of program steps from flash.\n", err);
     return false;
@@ -196,8 +214,32 @@ bool PoiFlashMemory::loadNumScenes(uint8_t *numScenes){
   return true;
 }
 
+bool PoiFlashMemory::_initializeImageMemory(uint8_t *initImageData){
 
-bool PoiFlashMemory::eraseImages(){
+  if (!_eraseImagePartition()){
+    return false;
+  }
+  
+  // then remove nvs namespace with image data (number of images for now)
+  esp_err_t err = _nvs_eraseCompleteNamespace(NVS_IMAGE_NAMESPACE);
+  if (err != ESP_OK) {
+    printf("Error (%4x) while erasing images.\n", err);
+    return false;
+  }
+
+  // initialize with initImageData (black)
+  for (int i=0; i< N_SCENES; i++){
+    if (!saveImage(i, initImageData)){
+      return false;
+    }
+  }
+  if (!saveNumScenes(N_SCENES)){
+    return false;
+  }
+  return true;
+}
+
+bool PoiFlashMemory::_eraseImagePartition(){
 
 	// first remove image data
   const esp_partition_t *p = _getDataPartition();
@@ -215,18 +257,10 @@ bool PoiFlashMemory::eraseImages(){
     return false;
   }
 
-  // TODO: initialize images with 0s (instead of 255s)
-
-  // then remove nvs namespace with image data (number of images for now)
-  err = _nvs_eraseCompleteNamespace(NVS_IMAGE_NAMESPACE);
-  if (err != ESP_OK) {
-    printf("Error (%4x) while erasing images.\n", err);
-    return false;
-  }
   return true;
 }
 
-bool PoiFlashMemory::eraseProgram(){
+bool PoiFlashMemory::_initializeProgramMemory(){
   esp_err_t  err = _nvs_eraseCompleteNamespace(NVS_PROGRAM_NAMESPACE);
   if (err != ESP_OK) {
     printf("Error (%4x) while erasing program.\n", err);
@@ -263,7 +297,7 @@ esp_err_t PoiFlashMemory::_nvs_save_uint8(const char* mynamespace, const char* k
 }
 
 esp_err_t PoiFlashMemory::_nvs_save_uint8_array(const char* mynamespace, const char* key,
-    uint8_t *data, uint8_t size_x, uint8_t size_y){
+    uint8_t *data, uint16_t numLines, uint8_t numCommands){
   nvs_handle my_handle;
   esp_err_t err;
 
@@ -273,9 +307,30 @@ esp_err_t PoiFlashMemory::_nvs_save_uint8_array(const char* mynamespace, const c
   if (err != ESP_OK) return err;
 
   // Write prog values
-  size_t required_size = sizeof(uint8_t)*size_x*size_y;
+  size_t required_size = sizeof(uint8_t)*numLines*numCommands;
   printf("Size: %d\n", required_size);
   err = nvs_set_blob(my_handle, key, data, required_size);
+  if (err != ESP_OK) return err;
+
+  // Commit
+  err = nvs_commit(my_handle);
+  if (err != ESP_OK) return err;
+
+  // Close
+  nvs_close(my_handle);
+  return ESP_OK;
+}
+
+esp_err_t PoiFlashMemory::_nvs_save_uint16(const char* mynamespace, const char* key, uint16_t value){
+  nvs_handle my_handle;
+  esp_err_t err;
+
+  // Open
+  printf("Writing uint16_t value %d with key %s to flash nvs...\n", value, key );
+  err = nvs_open(mynamespace, NVS_READWRITE, &my_handle);
+  if (err != ESP_OK) return err;
+
+  err = nvs_set_u16(my_handle, key, value);
   if (err != ESP_OK) return err;
 
   // Commit
@@ -334,6 +389,24 @@ esp_err_t PoiFlashMemory::_nvs_read_uint8_array(const char* mynamespace, const c
   return ESP_OK;
 }
 
+esp_err_t PoiFlashMemory::_nvs_read_uint16(const char* mynamespace, const char* key, uint16_t *value){
+  nvs_handle my_handle;
+  esp_err_t err;
+
+  // Open
+  printf("Reading uint16_t with key %s from flash nvs...\n", key );
+  err = nvs_open(mynamespace, NVS_READONLY, &my_handle);
+  if (err != ESP_OK) return err;
+
+  err = nvs_get_u16(my_handle, key,  value);
+  if (err != ESP_OK && err != ESP_ERR_NVS_NOT_FOUND) return err;
+  printf("Read value: %d\n", *value);
+
+  // Close
+  nvs_close(my_handle);
+  return ESP_OK;
+}
+
 
 esp_err_t PoiFlashMemory::_nvs_eraseCompleteNamespace(const char* mynamespace){
 
@@ -357,7 +430,7 @@ esp_err_t PoiFlashMemory::_nvs_eraseCompleteNamespace(const char* mynamespace){
   return ESP_OK;
 }
 
-bool PoiFlashMemory::eraseNvsFlashPartition(){
+bool PoiFlashMemory::_eraseNvsFlashPartition(){
   // NVS partition was truncated and needs to be erased
   printf("Erasing complete NVS flash partition.\n");
   const esp_partition_t* nvs_partition = esp_partition_find_first(

@@ -262,7 +262,7 @@ void realize_cmd(){
 
       case 9:
       if (logLevel != MUTE) Serial.println("Completely erasing and initializing flash.");
-      runner.resetFlash();
+      runner.initializeFlash();
 
       case 10:
       if (logLevel != MUTE) Serial.println("Connection close command received.");
@@ -382,7 +382,7 @@ void click1() {
     }
     printf("IP Increment: %d\n", ipIncrement);
     // display colored led (first one less bright for each)
-    runner.displayIp(ipIncrement);
+    runner.displayIp(ipIncrement, false);
   }
   else if (poiState == POI_AWAIT_PROGRAM_SYNC){
     nextPoiState = POI_PLAY_PROGRAM;
@@ -462,8 +462,8 @@ void loop()
     // user needs to long press to set ip
     if (state_changed){
       poi_network_display_entered = millis();
-      // show a pale white
-      runner.showStaticRgb(8, 8, 8, N_POIS);
+      // show ip with pale white background
+      runner.displayIp(ipIncrement, true);
     }
     currentTime = millis();
     if (currentTime-poi_network_display_entered > 5000){
@@ -475,7 +475,7 @@ void loop()
     case POI_IP_CONFIG:
     if (state_changed){
       runner.playWorm(RAINBOW, N_POIS, 1);
-      runner.displayIp(ipIncrement);
+      runner.displayIp(ipIncrement, false);
     }
     // operation is done thru click1
     break;
@@ -510,10 +510,11 @@ void loop()
         }
       }
 
-      if (protocol_is_data()){
+      if (protocol_is_data()){ // image data
         // only print once
         if (logLevel != MUTE && !loadingImgData){
           printf("Reading image data... \n");
+//          runner.playWorm(PALE_WHITE, N_POIS, 0, false); // async forever
           // currently required since we write directly into image memory
           // TODO: add start command for image loading (with scene id)
           //       which will remove current image from memory
@@ -523,6 +524,7 @@ void loop()
         loadingImgData = true;
       }
       else {
+//        runner.pauseAction(); // finish worm
         loadingImgData = false;
       }
 

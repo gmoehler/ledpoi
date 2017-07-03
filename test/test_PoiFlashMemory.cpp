@@ -8,7 +8,7 @@ TEST(PoiFlashMemory_tests, testnvm){
   PoiFlashMemory flash;
 
   flash.saveNumProgramSteps(11);
-  uint8_t numProgSteps = 0;
+  uint16_t numProgSteps = 0;
   flash.loadNumProgramSteps(&numProgSteps);
   EXPECT_EQ(numProgSteps, 11);
 

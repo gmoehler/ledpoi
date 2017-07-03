@@ -14,7 +14,7 @@
     return true;
   }
 
-  bool PoiFlashMemory::saveProgram(uint8_t* programData, uint8_t size_x, uint8_t size_y){
+  bool PoiFlashMemory::saveProgram(uint8_t* programData, uint16_t size_x, uint8_t size_y){
    for (int i=0; i< N_PROG_STEPS; i++){
       for (int j=0; j< N_PROG_FIELDS; j++){
         _prog[i][j] = programData [ i*N_PROG_FIELDS+j ];
@@ -32,11 +32,11 @@
     return true;
   }
 
-  bool PoiFlashMemory::saveNumProgramSteps(uint8_t numProgSteps) {
+  bool PoiFlashMemory::saveNumProgramSteps(uint16_t numProgSteps) {
     _numProgSteps = numProgSteps;
     return true;
   }
-  bool PoiFlashMemory::loadNumProgramSteps(uint8_t* numProgSteps){
+  bool PoiFlashMemory::loadNumProgramSteps(uint16_t* numProgSteps){
     *numProgSteps = _numProgSteps;
     return true;
   }
@@ -59,8 +59,9 @@
     return true;
   }
 
-  bool PoiFlashMemory::eraseImages(){
+  bool PoiFlashMemory::_initializeImageMemory(){
     //TODO
+    _numScenes=0;
     return true;
   }
   bool PoiFlashMemory::eraseNvsFlashPartition(){
@@ -69,17 +70,18 @@
     _ipIncrement = 0;
     return true;
   }
-  bool PoiFlashMemory::eraseProgram(){
+  bool PoiFlashMemory::_initializeProgramMemory(){
     for (int i=0; i< N_PROG_STEPS; i++){
       for (int j=0; j< N_PROG_FIELDS; j++){
           _prog[i][j] = 0;
       }
     }
+    _numProgSteps=0;
     return true;
   }
 
 
-  void PoiFlashMemory::listPartitions(){
+  void PoiFlashMemory::_listPartitions(){
     // not required for mock
     return;
   }
