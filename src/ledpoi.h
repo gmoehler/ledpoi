@@ -14,24 +14,38 @@
 
 // assuming a 2MB flash partition, this is less than
 // 2M / ( 4096 * N_NUM_IMAGE_SECTIONS )
-#define N_SCENES 50
+#define N_SCENES 49
 
-
-#define N_PROG_STEPS 50
+#define N_PROG_STEPS 512
 #define N_PROG_FIELDS 5
+
+#define N_REGISTERS 2
 
 enum LogLevel { CHATTY, QUIET, MUTE};
 
-enum CmdType {  PROG_END,
-                LABEL,
-                SYNC_POINT,
-                PLAY_FRAMES,
-                LOOP,
-                SET_SCENE,
-                PRESET_RGB,
-                FADE_TO_RGB,
-                FADE_TO_FRAME
+enum CmdType {  PROG_END,     // 0
+                LABEL,        // 1
+                SYNC_POINT,   // 2
+                PLAY_FRAMES,  // 3
+                LOOP,         // 4 
+                SET_SCENE,    // 5
+                PRESET_RGB,   // 6
+                FADE_TO_RGB,  // 7
+                FADE_TO_FRAME,// 8
+                JUMPTO          // 9
               };
 
+// currently mainly used for playWorm()
+enum Color {       WHITE,   // 0
+                   BLACK,   // 1
+                   RED,
+                   GREEN,
+                   BLUE,
+                   YELLOW,
+                   LILA,
+                   CYAN,
+                   RAINBOW,  // 8
+                   PALE_WHITE
+                   };
 
 #endif

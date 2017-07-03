@@ -22,20 +22,19 @@ Byte[n] may not contain any 0xFF!
 ||jumpTo||6|syncId||||done|jump to label with syncId immediatelly - if syncId==0 jump to next syncId|
 ||setIP||7|IP1|IP2|IP3|IP4||0.0.0.0: use DHCP|
 ||setGW||8|GW1|GW2|GW3|GW4|||
-||clientDisconnect||9/10|||||done|tell poi (server) to disconnect from PC (client)|
+||initializeFlash||9|||||done|initialize(clear) flash completely|
+||clientDisconnect||10|||||done|tell poi (server) to disconnect from PC (client)|
 |**setProg**||**253**|*progCMD*|*param0*|*param1*|*param2*|*param3*|||
 ||ProgramEnd||0|||||(done)|End of program|
-||label||1|labelId|||||labelCode is *name* of label (labelCode > 0) - syncId for syncImpulse (syncId > 0), syncIds start with 1 |
-||syncPoint||2|sequenceId|||||sync points for jumpTo action|
+||label||1|labelId|||||define label with id |
+||syncPoint||2|sequenceId|||||define sync point for jumpTo action|
 ||play||3|frameStart|frameEnd|delayMSB|delay LSB|done|Play frames of active scene, or single frame with timeout|
-||loop||4|loopCt MSB|loopCt LSB|loopStart labelCode||(done)|loop starting at label with labelCode - or prev command if labelCode=0|
+||loop||4|loopCt MSB|loopCt LSB|labelId||(done)|loop starting at label with labelId|
 ||setActiveScene||5|scene||||(done)||
 ||presetRGB||6|r|g|b|||pre-set RGB color for following commands|
 ||FadetoRGB||7|scene|frame|delayMSB|delay LSB||goto next [scene/frame] - nofade|
 ||FadetoFrame||8|scene|frame|delayMSB|delay LSB||goto next [scene/frame] - nofade|
-||spiralIn||9|delayMSB|delayLSB||||spiral turning in with delay spec before|
-||spiralOut||10|delayMSB|delayMSB||||spiral turning out with delay spec before|
-||allOneColor||11|timeOutMSB|timeOutMSB||||spiral turning out with delay spec before|
+||jumpto||9|labelId|||||jump to label with labelId|
 ||||*default*||||||do nothing|
 |**playDirect**||**252**|scene|start|end|delay |loops|||
 |**endOfMessage**||**251**|||||||end of message  - client can disconnect|

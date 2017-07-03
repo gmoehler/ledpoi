@@ -14,11 +14,13 @@ void PoiProgramHandler::setup(){
 		if (_numProgSteps > 0){
 			if (_flashMemory.loadProgram(&_prog[0][0])){
 
+          _updateLabels();
 					loadingSuccess = true;
 
 					if (_logLevel != MUTE) {
 						printf("Program loaded from flash.\n");
-						printf("Program read (%d lines):\n", _numProgSteps);
+						printf("Program read (%d cmds, %d labels, %d sync points):\n", 
+              _numProgSteps, _labelMap.size(), _syncMap.size());
 						_printProgram();
 					}
 				}
@@ -34,6 +36,15 @@ void PoiProgramHandler::setup(){
 		_clearProgram();
 	}
 	_duringProgramming = false;
+}
+
+void PoiProgramHandler::_updateLabels(){
+  _labelMap.clear();
+	for (int i=0; i<_numProgSteps; i++){
+    if (_prog[i][0] == LABEL){
+      _labelMap[_prog[i][1]] = i;
+    }
+	}
 }
 
 void PoiProgramHandler::_printProgram(){
@@ -125,7 +136,7 @@ CmdType PoiProgramHandler::_getCommandType(uint8_t cmd[6]){
   return (CmdType) cmd[0];
 }
 
-void PoiProgramHandler::addCmdToProgram(char cmd[7]){
+void PoiProgramHandler::addCmdToProgram(unsigned char cmd[7]){
 
   if (_numProgSteps >= N_PROG_STEPS){
     printf("Error. Number of programming steps exceeds maximum (%d).\n", N_PROG_STEPS);
@@ -167,15 +178,7 @@ void PoiProgramHandler::addCmdToProgram(char cmd[7]){
 
   if ((CmdType) cmd[1] == LABEL){
     // keep labels separate in a map along with (next) cmd number
-    if (cmd[2] != 0) {
-      _labelMap[cmd[2]] = _numProgSteps;
-    }
-    else {
-      printf("Error. Label code cannot be zero.\n" );
-    }
-    if (cmd[3] != 0) {
-      _syncMap[cmd[3]] = _numProgSteps;
-    }
+    _labelMap[cmd[2]] = _numProgSteps;
   }
 
   // add cmd to program memory
@@ -265,6 +268,12 @@ void PoiProgramHandler::_evaluateCommand(uint8_t index) {
     }
     break;
 
+    case JUMPTO:
+    if (!_jumpToLabel(cmd[1])){
+      printf("Error. Goto aborded.\n" );
+    }
+    break;
+
     default:
     break;
   }
@@ -307,7 +316,12 @@ void PoiProgramHandler::printInfo(){
 }
 
 void PoiProgramHandler::printState(){
-  printf("ProgramHandler: Active: %d Current cmd: %d [%d %d %d %d %d].\n", _currentProgStep,
-		_prog[_currentProgStep][0], _prog[_currentProgStep][1], _prog[_currentProgStep][2], _prog[_currentProgStep][3], _prog[_currentProgStep][4]);
+  printf("ProgramHandler: Active: %d Current cmd: %d [%d %d %d %d].\n",
+		_currentProgStep, _prog[_currentProgStep][0], _prog[_currentProgStep][1],
+		_prog[_currentProgStep][2], _prog[_currentProgStep][3], _prog[_currentProgStep][4]);
 	_playHandler.printState();
+}
+
+uint8_t PoiProgramHandler::getNumProgSteps(){
+	return _numProgSteps;
 }

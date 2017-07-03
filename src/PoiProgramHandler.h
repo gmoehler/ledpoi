@@ -1,12 +1,17 @@
 #ifndef POI_PROGRAM_HANDLER_H
 #define POI_PROGRAM_HANDLER_H
 
-#include <Arduino.h>
+#ifndef WITHIN_UNITTEST
+  #include <Arduino.h>
+  #include "PoiFlashMemory.h"
+#else
+  #include "../test/mock_Arduino.h"
+  #include "../test/mock_PoiFlashMemory.h"
+#endif
+
 #include <map>
 #include "ledpoi.h"
-#include "PoiTimer.h"
 #include "PlayHandler.h"
-#include "PoiFlashMemory.h"
 
 /**
  * Holds the information for a fade action on a given frame in the scene
@@ -17,9 +22,10 @@ class PoiProgramHandler
 public:
   PoiProgramHandler(PlayHandler& playHandler, PoiFlashMemory& flashMemory, LogLevel logLevel);
   void setup();
-  void addCmdToProgram(char cmd[7]);
+  void addCmdToProgram(unsigned char cmd[7]);
   void init(); // init program start
-  void next();
+
+  void next(); // next program line
 
   bool checkProgram();
   bool syncNow(uint8_t syncId);
@@ -34,13 +40,14 @@ public:
 
   void printInfo();
   void printState();
+  uint8_t getNumProgSteps();
 
 private:
   bool _active;
   bool _duringProgramming;
   bool _delayChanged;
   bool _inLoop;
-  uint8_t _numProgSteps;
+  uint16_t _numProgSteps;
   uint8_t _currentProgStep;
   uint8_t _numLoops;
   uint16_t _currentLoop;
@@ -55,6 +62,7 @@ private:
 
   bool _isProgramFinished();
   void _clearProgram();
+  void _updateLabels();
   CmdType _getCommandType(uint8_t cmd[N_PROG_FIELDS]);
   void _nextProgramStep(bool initial=false);
   void _evaluateCommand(uint8_t index);

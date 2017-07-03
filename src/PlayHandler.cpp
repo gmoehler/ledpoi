@@ -1,8 +1,10 @@
 #include "PlayHandler.h"
 
 PlayHandler::PlayHandler() :
- _numLoops(0), _startFrame(0), _endFrame(0), _delayMs(100),
-_currentFrame (0), _currentLoop(0), _active(false) {}
+ _startFrame(0), _endFrame(0), _delayMs(0),
+ _numLoops(0),
+ _currentFrame (0), _currentLoop(0),
+ _active(false), _forward(true) {}
 
 void PlayHandler::init(uint8_t startFrame, uint8_t endFrame, uint16_t delay, uint16_t loops) {
 
@@ -59,6 +61,10 @@ void PlayHandler::next(){
 
 bool PlayHandler::isActive(){
   return _active;
+}
+
+bool PlayHandler::isLastStep(){
+  return (_currentFrame == _endFrame && _currentLoop == _numLoops - 1 && _active);
 }
 
 uint16_t PlayHandler::getDelayMs(){
