@@ -16,7 +16,7 @@
 // 2M / ( 4096 * N_NUM_IMAGE_SECTIONS )
 #define N_SCENES 49
 
-#define N_PROG_STEPS 1024
+#define N_PROG_STEPS 512
 #define N_PROG_FIELDS 5
 
 #define N_REGISTERS 2
