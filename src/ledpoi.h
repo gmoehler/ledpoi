@@ -14,10 +14,9 @@
 
 // assuming a 2MB flash partition, this is less than
 // 2M / ( 4096 * N_NUM_IMAGE_SECTIONS )
-#define N_SCENES 50
+#define N_SCENES 49
 
-
-#define N_PROG_STEPS 50
+#define N_PROG_STEPS 512
 #define N_PROG_FIELDS 5
 
 #define N_REGISTERS 2
@@ -45,7 +44,8 @@ enum Color {       WHITE,   // 0
                    YELLOW,
                    LILA,
                    CYAN,
-                   RAINBOW  // 8
+                   RAINBOW,  // 8
+                   PALE_WHITE
                    };
 
 #endif

@@ -48,7 +48,7 @@ public:
   void pauseAction();
   void jumptoSync(uint8_t syncId);
   void playWorm(Color color, uint8_t registerLength, uint8_t numLoops, bool synchronous = true);
-  void displayIp(uint8_t ipIncrement);
+  void displayIp(uint8_t ipIncrement, bool withStaticBackgroun);
 
   // program related methods
   void addCmdToProgram(unsigned char cmd[7]);
@@ -62,7 +62,8 @@ public:
   void setup();             // to be called in setup()
   void loop();               // to be called in the loop
   void onInterrupt();   // to be called during the timer interrupt
-  void resetFlash();
+  
+  void initializeFlash();
   void clearImageMap();
 
 private:

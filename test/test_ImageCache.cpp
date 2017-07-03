@@ -27,7 +27,7 @@ TEST(ImageCache_tests, checkImageMapAfterDecl){
   
   for (int i=0; i< N_FRAMES; i++){
     for (int j=0; j< N_PIXELS; j+=10){
-      rgbVal px = icache._getPixel(i,j);
+      rgbVal px = icache.getPixel(i,j);
     	EXPECT_EQ(px.r, 0);
     	EXPECT_EQ(px.g, 0);
     	EXPECT_EQ(px.b, 0);
@@ -38,9 +38,9 @@ TEST(ImageCache_tests, checkImageMapAfterDecl){
 TEST(ImageCache_tests, fillRegisters){
 
   ImageCache icache(3*N_FRAMES*N_PIXELS, MUTE);
-  rgbVal rgb = icache._makeRGBValue(LILA);
+  rgbVal rgb = icache.makeRGBValue(LILA);
   for (int i=0; i< N_REGISTERS; i++){
-    icache._fillRegister(i, rgb);
+    icache.fillRegister(i, rgb);
   }
 
   for (int i=0; i< N_REGISTERS; i++){
@@ -57,13 +57,13 @@ TEST(ImageCache_tests, fillImagemap){
 
   ImageCache icache(3*N_FRAMES*N_PIXELS, MUTE);
   uint8_t rgbArray[3] = {11,111,222};
-  rgbVal rgb = icache._makeRGBValue(rgbArray);
+  rgbVal rgb = icache.makeRGBValue(rgbArray);
 
-  icache._fillImageMap(rgb);
+  icache.fillImageMap(rgb);
 
   for (int i=0; i< N_FRAMES; i++){
     for (int j=0; j< N_PIXELS; j+=10){
-      rgbVal px = icache._getPixel(i,j);
+      rgbVal px = icache.getPixel(i,j);
     	EXPECT_EQ(px.r, 11);
     	EXPECT_EQ(px.g, 111);
     	EXPECT_EQ(px.b, 222);
@@ -77,7 +77,7 @@ TEST(ImageCache_tests, setClearImagemap){
  
   for (int i=0; i< N_FRAMES; i++){
     for (int j=0; j< N_PIXELS; j+=10){
-      icache._setPixel(i,j,
+      icache.setPixel(i,j,
         tVal(i,j,1),
         tVal(i,j,2),
         tVal(i,j,3)
@@ -86,7 +86,7 @@ TEST(ImageCache_tests, setClearImagemap){
   }
  for (int i=0; i< N_FRAMES; i++){
     for (int j=0; j< N_PIXELS; j+=10){
-      rgbVal px = icache._getPixel(i,j);
+      rgbVal px = icache.getPixel(i,j);
     	EXPECT_EQ(px.r, tVal(i,j,1));
     	EXPECT_EQ(px.g, tVal(i,j,2));
     	EXPECT_EQ(px.b, tVal(i,j,3));
@@ -95,7 +95,7 @@ TEST(ImageCache_tests, setClearImagemap){
   icache.clearImageMap();
   for (int i=0; i< N_FRAMES; i++){
     for (int j=0; j< N_PIXELS; j+=10){
-      rgbVal px = icache._getPixel(i,j);
+      rgbVal px = icache.getPixel(i,j);
     	EXPECT_EQ(px.r, 0);
     	EXPECT_EQ(px.g, 0);
     	EXPECT_EQ(px.b, 0);
@@ -108,7 +108,7 @@ TEST(ImageCache_tests, shiftRegisters){
 
   ImageCache icache(3*N_FRAMES*N_PIXELS, MUTE);
   uint8_t rgbArray[3] = {11,111,222};
-  rgbVal rgb = icache._makeRGBValue(rgbArray);
+  rgbVal rgb = icache.makeRGBValue(rgbArray);
 
   for (int i=0; i< N_REGISTERS; i++){
     rgbVal* r = icache.getRegister(i);
@@ -133,7 +133,7 @@ TEST(ImageCache_tests, shiftRegisters){
     	    EXPECT_EQ(r[k].b, 0);         
         }
       }
-      icache._shiftRegister(i,3,false);
+      icache.shiftRegister(i,3,false);
     }
   }
 }
@@ -142,7 +142,7 @@ TEST(ImageCache_tests, shiftRegistersCyclic){
 
   ImageCache icache(3*N_FRAMES*N_PIXELS, MUTE);
   uint8_t rgbArray[3] = {11,111,222};
-  rgbVal rgb = icache._makeRGBValue(rgbArray);
+  rgbVal rgb = icache.makeRGBValue(rgbArray);
 
   for (int i=0; i< N_REGISTERS; i++){
     rgbVal* r = icache.getRegister(i);
@@ -167,7 +167,7 @@ TEST(ImageCache_tests, shiftRegistersCyclic){
     	    EXPECT_EQ(r[k].b, 0);         
         }
       }
-      icache._shiftRegister(i,3,true);
+      icache.shiftRegister(i,3,true);
     }
   }
 }
@@ -179,7 +179,7 @@ TEST(ImageCache_tests, copyFrameToRegisterToRegister){
  
   for (int i=0; i< N_FRAMES; i++){
     for (int j=0; j< N_PIXELS; j++){
-      icache._setPixel(i,j,
+      icache.setPixel(i,j,
         tVal(i,j,1),
         tVal(i,j,2),
         tVal(i,j,3)
@@ -189,8 +189,8 @@ TEST(ImageCache_tests, copyFrameToRegisterToRegister){
 
   for (int i=0; i< N_REGISTERS; i++){
     uint8_t frame = 11+10*i;
-    icache._copyFrameToRegister(i,frame);
-    icache.printRegister(i);
+    icache.copyFrameToRegister(i,frame);
+    //icache.printRegister(i);
 	  rgbVal* r = icache.getRegister(i);
     for (int j=0; j< N_PIXELS; j++){
     	EXPECT_EQ(r[j].r, tVal(frame,j,1));
@@ -199,9 +199,9 @@ TEST(ImageCache_tests, copyFrameToRegisterToRegister){
     }
   }
 
-  icache._copyRegisterToRegister(0,1);
+  icache.copyRegisterToRegister(0,1);
   uint8_t frame = 11;
-  icache.printRegister(1);
+  //icache.printRegister(1);
   rgbVal* r = icache.getRegister(1);
   for (int j=0; j< N_PIXELS; j++){
     EXPECT_EQ(r[j].r, tVal(frame,j,1));
@@ -217,7 +217,7 @@ TEST(ImageCache_tests, copyFrameToRegisterToRegisterFactor){
  
   for (int i=0; i< N_FRAMES; i++){
     for (int j=0; j< N_PIXELS; j++){
-      icache._setPixel(i,j,
+      icache.setPixel(i,j,
         tVal(i,j,1),
         tVal(i,j,2),
         tVal(i,j,3)
@@ -227,8 +227,8 @@ TEST(ImageCache_tests, copyFrameToRegisterToRegisterFactor){
 
   for (int i=0; i< N_REGISTERS; i++){
     uint8_t frame = 11+10*i;
-    icache._copyFrameToRegister(i,frame, 0.5);
-    icache.printRegister(i);
+    icache.copyFrameToRegister(i,frame, 0.5);
+    //icache.printRegister(i);
 	  rgbVal* r = icache.getRegister(i);
     for (int j=0; j< N_PIXELS; j++){
     	EXPECT_EQ(r[j].r, tVal(frame,j,1)/2);
@@ -237,9 +237,9 @@ TEST(ImageCache_tests, copyFrameToRegisterToRegisterFactor){
     }
   }
 
-  icache._copyRegisterToRegister(0,1);
+  icache.copyRegisterToRegister(0,1);
   uint8_t frame = 11;
-  icache.printRegister(1);
+  //icache.printRegister(1);
   rgbVal* r = icache.getRegister(1);
   for (int j=0; j< N_PIXELS; j++){
     EXPECT_EQ(r[j].r, tVal(frame,j,1)/2);
