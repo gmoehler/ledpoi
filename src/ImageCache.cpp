@@ -23,60 +23,6 @@ uint8_t* ImageCache::getRawImageData(){
     return _pixelMap;
 }
 
-/**********************
-  * Utility functions *
-  *********************/
-// version that takes an rgb array
-rgbVal ImageCache::makeRGBValue(uint8_t *rgb_array){
-  return makeRGBVal(rgb_array[0], rgb_array[1], rgb_array[2]);
-}
-rgbVal ImageCache::makeRGBValue(Color color, uint8_t brightness){
-  rgbVal rgb = makeRGBVal(0,0,0);
-  uint8_t b = brightness;
-  switch (color){
-  	case WHITE:
-      rgb = makeRGBVal(b,b,b);
-      break;
-
-  	case BLACK:
-      rgb = makeRGBVal(0,0,0);
-      break;
-
-      case RED:
-      rgb = makeRGBVal(b,0,0);
-      break;
-
-      case GREEN:
-      rgb = makeRGBVal(0,b,0);
-      break;
-
-      case BLUE:
-      rgb = makeRGBVal(0,0,b);
-      break;
-
-      case YELLOW:
-      rgb = makeRGBVal(b,b,0);
-      break;
-
-      case LILA:
-      rgb = makeRGBVal(b,0,b);
-      break;
-
-      case CYAN:
-      rgb = makeRGBVal(0,b,b);
-      break;
-
-      case PALE_WHITE:
-      rgb = makeRGBVal(8,8,8);
-      break;
-
-      default:
-      //RAINBOW is not handled here -> black
-      break;
-      }
-      return rgb;
-}
-
 /************************************
  * Functions dealing with registers *
  ************************************/ 
@@ -124,7 +70,13 @@ void ImageCache::shiftRegister(uint8_t registerId1, uint8_t shiftRegisterLength,
  * Functions dealing with the image map *
  ****************************************/ 
 
-void ImageCache::_setPixel(uint8_t frame_idx, uint8_t pixel_idx, rgbVal pixel){
+void ImageCache::setPixel(uint8_t frame_idx, uint8_t pixel_idx, Color color){
+  rgbVal pixel = makeRGBValue(color);
+  setPixel(frame_idx, pixel_idx,  pixel.r, pixel.g, pixel.b);
+}
+
+
+void ImageCache::setPixel(uint8_t frame_idx, uint8_t pixel_idx, rgbVal pixel){
   setPixel(frame_idx, pixel_idx,  pixel.r, pixel.g, pixel.b);
 }
 
@@ -151,7 +103,7 @@ rgbVal ImageCache::getPixel(uint8_t frame_idx, uint8_t pixel_idx) {
 void ImageCache::fillImageMap(rgbVal rgb){
   for (int f=0; f<N_FRAMES; f++){
     for (int p=0; p<N_PIXELS; p++){
-      _setPixel(f, p, rgb);
+      setPixel(f, p, rgb);
     }
   }
 }

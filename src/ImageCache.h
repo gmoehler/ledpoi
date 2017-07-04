@@ -20,17 +20,15 @@ public:
   ImageCache(uint32_t size, LogLevel loglevel);
   uint8_t* getRawImageData();
 
-  rgbVal makeRGBValue(Color color, uint8_t brightness=255);
-  rgbVal makeRGBValue(uint8_t rgb_array[3]);
-
   rgbVal* getRegister(uint8_t i);
   void printRegister(uint8_t i);
   void fillRegister(uint8_t registerId, rgbVal rgb, uint8_t nLeds=N_PIXELS);
   void clearRegister(uint8_t registerId); // fill with black
   void shiftRegister(uint8_t registerId1, uint8_t shiftRegisterLength, bool cyclic=false);
 
+  void setPixel(uint8_t frame_idx, uint8_t pixel_idx, Color color);
   void setPixel(uint8_t frame_idx, uint8_t pixel_idx,  uint8_t r, uint8_t g, uint8_t b);
-  void _setPixel(uint8_t frame_idx, uint8_t pixel_idx, rgbVal pixel);
+  void setPixel(uint8_t frame_idx, uint8_t pixel_idx, rgbVal pixel);
   rgbVal getPixel(uint8_t frame_idx, uint8_t pixel_idx);
 
   void clearImageMap();

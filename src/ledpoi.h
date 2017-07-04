@@ -1,6 +1,12 @@
 #ifndef LEDPOI_H
 #define LEDPOI_H
 
+#ifndef WITHIN_UNITTEST
+  #include <ws2812.h>
+#else
+  #include "../test/mock_ws2812.h"
+#endif
+
 // maximum number of pois that can be configured
 #define N_POIS 10
 
@@ -47,5 +53,11 @@ enum Color {       WHITE,   // 0
                    RAINBOW,  // 8
                    PALE_WHITE
                    };
+
+
+rgbVal makeRGBValue(uint8_t *rgb_array);
+
+rgbVal makeRGBValue(Color color, uint8_t brightness=255);
+
 
 #endif

@@ -2,6 +2,7 @@
 
 PoiActionRunner::PoiActionRunner(PoiTimer& ptimer, LogLevel logLevel) :
   _currentAction(NO_ACTION), _currentSyncId(0), _currentScene(0),
+  _playHandler(_imageCache),
   _imageCache(_flashMemory.getSizeOfImageSection(), logLevel), _ptimer(ptimer),
   _progHandler(_playHandler, _flashMemory, logLevel),
   _logLevel(logLevel)
@@ -97,7 +98,7 @@ void PoiActionRunner::playScene(uint8_t scene, uint8_t startFrame, uint8_t endFr
 
   // play initial frame right away
   _ptimer.disable();
-  _displayFrame(_playHandler.getCurrentFrame());
+  _displayRegister(0);
   _ptimer.setIntervalAndEnable( _playHandler.getDelayMs() );
 }
 
@@ -155,12 +156,12 @@ void PoiActionRunner::playWorm(Color color, uint8_t registerLength, uint8_t numL
   _imageCache.clearRegister(0);
   rgbVal* reg0 =  _imageCache.getRegister(0);
   if  (color == RAINBOW){
-    rgbVal red =  _imageCache.makeRGBValue(RED);
-    rgbVal green =  _imageCache.makeRGBValue(GREEN);
-    rgbVal blue =  _imageCache.makeRGBValue(BLUE);
-    rgbVal yellow =  _imageCache.makeRGBValue(YELLOW);
-    rgbVal lila =  _imageCache.makeRGBValue(LILA);
-    rgbVal cyan =  _imageCache.makeRGBValue(CYAN);
+    rgbVal red =  makeRGBValue(RED);
+    rgbVal green =  makeRGBValue(GREEN);
+    rgbVal blue =  makeRGBValue(BLUE);
+    rgbVal yellow =  makeRGBValue(YELLOW);
+    rgbVal lila =  makeRGBValue(LILA);
+    rgbVal cyan =  makeRGBValue(CYAN);
 
     // initialize register 0 with rainbow
     rgbVal rainbow[6] = {lila, blue, cyan, green, red, yellow};
@@ -169,7 +170,7 @@ void PoiActionRunner::playWorm(Color color, uint8_t registerLength, uint8_t numL
     }
   }
   else {
-   reg0[0] = _imageCache.makeRGBValue( color );
+   reg0[0] = makeRGBValue( color );
   }
 
   // play initial state of register right away
@@ -207,22 +208,22 @@ void PoiActionRunner::displayIp(uint8_t ipIncrement, bool withStaticBackground){
   if (ipIncrement %2 == 0){
     b=8;
   }
-  rgbVal color =  _imageCache.makeRGBValue(RED, b);
+  rgbVal color =  makeRGBValue(RED, b);
   switch(ipIncrement/2){
     case 1:
-    color =  _imageCache.makeRGBValue(GREEN, b);
+    color =  makeRGBValue(GREEN, b);
     break;
 
     case 2:
-    color =  _imageCache.makeRGBValue(BLUE, b);
+    color =  makeRGBValue(BLUE, b);
     break;
 
     case 3:
-    color =  _imageCache.makeRGBValue(YELLOW, b);
+    color =  makeRGBValue(YELLOW, b);
     break;
 
     case 4:
-    color =  _imageCache.makeRGBValue(LILA, b);
+    color =  makeRGBValue(LILA, b);
     break;
   }
   reg0[ipIncrement]= color;
@@ -316,12 +317,10 @@ void PoiActionRunner::loop(){
       _playHandler.next();
       if (_logLevel == CHATTY) _playHandler.printState();
       if (_playHandler.isActive()){
-        _displayFrame(_playHandler.getCurrentFrame());
+        _displayRegister(0);
       }
       else {
         _currentAction = NO_ACTION;
-        // remember last frame in register 0
-        _imageCache.copyFrameToRegister(0, _playHandler.getCurrentFrame());
         if (_logLevel != MUTE) printf("End of program PLAY_DIRECT.\n");
       }
       break;

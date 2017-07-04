@@ -1,10 +1,11 @@
 #include "PlayHandler.h"
 
-PlayHandler::PlayHandler() :
+PlayHandler::PlayHandler(ImageCache imageCache) :
  _startFrame(0), _endFrame(0), _delayMs(0),
  _numLoops(0),
  _currentFrame (0), _currentLoop(0),
- _active(false), _forward(true) {}
+ _active(false), _forward(true),
+ _imageCache(imageCache) {}
 
 void PlayHandler::init(uint8_t startFrame, uint8_t endFrame, uint16_t delay, uint16_t loops) {
 
@@ -55,7 +56,9 @@ void PlayHandler::next(){
       // normal operation: next frame
       _currentFrame--;
     }
-
+  }
+  if (isActive()){
+    _imageCache.copyFrameToRegister(0, _currentFrame);
   }
 }
 

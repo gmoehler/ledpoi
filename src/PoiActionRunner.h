@@ -71,6 +71,7 @@ private:
   uint8_t _currentSyncId;
   uint8_t _currentScene;
 
+  ImageCache _imageCache;
   PoiFlashMemory _flashMemory;
 
     // handlers for the different programs
@@ -80,7 +81,6 @@ private:
   AnimationHandler _animationHandler;
 
   // data stores
-  ImageCache _imageCache;
   void _updateSceneFromFlash(uint8_t scene);
 
   // display functions
