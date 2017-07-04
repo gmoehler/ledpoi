@@ -22,6 +22,7 @@ public:
   void setActiveScene(uint8_t scene);
 
   void next();
+  rgbVal* getDisplayFrame();
 
   bool isActive();
   bool isLastStep();

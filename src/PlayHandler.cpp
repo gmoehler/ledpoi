@@ -67,6 +67,11 @@ bool PlayHandler::isActive(){
   return _active;
 }
 
+rgbVal* PlayHandler::getDisplayFrame(){
+	return _imageCache.getRegister(0);
+}
+
+
 bool PlayHandler::isLastStep(){
   return (_currentFrame == _endFrame && _currentLoop == _numLoops - 1 && _active);
 }

@@ -25,6 +25,10 @@ void PoiActionRunner::setup(){
   * Utility functions *
   *********************/
 
+void PoiActionRunner::_display(rgbVal* frame){
+    ws2812_setColors(N_PIXELS, frame);
+}
+
 void PoiActionRunner::_displayRegister(uint8_t registerId){
     ws2812_setColors(N_PIXELS, _imageCache.getRegister(registerId));
 }
@@ -98,7 +102,7 @@ void PoiActionRunner::playScene(uint8_t scene, uint8_t startFrame, uint8_t endFr
 
   // play initial frame right away
   _ptimer.disable();
-  _displayRegister(0);
+  _display(_playHandler.getDisplayFrame());
   _ptimer.setIntervalAndEnable( _playHandler.getDelayMs() );
 }
 
@@ -317,7 +321,7 @@ void PoiActionRunner::loop(){
       _playHandler.next();
       if (_logLevel == CHATTY) _playHandler.printState();
       if (_playHandler.isActive()){
-        _displayRegister(0);
+        _display(_playHandler.getDisplayFrame());
       }
       else {
         _currentAction = NO_ACTION;
@@ -341,14 +345,12 @@ void PoiActionRunner::loop(){
           _currentScene = scene;
         }
         // finally display the frame
-        _displayFrame(_progHandler.getCurrentFrame());
+        _displayRegister(0);
         if (_progHandler.hasDelayChanged()) {
           _ptimer.setIntervalAndEnable( _progHandler.getDelayMs() ); }
       }
       else {
         _currentAction = NO_ACTION;
-        // remember last frame in register 0
-        _imageCache.copyFrameToRegister(0,_progHandler.getCurrentFrame());
         if (_logLevel != MUTE) printf("End of program PLAY_PROG.\n");
       }
       break;

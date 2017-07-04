@@ -84,6 +84,7 @@ private:
   void _updateSceneFromFlash(uint8_t scene);
 
   // display functions
+  void _display(rgbVal* frame){
   void _displayFrame(uint8_t frame);
   void _displayRegister(uint8_t register Id);
 
