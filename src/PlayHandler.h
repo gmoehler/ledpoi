@@ -8,6 +8,7 @@
 #endif
 
 #include "ledpoi.h"
+#include "ImageCache.h"
 
 /**
  * Holds the information for a play action for frames in a scene
@@ -16,11 +17,11 @@
 class PlayHandler
 {
 public:
-  PlayHandler();
+  PlayHandler(ImageCache imageCache);
   void init(uint8_t startFrame, uint8_t endFrame, uint16_t delay, uint16_t loops);
-  void setActiveScene(uint8_t scene);
 
   void next();
+  rgbVal* getDisplayFrame();
 
   bool isActive();
   bool isLastStep();
@@ -42,5 +43,7 @@ private:
   uint16_t _currentLoop;
   bool _active;
   bool _forward; // false for backward
+
+  ImageCache _imageCache;
 };
 #endif

@@ -38,7 +38,7 @@ TEST(ImageCache_tests, checkImageMapAfterDecl){
 TEST(ImageCache_tests, fillRegisters){
 
   ImageCache icache(3*N_FRAMES*N_PIXELS, MUTE);
-  rgbVal rgb = icache.makeRGBValue(LILA);
+  rgbVal rgb = makeRGBValue(LILA);
   for (int i=0; i< N_REGISTERS; i++){
     icache.fillRegister(i, rgb);
   }
@@ -57,7 +57,7 @@ TEST(ImageCache_tests, fillImagemap){
 
   ImageCache icache(3*N_FRAMES*N_PIXELS, MUTE);
   uint8_t rgbArray[3] = {11,111,222};
-  rgbVal rgb = icache.makeRGBValue(rgbArray);
+  rgbVal rgb = makeRGBValue(rgbArray);
 
   icache.fillImageMap(rgb);
 
@@ -108,7 +108,7 @@ TEST(ImageCache_tests, shiftRegisters){
 
   ImageCache icache(3*N_FRAMES*N_PIXELS, MUTE);
   uint8_t rgbArray[3] = {11,111,222};
-  rgbVal rgb = icache.makeRGBValue(rgbArray);
+  rgbVal rgb = makeRGBValue(rgbArray);
 
   for (int i=0; i< N_REGISTERS; i++){
     rgbVal* r = icache.getRegister(i);
@@ -142,7 +142,7 @@ TEST(ImageCache_tests, shiftRegistersCyclic){
 
   ImageCache icache(3*N_FRAMES*N_PIXELS, MUTE);
   uint8_t rgbArray[3] = {11,111,222};
-  rgbVal rgb = icache.makeRGBValue(rgbArray);
+  rgbVal rgb = makeRGBValue(rgbArray);
 
   for (int i=0; i< N_REGISTERS; i++){
     rgbVal* r = icache.getRegister(i);

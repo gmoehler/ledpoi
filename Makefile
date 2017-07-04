@@ -37,7 +37,8 @@ INCDEP      := -I$(INCDIR) -I$(TESTINCDIR) -I$(GOOGLETEST_DIR)/include
 #DO NOT EDIT BELOW THIS LINE
 #---------------------------------------------------------------------------------
 #SOURCES     := $(shell find $(SRCDIR) -type f -name *.$(SRCEXT))
-SOURCES      := $(SRCDIR)/PlayHandler.cpp \
+SOURCES      := $(SRCDIR)/ledpoi_utils.cpp \
+								$(SRCDIR)/PlayHandler.cpp \
  								$(SRCDIR)/FadeHandler.cpp \
 								$(SRCDIR)/AnimationHandler.cpp \
 								$(SRCDIR)/PoiProgramHandler.cpp \

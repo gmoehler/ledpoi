@@ -1,8 +1,14 @@
 #ifndef POI_ACTION_RUNNER_H
 #define POI_ACTION_RUNNER_H
 
-#include <Arduino.h>
-#include <ws2812.h>
+#ifndef WITHIN_UNITTEST
+  #include <Arduino.h>
+  #include <ws2812.h>
+#else
+  #include "../test/mock_Arduino.h"
+  #include "../test/mock_ws2812.h"
+#endif
+
 #include <map>
 #include "ledpoi.h"
 #include "PoiTimer.h"
@@ -44,7 +50,6 @@ public:
   void showStaticRgb(uint8_t r, uint8_t g, uint8_t b, uint8_t nLeds=N_PIXELS);
   void displayOff();
   void fadeToBlack(uint8_t fadeMSB, uint8_t fadeLSB);
-  void showCurrent();
   void pauseAction();
   void jumptoSync(uint8_t syncId);
   void playWorm(Color color, uint8_t registerLength, uint8_t numLoops, bool synchronous = true);
@@ -71,6 +76,7 @@ private:
   uint8_t _currentSyncId;
   uint8_t _currentScene;
 
+  ImageCache _imageCache;
   PoiFlashMemory _flashMemory;
 
     // handlers for the different programs
@@ -80,10 +86,10 @@ private:
   AnimationHandler _animationHandler;
 
   // data stores
-  ImageCache _imageCache;
   void _updateSceneFromFlash(uint8_t scene);
 
   // display functions
+  void _display(rgbVal* frame);
   void _displayFrame(uint8_t frame);
   void _displayRegister(uint8_t register Id);
 

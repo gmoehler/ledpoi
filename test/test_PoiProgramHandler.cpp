@@ -3,7 +3,8 @@
 
 // smaller init helper
 PoiProgramHandler createProghandler(){
-  PlayHandler playHandler;
+  ImageCache ic(3*N_FRAMES*N_PIXELS, MUTE);
+  PlayHandler playHandler(ic);;
   PoiFlashMemory flash;
   PoiProgramHandler progHandler(playHandler, flash, QUIET);
   return progHandler;
@@ -27,3 +28,5 @@ TEST(PoiProgramHandler_tests, addProgram){
 
   EXPECT_TRUE(progHandler.checkProgram());
 }
+
+//TODO more testing on how handler work with programs

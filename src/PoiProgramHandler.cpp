@@ -1,9 +1,9 @@
 #include "PoiProgramHandler.h"
 
-PoiProgramHandler::PoiProgramHandler(PlayHandler& PlayHandler, PoiFlashMemory& flashMemory, LogLevel logLevel) :
+PoiProgramHandler::PoiProgramHandler(PlayHandler& playHandler, PoiFlashMemory& flashMemory, LogLevel logLevel) :
 	_active(false), _duringProgramming(false), _delayChanged(false), _inLoop(false),
 	_numProgSteps(0),_currentProgStep(0),
-	_numLoops(0), _currentLoop(0), _currentScene(0), _playHandler(PlayHandler),
+	_numLoops(0), _currentLoop(0), _currentScene(0), _playHandler(playHandler),
 	_flashMemory(flashMemory), _logLevel(logLevel){}
 
 void PoiProgramHandler::setup(){
@@ -110,6 +110,11 @@ bool PoiProgramHandler::syncNow(uint8_t syncId){
 
 bool PoiProgramHandler::isActive(){
 	return _active;
+}
+
+rgbVal* PoiProgramHandler::getDisplayFrame(){
+  // delegated to play handler
+	return _playHandler.getDisplayFrame();
 }
 
 bool PoiProgramHandler::hasDelayChanged(){
