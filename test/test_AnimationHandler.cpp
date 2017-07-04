@@ -15,7 +15,6 @@ TEST(AnimationHandler_tests, afterInit){
   AnimationHandler aniHandler(ic);
   aniHandler.init(ANIMATIONTYPE_WORM, 20, 3, RED, 100);
   EXPECT_TRUE(aniHandler.isActive());
-  EXPECT_EQ(aniHandler.getRegisterLength(), 20);
   EXPECT_EQ(aniHandler.getCurrentLoop(), 0);
   EXPECT_EQ(aniHandler.getDelayMs(), 100);
 }

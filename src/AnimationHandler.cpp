@@ -89,10 +89,6 @@ uint8_t AnimationHandler::getCurrentLoop(){
   return _currentLoop;
 }
 
-uint8_t AnimationHandler::getRegisterLength(){
-  return _registerLength;
-}
-
 void AnimationHandler::printInfo(){
   printf("AnimationHandler: NumLoops: %d\n", _numLoops);
 }

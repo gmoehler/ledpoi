@@ -34,13 +34,6 @@ void PoiActionRunner::_displayRegister(uint8_t registerId){
     ws2812_setColors(N_PIXELS, _imageCache.getRegister(registerId));
 }
 
-void PoiActionRunner::_displayFrame(uint8_t frame){
-  //printf("Showing frame %d\n", frame);
-  _imageCache.copyFrameToRegister(0, frame);
-  _displayRegister(0);
-  // TODO : directly get it from image - needs rework of code
-}
-
 /****************************
   * External action methods *
   ***************************/
@@ -138,12 +131,6 @@ void PoiActionRunner::fadeToBlack(uint8_t fadeMSB, uint8_t fadeLSB){
   _ptimer.setIntervalAndEnable( _fadeHandler.getDelayMs() );
 }
 
-void PoiActionRunner::showCurrent(){
-  _currentAction = SHOW_CURRENT_FRAME;
-  _ptimer.disable();
-  _displayRegister(0);
-}
-
 void PoiActionRunner::playWorm(Color color, uint8_t registerLength, uint8_t numLoops, bool synchronous){
 
   _currentAction = ANIMATION_WORM;
@@ -231,7 +218,7 @@ void PoiActionRunner::startProg(){
 
   // play initial frame right away
   _ptimer.disable();
-  _displayFrame(_progHandler.getCurrentFrame());
+  _display((_progHandler.getDisplayFrame());
   _ptimer.setIntervalAndEnable( _progHandler.getDelayMs() );
 }
 

@@ -36,8 +36,6 @@ public:
   void printInfo();
   void printState();
 
-  uint8_t getRegisterLength();
-
 private:
   AnimationType _animation;
   uint8_t _registerLength;

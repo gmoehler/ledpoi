@@ -28,3 +28,5 @@ TEST(PoiProgramHandler_tests, addProgram){
 
   EXPECT_TRUE(progHandler.checkProgram());
 }
+
+//TODO more testing on how handler work with programs
