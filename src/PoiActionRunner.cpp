@@ -2,10 +2,11 @@
 
 PoiActionRunner::PoiActionRunner(PoiTimer& ptimer, LogLevel logLevel) :
   _currentAction(NO_ACTION), _currentSyncId(0), _currentScene(0),
-  _playHandler(_imageCache),
-  _imageCache(_flashMemory.getSizeOfImageSection(), logLevel), _ptimer(ptimer),
+  _imageCache(_flashMemory.getSizeOfImageSection(), logLevel),
+  _playHandler(_imageCache), 
   _progHandler(_playHandler, _flashMemory, logLevel),
-  _logLevel(logLevel)
+  _animationHandler(_imageCache),
+  _ptimer(ptimer), _logLevel(logLevel)
 {}
 
 void PoiActionRunner::clearImageMap(){
@@ -150,46 +151,27 @@ void PoiActionRunner::showCurrent(){
 void PoiActionRunner::playWorm(Color color, uint8_t registerLength, uint8_t numLoops, bool synchronous){
 
   _currentAction = ANIMATION_WORM;
-  _animationHandler.init(ANIMATIONTYPE_WORM, registerLength, numLoops);
-  if (_logLevel != MUTE) _animationHandler.printInfo();
-
   uint16_t delayMs = 25;
-  if (_logLevel != MUTE)  printf("Play Worm Animation: Color %d Len: %d delay: %d \n",
+  _animationHandler.init(ANIMATIONTYPE_WORM, registerLength, numLoops, color, delayMs);
+
+  if (_logLevel != MUTE)  {
+    printf("Play Worm Animation: Color %d Len: %d delay: %d \n",
     color, registerLength, delayMs);
-
-  _imageCache.clearRegister(0);
-  rgbVal* reg0 =  _imageCache.getRegister(0);
-  if  (color == RAINBOW){
-    rgbVal red =  makeRGBValue(RED);
-    rgbVal green =  makeRGBValue(GREEN);
-    rgbVal blue =  makeRGBValue(BLUE);
-    rgbVal yellow =  makeRGBValue(YELLOW);
-    rgbVal lila =  makeRGBValue(LILA);
-    rgbVal cyan =  makeRGBValue(CYAN);
-
-    // initialize register 0 with rainbow
-    rgbVal rainbow[6] = {lila, blue, cyan, green, red, yellow};
-    for (int i=0; i<6; i++){
-      reg0[i] = rainbow[i];
-    }
-  }
-  else {
-   reg0[0] = makeRGBValue( color );
+    _animationHandler.printInfo();
   }
 
   // play initial state of register right away
   _ptimer.disable();
-  _displayRegister(0);
+  _display(_animationHandler.getDisplayFrame());
 
   if (synchronous){
     while (true){
       _animationHandler.next();
-      _imageCache.shiftRegister(0, _animationHandler.getRegisterLength(), !_animationHandler.isLastLoop());
       if (!_animationHandler.isActive()){
         break;
       }
-      _displayRegister(0);
-      delay( delayMs);
+      _display(_animationHandler.getDisplayFrame());
+      delay(delayMs);
     }
     displayOff();
     _currentAction = NO_ACTION;
@@ -335,7 +317,9 @@ void PoiActionRunner::loop(){
         return;
       }
       _progHandler.next();
+
       if (_progHandler.isActive()){
+        // check and update scene and interval if changed
         if (_progHandler.hasDelayChanged()) {
           _ptimer.disable();
         }
@@ -378,13 +362,8 @@ void PoiActionRunner::loop(){
       case ANIMATION_WORM:
       _animationHandler.next();
       if (_logLevel == CHATTY)  _animationHandler.printState();
-      if (_animationHandler.isActive()){
-        _imageCache.shiftRegister(0, _animationHandler.getRegisterLength(), !_animationHandler.isLastLoop());
-        _displayRegister(0);
-      }
-      else {
-         _imageCache.clearRegister(0);
-         _displayRegister(0);
+      _display(_animationHandler.getDisplayFrame()); // regardless whether it is active
+      if (!_animationHandler.isActive()){
         _currentAction = NO_ACTION;
         if (_logLevel != MUTE) printf("End of program ANIMATION_WORM.\n");
       }
