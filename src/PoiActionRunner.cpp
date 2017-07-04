@@ -3,7 +3,7 @@
 PoiActionRunner::PoiActionRunner(PoiTimer& ptimer, LogLevel logLevel) :
   _currentAction(NO_ACTION), _currentSyncId(0), _currentScene(0),
   _imageCache(_flashMemory.getSizeOfImageSection(), logLevel),
-  _playHandler(_imageCache), 
+  _playHandler(_imageCache), _fadeHandler(_imageCache),
   _progHandler(_playHandler, _flashMemory, logLevel),
   _animationHandler(_imageCache),
   _ptimer(ptimer), _logLevel(logLevel)
@@ -130,15 +130,11 @@ void PoiActionRunner::fadeToBlack(uint8_t fadeMSB, uint8_t fadeLSB){
   }
 
   _currentAction = FADE_TO_BLACK;
-  _fadeHandler.init((uint16_t)fadeMSB * 256 + fadeLSB);
+  _fadeHandler.init(fadeTime);
   if (_logLevel != MUTE) _fadeHandler.printInfo();
 
-   // we take what is in register 0 and remember it in register 1
-   // later we will copy pixels back using a factor on the rgb values
-   _imageCache.copyRegisterToRegister(0, 1);
-
   _ptimer.disable();
-  _displayRegister(0);
+  _display(_fadeHandler.getDisplayFrame());
   _ptimer.setIntervalAndEnable( _fadeHandler.getDelayMs() );
 }
 
@@ -349,9 +345,7 @@ void PoiActionRunner::loop(){
       _fadeHandler.next();
       if (_logLevel == CHATTY)  _fadeHandler.printState();
       if (_fadeHandler.isActive()){
-        // un-faded frame is in register 1
-        _imageCache.copyRegisterToRegister(1, 0, _fadeHandler.getCurrentFadeFactor());
-        _displayRegister(0);
+        _display(_fadeHandler.getDisplayFrame());
       }
       else {
         _currentAction = NO_ACTION;
