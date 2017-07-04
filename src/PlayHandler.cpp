@@ -18,6 +18,7 @@ void PlayHandler::init(uint8_t startFrame, uint8_t endFrame, uint16_t delay, uin
   _currentLoop = 0;
   _active = true;
   _forward = endFrame >= startFrame;
+  _imageCache.copyFrameToRegister(0, _currentFrame);
 }
 
 void PlayHandler::next(){
