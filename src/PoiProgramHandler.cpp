@@ -112,6 +112,11 @@ bool PoiProgramHandler::isActive(){
 	return _active;
 }
 
+rgbVal* PoiProgramHandler::getDisplayFrame(){
+  // delegated to play handler
+	return _playHandler.getDisplayFrame();
+}
+
 bool PoiProgramHandler::hasDelayChanged(){
 	return _delayChanged;
 }

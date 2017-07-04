@@ -1,8 +1,14 @@
 #ifndef POI_ACTION_RUNNER_H
 #define POI_ACTION_RUNNER_H
 
-#include <Arduino.h>
-#include <ws2812.h>
+#ifndef WITHIN_UNITTEST
+  #include <Arduino.h>
+  #include <ws2812.h>
+#else
+  #include "../test/mock_Arduino.h"
+  #include "../test/mock_ws2812.h"
+#endif
+
 #include <map>
 #include "ledpoi.h"
 #include "PoiTimer.h"
@@ -84,7 +90,7 @@ private:
   void _updateSceneFromFlash(uint8_t scene);
 
   // display functions
-  void _display(rgbVal* frame){
+  void _display(rgbVal* frame);
   void _displayFrame(uint8_t frame);
   void _displayRegister(uint8_t register Id);
 

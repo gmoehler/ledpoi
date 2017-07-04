@@ -19,7 +19,6 @@ class PlayHandler
 public:
   PlayHandler(ImageCache imageCache);
   void init(uint8_t startFrame, uint8_t endFrame, uint16_t delay, uint16_t loops);
-  void setActiveScene(uint8_t scene);
 
   void next();
   rgbVal* getDisplayFrame();

@@ -345,7 +345,7 @@ void PoiActionRunner::loop(){
           _currentScene = scene;
         }
         // finally display the frame
-        _displayRegister(0);
+        _display(_progHandler.getDisplayFrame());
         if (_progHandler.hasDelayChanged()) {
           _ptimer.setIntervalAndEnable( _progHandler.getDelayMs() ); }
       }

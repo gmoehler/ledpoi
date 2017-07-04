@@ -21,25 +21,31 @@ class PoiProgramHandler
 {
 public:
   PoiProgramHandler(PlayHandler& playHandler, PoiFlashMemory& flashMemory, LogLevel logLevel);
-  void setup();
-  void addCmdToProgram(unsigned char cmd[7]);
+  void setup(); // onetime setup
+  
+  // methods for all handlers
   void init(); // init program start
 
   void next(); // next program line
-
-  bool checkProgram();
-  bool syncNow(uint8_t syncId);
+  rgbVal* getDisplayFrame();
 
   bool isActive();
-  bool hasDelayChanged();
 
-  // current scene, frame and delay from player
+ // current scene, frame and delay from player
   uint8_t getCurrentScene();
   uint8_t getCurrentFrame();
   uint16_t getDelayMs();
 
   void printInfo();
   void printState();
+
+  // program related methods
+  void addCmdToProgram(unsigned char cmd[7]);
+  
+  bool checkProgram();
+  bool syncNow(uint8_t syncId);
+  bool hasDelayChanged();
+
   uint8_t getNumProgSteps();
 
 private:
