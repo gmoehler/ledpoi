@@ -43,18 +43,21 @@ void AnimationHandler::next(){
     if (_currentStep + 2 > _registerLength) {
       if (_currentLoop + 1 >= _numLoops){
         _active = false;
-        return;
       }
+      else {
       _currentLoop++;
       _currentStep = 0;
+      }
     }
     else {
       _currentStep++;
     }
   }
-  
+
   if (_active){
-    _imageCache.shiftRegister(0, _registerLength, !isLastLoop());
+    // be cyclic except in last loop and on first step on last loop
+    bool cyclic = !isLastLoop() || _currentStep == 0;
+    _imageCache.shiftRegister(0, _registerLength, cyclic);
   }
   else {
     _imageCache.clearRegister(0);
