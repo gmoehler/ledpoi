@@ -218,7 +218,7 @@ void PoiActionRunner::startProg(){
 
   // play initial frame right away
   _ptimer.disable();
-  _display((_progHandler.getDisplayFrame());
+  _display(_progHandler.getDisplayFrame());
   _ptimer.setIntervalAndEnable( _progHandler.getDelayMs() );
 }
 
