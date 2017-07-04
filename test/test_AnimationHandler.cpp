@@ -2,7 +2,7 @@
 #include <AnimationHandler.h>
 
 TEST(AnimationHandler_tests, afterDeclaration){
-  ImageCache ic(32, MUTE);
+  ImageCache ic(3*N_FRAMES*N_PIXELS, MUTE);
   AnimationHandler aniHandler(ic);
   EXPECT_FALSE(aniHandler.isActive());
   EXPECT_EQ(aniHandler.getCurrentLoop(), 0);
@@ -11,7 +11,7 @@ TEST(AnimationHandler_tests, afterDeclaration){
 
 
 TEST(AnimationHandler_tests, afterInit){
-  ImageCache ic(32, MUTE);
+  ImageCache ic(3*N_FRAMES*N_PIXELS, MUTE);
   AnimationHandler aniHandler(ic);
   aniHandler.init(ANIMATIONTYPE_WORM, 20, 3, RED, 100);
   EXPECT_TRUE(aniHandler.isActive());
@@ -23,7 +23,7 @@ TEST(AnimationHandler_tests, afterInit){
 // separate next test not required, since we simply count steps for next
 
 TEST(AnimationHandler_tests, testFinished){
-  ImageCache ic(32, MUTE);
+  ImageCache ic(3*N_FRAMES*N_PIXELS, MUTE);
   AnimationHandler aniHandler(ic);
   aniHandler.init(ANIMATIONTYPE_WORM, 20, 2, RED, 100);
   for (int i=0; i<19; i++) {

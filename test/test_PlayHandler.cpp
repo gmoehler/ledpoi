@@ -2,7 +2,7 @@
 #include <PlayHandler.h>
 
 TEST(PlayHandler_tests, afterDeclaration){
-  ImageCache ic(32, MUTE);
+  ImageCache ic(3*N_FRAMES*N_PIXELS, MUTE);
   PlayHandler playHandler(ic);
   EXPECT_FALSE(playHandler.isActive());
   EXPECT_EQ(playHandler.getCurrentFrame(), 0);
@@ -11,7 +11,7 @@ TEST(PlayHandler_tests, afterDeclaration){
 }
 
 TEST(PlayHandler_tests, afterInit){
-  ImageCache ic(32, MUTE);
+  ImageCache ic(3*N_FRAMES*N_PIXELS, MUTE);
   PlayHandler playHandler(ic);
   playHandler.init(10, 50, 100, 3);
   EXPECT_TRUE(playHandler.isActive());
@@ -22,7 +22,7 @@ TEST(PlayHandler_tests, afterInit){
 
 
 TEST(PlayHandler_tests, testNext){
-  ImageCache ic(32, MUTE);
+  ImageCache ic(3*N_FRAMES*N_PIXELS, MUTE);
   PlayHandler playHandler(ic);
   playHandler.init(10, 12, 100, 3);
   EXPECT_EQ(playHandler.getCurrentFrame(), 10);
@@ -130,7 +130,7 @@ TEST(PlayHandler_tests, testNextWithDisplayFrame){
 
 
 TEST(PlayHandler_tests, testFinished){
-  ImageCache ic(32, MUTE);
+  ImageCache ic(3*N_FRAMES*N_PIXELS, MUTE);
   PlayHandler playHandler(ic);
   playHandler.init(10, 12, 100, 3);
   EXPECT_EQ(playHandler.getCurrentFrame(), 10);
@@ -155,7 +155,7 @@ TEST(PlayHandler_tests, testFinished){
 }
 
 TEST(PlayHandler_tests, testBackwardComplete){
-  ImageCache ic(32, MUTE);
+  ImageCache ic(3*N_FRAMES*N_PIXELS, MUTE);
   PlayHandler playHandler(ic);
   EXPECT_FALSE(playHandler.isActive());
 

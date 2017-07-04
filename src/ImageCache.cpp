@@ -4,6 +4,9 @@ ImageCache::ImageCache(uint32_t size, LogLevel logLevel):
     _logLevel(logLevel){
    // initialize register and map
     if (_logLevel != MUTE) printf("Initializing image map and register.\n" );
+    if (size < N_FRAMES * N_PIXELS * 3){
+      printf("Error. Requested size of ImageCache is too small: %d < %d.\n", size, N_FRAMES * N_PIXELS * 3);
+    }
 
     // memory section is a bit larger than required, but exactly the size
     // we reserve on flash
@@ -17,6 +20,18 @@ ImageCache::ImageCache(uint32_t size, LogLevel logLevel):
         _pixelRegister[i] = (rgbVal *) malloc(N_FRAMES * sizeof(rgbVal));
         clearRegister(i);
     }
+}
+
+ImageCache::~ImageCache(){
+
+  // Since we keep the memory until the end of the program, we do not need to free
+  // Trying to do so, results in memory access problems
+  /*printf("!Freeing ImageCache now!");
+  free(_pixelMap);
+  for (uint8_t i=0; i<N_REGISTERS; i++){
+    free(_pixelRegister[i]);
+  }
+  free(_pixelRegister);*/
 }
 
 uint8_t* ImageCache::getRawImageData(){
@@ -97,7 +112,8 @@ rgbVal ImageCache::getPixel(uint8_t frame_idx, uint8_t pixel_idx) {
       frame_idx, N_FRAMES, pixel_idx, N_PIXELS);
     return makeRGBVal(0, 0, 0);
   }
-  return makeRGBValue(&_pixelMap[frame_idx * N_PIXELS * 3 + pixel_idx * 3] );
+  int index = frame_idx * N_PIXELS * 3 + pixel_idx * 3;
+  return makeRGBValue(&_pixelMap[index] );
 }
 
 void ImageCache::fillImageMap(rgbVal rgb){

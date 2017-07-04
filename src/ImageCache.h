@@ -18,6 +18,7 @@ class ImageCache
 {
 public:
   ImageCache(uint32_t size, LogLevel loglevel);
+  ~ImageCache();
   uint8_t* getRawImageData();
 
   rgbVal* getRegister(uint8_t i);

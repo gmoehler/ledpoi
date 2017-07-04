@@ -3,7 +3,7 @@
 
 // smaller init helper
 PoiProgramHandler createProghandler(){
-  ImageCache ic(32, MUTE);
+  ImageCache ic(3*N_FRAMES*N_PIXELS, MUTE);
   PlayHandler playHandler(ic);;
   PoiFlashMemory flash;
   PoiProgramHandler progHandler(playHandler, flash, QUIET);
