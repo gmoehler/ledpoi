@@ -21,18 +21,17 @@ public:
   void init(uint8_t startFrame, uint8_t endFrame, uint16_t delay, uint16_t loops);
 
   void next();
-  rgbVal* getDisplayFrame();
-
   bool isActive();
+  
   uint16_t getDelayMs();
+  rgbVal* getDisplayFrame();
 
   void printInfo();
   void printState();
 
 #ifdef WITHIN_UNITTEST
-  bool isLastStep(); 
-  uint8_t getCurrentFrame();
-  uint16_t getCurrentLoop();
+  uint8_t __getCurrentFrame();
+  uint16_t __getCurrentLoop();
 #endif
 
 private:

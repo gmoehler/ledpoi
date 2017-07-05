@@ -24,19 +24,21 @@ public:
   void init(AnimationType animation, uint8_t registerLength, uint8_t numLoops, Color color, uint16_t delay=0);
 
   void next();
-  rgbVal* getDisplayFrame();
-
   bool isActive();
-  bool isLastStep();
-  bool isLastLoop();
-
+  
   uint16_t getDelayMs();
-  uint8_t getCurrentLoop();
+  rgbVal* getDisplayFrame();
 
   void printInfo();
   void printState();
+  
+#ifdef WITHIN_UNITTEST
+  uint8_t __getCurrentLoop();
+#endif
 
 private:
+  bool _isLastLoop();
+
   AnimationType _animation;
   uint8_t _registerLength;
   uint8_t _numLoops;

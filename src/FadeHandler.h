@@ -24,20 +24,21 @@ public:
   void init(uint16_t fadeTime);
 
   void next();
-  rgbVal* getDisplayFrame();
-
   bool isActive();
-  bool isLastStep();
-
+  
   uint16_t getDelayMs();
-
+  rgbVal* getDisplayFrame();
+  
   void printInfo();
   void printState();
-
-  float _getCurrentFadeFactor();
+  
+#ifdef WITHIN_UNITTEST
+  float __getCurrentFadeFactor();
+#endif
 
 private:
-
+  float _getCurrentFadeFactor();
+  
   uint16_t _fadeTime;
   uint16_t _numFadeSteps;
   uint16_t _delayMs;
@@ -46,6 +47,8 @@ private:
   bool _active;
 
   ImageCache _imageCache;
+  
+  
 
 };
 #endif

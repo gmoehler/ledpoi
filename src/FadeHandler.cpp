@@ -40,6 +40,12 @@ void FadeHandler::next(){
   }
 }
 
+#ifdef WITHIN_UNITTEST
+float FadeHandler::__getCurrentFadeFactor(){
+	return _getCurrentFadeFactor();
+}
+#endif
+
 float FadeHandler::_getCurrentFadeFactor(){
   return _numFadeSteps > 0 ?
     (float)(_numFadeSteps - _currentFadeStep) / _numFadeSteps
@@ -54,14 +60,9 @@ rgbVal* FadeHandler::getDisplayFrame(){
 	return _imageCache.getRegister(0);
 }
 
-bool FadeHandler::isLastStep(){
-  return (_currentFadeStep  == _numFadeSteps && _active);
-}
-
 uint16_t FadeHandler::getDelayMs(){
   return _delayMs;
 }
-
 
 void FadeHandler::printInfo(){
   printf("Fade to black - fade time: %d fade-steps: %d.\n", _fadeTime, _numFadeSteps);

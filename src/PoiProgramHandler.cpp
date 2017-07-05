@@ -126,8 +126,8 @@ uint8_t PoiProgramHandler::getCurrentScene(){
 }
 
 #ifdef WITHIN_UNITTEST
-uint8_t PoiProgramHandler::getCurrentFrame(){
-  return _playHandler.getCurrentFrame();
+uint8_t PoiProgramHandler::__getCurrentFrame(){
+  return _playHandler.__getCurrentFrame();
 }
 #endif
 

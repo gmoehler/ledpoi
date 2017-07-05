@@ -14,7 +14,7 @@ TEST(PoiProgramHandler_tests, afterDeclaration){
   PoiProgramHandler progHandler = createProghandler();
   EXPECT_FALSE(progHandler.isActive());
   EXPECT_EQ(progHandler.getCurrentScene(), 0);
-  EXPECT_EQ(progHandler.getCurrentFrame(), 0);
+  EXPECT_EQ(progHandler.__getCurrentFrame(), 0);
   EXPECT_EQ(progHandler.getDelayMs(), 0);
 }
 

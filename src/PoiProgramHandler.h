@@ -48,7 +48,7 @@ public:
   uint8_t getNumProgSteps();
 
 #ifdef WITHIN_UNITTEST
-  uint8_t getCurrentFrame();
+  uint8_t __getCurrentFrame();
 #endif  
 
 private:
