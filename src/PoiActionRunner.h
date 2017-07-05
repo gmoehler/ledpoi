@@ -12,11 +12,11 @@
 #include <map>
 #include "ledpoi.h"
 #include "PoiTimer.h"
-#include "PlayHandler.h"
-#include "FadeHandler.h"
-#include "PoiProgramHandler.h"
-#include "AnimationHandler.h"
 #include "ImageCache.h"
+#include "handler/PlayHandler.h"
+#include "handler/FadeHandler.h"
+#include "handler/AnimationHandler.h"
+#include "handler/PoiProgramHandler.h"
 
 enum PoiAction {  NO_ACTION,
                   SHOW_STATIC_RGB,

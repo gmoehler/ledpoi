@@ -11,6 +11,7 @@ PLATFORM    := $(shell uname -so | sed -r s'/[^a-zA-Z0-9]/_/g')
 #The Directories, Source, Includes, Objects, Binary and Resources
 SRCDIR      := src
 INCDIR      := src
+INCDIR2      := src/handler
 TESTDIR     := test
 TESTINCDIR  := test
 EXDIR       := examples
@@ -30,18 +31,18 @@ CFLAGS      := -ggdb -Wall -O3 -g -std=gnu++11 -DWITHIN_UNITTEST
 LIB         :=  -lm -L$(LIBDIR) -lgtest_main -lgtest -pthread
 EXLIB       := -lm -L$(LIBDIR) -lgtest_main -lgtest -pthread
 #GOOGLETEST_DIR := ../GitHub/googletest/googletest
-INC         := -I$(INCDIR) -I$(TESTINCDIR) -Itest/include -I/usr/local/include #-I$(GOOGLETEST_DIR)/include
-INCDEP      := -I$(INCDIR) -I$(TESTINCDIR) -I$(GOOGLETEST_DIR)/include
+INC         := -I$(INCDIR) -I$(INCDIR2) -I$(TESTINCDIR) -Itest/include -I/usr/local/include #-I$(GOOGLETEST_DIR)/include
+INCDEP      := -I$(INCDIR) -I$(INCDIR2) -I$(TESTINCDIR) -I$(GOOGLETEST_DIR)/include
 
 #---------------------------------------------------------------------------------
 #DO NOT EDIT BELOW THIS LINE
 #---------------------------------------------------------------------------------
 #SOURCES     := $(shell find $(SRCDIR) -type f -name *.$(SRCEXT))
 SOURCES      := $(SRCDIR)/ledpoi_utils.cpp \
-								$(SRCDIR)/PlayHandler.cpp \
- 								$(SRCDIR)/FadeHandler.cpp \
-								$(SRCDIR)/AnimationHandler.cpp \
-								$(SRCDIR)/PoiProgramHandler.cpp \
+								$(SRCDIR)/handler/PlayHandler.cpp \
+ 								$(SRCDIR)/handler/FadeHandler.cpp \
+								$(SRCDIR)/handler/AnimationHandler.cpp \
+								$(SRCDIR)/handler/PoiProgramHandler.cpp \
 								$(SRCDIR)/ImageCache.cpp
 TESTSOURCES  := $(TESTDIR)/test.cpp \
 								$(TESTDIR)/mock_Arduino.cpp \
