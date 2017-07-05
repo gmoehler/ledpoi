@@ -125,9 +125,11 @@ uint8_t PoiProgramHandler::getCurrentScene(){
   return _currentScene;
 }
 
+#ifdef WITHIN_UNITTEST
 uint8_t PoiProgramHandler::getCurrentFrame(){
   return _playHandler.getCurrentFrame();
 }
+#endif
 
 uint16_t PoiProgramHandler::getDelayMs(){
 	return _playHandler.getDelayMs();

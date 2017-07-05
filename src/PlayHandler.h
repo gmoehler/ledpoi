@@ -24,14 +24,16 @@ public:
   rgbVal* getDisplayFrame();
 
   bool isActive();
-  bool isLastStep();
-
   uint16_t getDelayMs();
-  uint8_t getCurrentFrame();
-  uint16_t getCurrentLoop();
 
   void printInfo();
   void printState();
+
+#ifdef WITHIN_UNITTEST
+  bool isLastStep(); 
+  uint8_t getCurrentFrame();
+  uint16_t getCurrentLoop();
+#endif
 
 private:
   uint8_t _startFrame;

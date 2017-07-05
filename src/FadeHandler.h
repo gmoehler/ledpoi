@@ -38,10 +38,6 @@ public:
 
 private:
 
-#ifdef WITHIN_UNITTEST
-  friend class test_FadeHandler;
-#endif
-
   uint16_t _fadeTime;
   uint16_t _numFadeSteps;
   uint16_t _delayMs;

@@ -33,7 +33,6 @@ public:
 
  // current scene, frame and delay from player
   uint8_t getCurrentScene();
-  uint8_t getCurrentFrame();
   uint16_t getDelayMs();
 
   void printInfo();
@@ -47,6 +46,10 @@ public:
   bool hasDelayChanged();
 
   uint8_t getNumProgSteps();
+
+#ifdef WITHIN_UNITTEST
+  uint8_t getCurrentFrame();
+#endif  
 
 private:
   bool _active;

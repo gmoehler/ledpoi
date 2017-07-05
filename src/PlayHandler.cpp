@@ -71,13 +71,9 @@ rgbVal* PlayHandler::getDisplayFrame(){
 	return _imageCache.getRegister(0);
 }
 
-
+#ifdef WITHIN_UNITTEST
 bool PlayHandler::isLastStep(){
   return (_currentFrame == _endFrame && _currentLoop == _numLoops - 1 && _active);
-}
-
-uint16_t PlayHandler::getDelayMs(){
-  return _delayMs;
 }
 
 uint8_t PlayHandler::getCurrentFrame(){
@@ -87,6 +83,12 @@ uint8_t PlayHandler::getCurrentFrame(){
 uint16_t PlayHandler::getCurrentLoop(){
   return _currentLoop;
 }
+#endif
+
+uint16_t PlayHandler::getDelayMs(){
+  return _delayMs;
+}
+
 
 void PlayHandler::printInfo(){
   printf("PlayHandler: Frames [%d,%d] delay: %d loops:%d \n", _startFrame, _endFrame, _delayMs, _numLoops);
