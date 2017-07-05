@@ -8,13 +8,14 @@
 #endif
 
 #include "ledpoi.h"
+#include "AbstractHandler.h"
 #include "ImageCache.h"
 
 /**
  * Holds the information for a play action for frames in a scene
  **/
 
-class PlayHandler
+class PlayHandler: public AbstractHandler
 {
 public:
   PlayHandler(ImageCache imageCache);

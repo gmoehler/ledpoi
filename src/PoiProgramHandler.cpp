@@ -125,12 +125,6 @@ uint8_t PoiProgramHandler::getCurrentScene(){
   return _currentScene;
 }
 
-#ifdef WITHIN_UNITTEST
-uint8_t PoiProgramHandler::__getCurrentFrame(){
-  return _playHandler.__getCurrentFrame();
-}
-#endif
-
 uint16_t PoiProgramHandler::getDelayMs(){
 	return _playHandler.getDelayMs();
 }
@@ -329,6 +323,12 @@ void PoiProgramHandler::printState(){
 	_playHandler.printState();
 }
 
-uint8_t PoiProgramHandler::getNumProgSteps(){
+#ifdef WITHIN_UNITTEST
+uint8_t PoiProgramHandler::__getNumProgSteps(){
 	return _numProgSteps;
 }
+
+uint8_t PoiProgramHandler::__getCurrentFrame(){
+  return _playHandler.__getCurrentFrame();
+}
+#endif

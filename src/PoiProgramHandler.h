@@ -27,16 +27,16 @@ public:
   void init(); // init program start
 
   void next(); // next program line
-  rgbVal* getDisplayFrame();
-
   bool isActive();
-
- // current scene, frame and delay from player
-  uint8_t getCurrentScene();
+  
   uint16_t getDelayMs();
-
+  rgbVal* getDisplayFrame();
+  
   void printInfo();
   void printState();
+
+ // current scene from player
+  uint8_t getCurrentScene();
 
   // program related methods
   void addCmdToProgram(unsigned char cmd[7]);
@@ -44,10 +44,9 @@ public:
   bool checkProgram();
   bool syncNow(uint8_t syncId);
   bool hasDelayChanged();
-
-  uint8_t getNumProgSteps();
-
+  
 #ifdef WITHIN_UNITTEST
+  uint8_t __getNumProgSteps();
   uint8_t __getCurrentFrame();
 #endif  
 
