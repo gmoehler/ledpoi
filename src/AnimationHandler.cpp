@@ -45,8 +45,8 @@ void AnimationHandler::next(){
         _active = false;
       }
       else {
-      _currentLoop++;
-      _currentStep = 0;
+        _currentLoop++;
+        _currentStep = 0;
       }
     }
     else {
@@ -81,12 +81,6 @@ uint16_t AnimationHandler::getDelayMs(){
   return _delayMs;
 }
 
-#ifdef WITHIN_UNITTEST
-uint8_t AnimationHandler::__getCurrentLoop(){
-  return _currentLoop;
-}
-#endif
-
 void AnimationHandler::printInfo(){
   printf("AnimationHandler: NumLoops: %d\n", _numLoops);
 }
@@ -95,3 +89,13 @@ void AnimationHandler::printState(){
   printf("AnimationHandler: Active: %d Current step: %d Current loop: %d \n",
     _active, _currentStep, _currentLoop);
 }
+
+const char* AnimationHandler::getActionName(){
+  return "Worm Animation";
+}
+
+#ifdef WITHIN_UNITTEST
+uint8_t AnimationHandler::__getCurrentLoop(){
+  return _currentLoop;
+}
+#endif

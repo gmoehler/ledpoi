@@ -72,3 +72,7 @@ void FadeHandler::printState(){
   printf("Fade to black: Active: %d Current fade step: %d fade factor: %f\n",
     _active, _currentFadeStep, _getCurrentFadeFactor());
 }
+
+const char* FadeHandler::getActionName(){
+  return "Fade Frame";
+}

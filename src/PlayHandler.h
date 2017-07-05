@@ -21,6 +21,8 @@ public:
   PlayHandler(ImageCache imageCache);
   void init(uint8_t startFrame, uint8_t endFrame, uint16_t delay, uint16_t loops);
 
+  const char* getActionName();
+
   void next();
   bool isActive();
   

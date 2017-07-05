@@ -9,6 +9,8 @@
 class AbstractHandler
 {
 public:
+  virtual const char* getActionName() = 0;
+
   virtual void next() = 0;
   virtual bool isActive() = 0;
   

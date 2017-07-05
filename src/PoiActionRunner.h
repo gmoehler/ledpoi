@@ -72,18 +72,8 @@ public:
   void clearImageMap();
 
 private:
-  PoiAction _currentAction;
-  uint8_t _currentSyncId;
-  uint8_t _currentScene;
 
-  ImageCache _imageCache;
-  PoiFlashMemory _flashMemory;
-
-    // handlers for the different programs
-  PlayHandler _playHandler;
-  FadeHandler _fadeHandler;
-  PoiProgramHandler _progHandler;
-  AnimationHandler _animationHandler;
+  void _currentHandlerStart(AbstractHandler *handler, PoiAction action);
 
   // data stores
   void _updateSceneFromFlash(uint8_t scene);
@@ -93,11 +83,27 @@ private:
   void _displayFrame(uint8_t frame);
   void _displayRegister(uint8_t register Id);
 
+  PoiAction _currentAction;
+  uint8_t _currentSyncId;
+  uint8_t _currentScene;
+
+  ImageCache _imageCache;
+  PoiFlashMemory _flashMemory;
+
+  // handlers for the different programs
+  PlayHandler _playHandler;
+  FadeHandler _fadeHandler;
+  PoiProgramHandler _progHandler;
+  AnimationHandler _animationHandler;
+
+  AbstractHandler *_currentHandler;
+
   // other member variables
   PoiTimer _ptimer;
   volatile SemaphoreHandle_t _timerSemaphore;
   portMUX_TYPE _timerMux;
   LogLevel _logLevel;
+
 };
 
 

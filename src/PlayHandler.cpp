@@ -84,6 +84,10 @@ void PlayHandler::printState(){
   printf("PlayHandler: Active: %d Current frame: %d current loop: %d \n", _active, _currentFrame, _currentLoop);
 }
 
+const char* PlayHandler::getActionName(){
+  return "Play Frame";
+}
+
 #ifdef WITHIN_UNITTEST
 uint8_t PlayHandler::__getCurrentFrame(){
   return _currentFrame;
