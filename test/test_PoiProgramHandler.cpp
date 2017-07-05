@@ -25,8 +25,6 @@ TEST(PoiProgramHandler_tests, addProgram){
   char unsigned cmd2[7] = {253, PROG_END,0,0,0,0};
   progHandler.addCmdToProgram(cmd2);
   EXPECT_EQ(progHandler.__getNumProgSteps(), 1); // PROG_END does not count
-
-  EXPECT_TRUE(progHandler.checkProgram());
 }
 
 //TODO more testing on how handler work with programs

@@ -138,6 +138,7 @@ void PoiActionRunner::playWorm(Color color, uint8_t registerLength, uint8_t numL
   }
 }
 
+// set current handler to passed in handler, display and start timer
 void PoiActionRunner::_currentHandlerStart(AbstractHandler* handler, 
   PoiAction action){
   _currentAction = action;  
@@ -210,10 +211,11 @@ void PoiActionRunner::addCmdToProgram(unsigned char cmd[7]){
 
 void PoiActionRunner::startProg(){
   _currentAction = PLAY_PROG;
-  if (!_progHandler.checkProgram()){
-    return;
-  }
+
   _progHandler.init();
+  if (!_progHandler.isActive()){
+    return; // if check was negative
+  }
   if (_logLevel != MUTE) _progHandler.printInfo();
 
   // play initial frame right away
@@ -299,10 +301,6 @@ void PoiActionRunner::loop(){
       break;
       
       case PLAY_PROG:
-      if (!_progHandler.checkProgram()){
-        _currentAction = NO_ACTION;
-        return;
-      }
       _progHandler.next();
 
       if (_progHandler.isActive()){
@@ -331,8 +329,6 @@ void PoiActionRunner::loop(){
       _currentAction = NO_ACTION;
       if (_logLevel != MUTE) printf("Timeout of SHOW_STATIC_FRAME reached.\n");
       break;
-
-      
 
       case NO_ACTION:
       case PAUSE_PROG:

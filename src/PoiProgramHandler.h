@@ -11,13 +11,14 @@
 
 #include <map>
 #include "ledpoi.h"
+#include "AbstractHandler.h"
 #include "PlayHandler.h"
 
 /**
  * Holds the information for a fade action on a given frame in the scene
  **/
 
-class PoiProgramHandler
+class PoiProgramHandler : public AbstractHandler
 {
 public:
   PoiProgramHandler(PlayHandler& playHandler, PoiFlashMemory& flashMemory, LogLevel logLevel);
@@ -25,6 +26,8 @@ public:
   
   // methods for all handlers
   void init(); // init program start
+
+  const char* getActionName();
 
   void next(); // next program line
   bool isActive();
@@ -41,7 +44,6 @@ public:
   // program related methods
   void addCmdToProgram(unsigned char cmd[7]);
   
-  bool checkProgram();
   bool syncNow(uint8_t syncId);
   bool hasDelayChanged();
   
@@ -68,8 +70,10 @@ private:
   std::map<uint8_t, uint8_t> _labelMap; // map between label# and cmd#
   std::map<uint8_t, uint8_t> _syncMap;  // map between snyc# and cmd#
 
+  bool _checkProgram();
   bool _isProgramFinished();
   void _clearProgram();
+  void _resetProgram();
   void _updateLabels();
   CmdType _getCommandType(uint8_t cmd[N_PROG_FIELDS]);
   void _nextProgramStep(bool initial=false);
