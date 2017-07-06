@@ -1,5 +1,5 @@
 #ifndef DISPLAYIP_HANDLER_H
-#define DISPLAY_IP_HANDLER_H
+#define DISPLAYIP_HANDLER_H
 
 #include "ledpoi.h"
 #include "AbstractStaticHandler.h"
