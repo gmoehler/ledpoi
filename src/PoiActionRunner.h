@@ -18,6 +18,7 @@
 #include "handler/AnimationHandler.h"
 #include "handler/PoiProgramHandler.h"
 #include "handler/StaticRgbHandler.h"
+#include "handler/DisplayIpHandler.h"
 
 enum PoiAction {  NO_ACTION,
                   SHOW_STATIC_RGB,
@@ -25,6 +26,7 @@ enum PoiAction {  NO_ACTION,
                   SHOW_CURRENT_FRAME,
                   SHOW_STATIC_FRAME,
                   FADE_TO_BLACK,
+                  DISPLAY_IP,
                   PLAY_PROG,
                   PAUSE_PROG,
                   ANIMATION_WORM
@@ -54,7 +56,7 @@ public:
   void pauseAction();
   void jumptoSync(uint8_t syncId);
   void playWorm(Color color, uint8_t registerLength, uint8_t numLoops, bool synchronous = true);
-  void displayIp(uint8_t ipIncrement, bool withStaticBackgroun);
+  void displayIp(uint8_t ipOffset, bool withStaticBackgroun);
 
   // program related methods
   void addCmdToProgram(unsigned char cmd[7]);
@@ -66,8 +68,8 @@ public:
   void saveIpIncrement(uint8_t ipIncrement);
 
   void setup();             // to be called in setup()
-  void loop();               // to be called in the loop
-  void onInterrupt();   // to be called during the timer interrupt
+  void loop();              // to be called in the loop
+  void onInterrupt();       // to be called during the timer interrupt
   
   void initializeFlash();
   void clearImageMap();
@@ -97,6 +99,7 @@ private:
   PoiProgramHandler _progHandler;
   AnimationHandler _animationHandler;
   StaticRgbHandler _staticRgbHandler;
+  DisplayIpHandler _displayIpHandler;
 
   AbstractHandler *_currentHandler;
 

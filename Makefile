@@ -44,6 +44,7 @@ SOURCES      := $(SRCDIR)/ledpoi_utils.cpp \
 								$(SRCDIR)/handler/AnimationHandler.cpp \
 								$(SRCDIR)/handler/PoiProgramHandler.cpp \
 								$(SRCDIR)/handler/StaticRgbHandler.cpp \
+								$(SRCDIR)/handler/DisplayIpHandler.cpp \
 								$(SRCDIR)/ImageCache.cpp
 TESTSOURCES  := $(TESTDIR)/test.cpp \
 								$(TESTDIR)/mock_Arduino.cpp \
@@ -53,6 +54,7 @@ TESTSOURCES  := $(TESTDIR)/test.cpp \
 								$(TESTDIR)/test_FadeHandler.cpp \
 								$(TESTDIR)/test_AnimationHandler.cpp \
 								$(TESTDIR)/test_StaticRgbHandler.cpp \
+								$(TESTDIR)/test_DisplayIpHandler.cpp \
 								$(TESTDIR)/test_PoiFlashMemory.cpp \
 								$(TESTDIR)/test_PoiProgramHandler.cpp \
 								$(TESTDIR)/test_ImageCache.cpp

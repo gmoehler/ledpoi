@@ -6,7 +6,7 @@ PoiActionRunner::PoiActionRunner(PoiTimer& ptimer, LogLevel logLevel) :
   _playHandler(_imageCache), _fadeHandler(_imageCache),
   _progHandler(_playHandler, _flashMemory, logLevel),
   _animationHandler(_imageCache), _staticRgbHandler(_imageCache),
-  _currentHandler(&_playHandler), 
+  _displayIpHandler(_imageCache), _currentHandler(&_playHandler), 
   _ptimer(ptimer), _logLevel(logLevel)
 {}
 
@@ -76,6 +76,19 @@ void PoiActionRunner::_updateSceneFromFlash(uint8_t scene){
 /********************************
   * Actions operated by handler *
   *******************************/
+// set current handler to passed in handler, display and start timer
+void PoiActionRunner::_currentHandlerStart(AbstractHandler* handler, 
+  PoiAction action){
+  _currentAction = action;  
+  _currentHandler = handler;
+  printf("Starting action %s.\n", _currentHandler->getActionName());
+  if (_logLevel != MUTE) _currentHandler->printInfo();
+
+  // play initial frame right away
+  _ptimer.disable();
+  _display(_currentHandler->getDisplayFrame());
+  _ptimer.setIntervalAndEnable( _currentHandler->getDelayMs() );
+}
   
 void PoiActionRunner::showStaticFrame(uint8_t scene, uint8_t frame, uint8_t timeOutMSB, uint8_t timeOutLSB){
   
@@ -145,20 +158,6 @@ void PoiActionRunner::playWorm(Color color, uint8_t registerLength, uint8_t numL
   }
 }
 
-// set current handler to passed in handler, display and start timer
-void PoiActionRunner::_currentHandlerStart(AbstractHandler* handler, 
-  PoiAction action){
-  _currentAction = action;  
-  _currentHandler = handler;
-  printf("Starting action %s.\n", _currentHandler->getActionName());
-  if (_logLevel != MUTE) _currentHandler->printInfo();
-
-  // play initial frame right away
-  _ptimer.disable();
-  _display(_currentHandler->getDisplayFrame());
-  _ptimer.setIntervalAndEnable( _currentHandler->getDelayMs() );
-}
-
 void PoiActionRunner::showStaticRgb(uint8_t r, uint8_t g, uint8_t b, uint8_t nLeds) {
 
   _staticRgbHandler.init(r,g,b,nLeds);
@@ -174,40 +173,15 @@ void PoiActionRunner::displayOff() {
   showStaticRgb(0,0,0);
 }
 
-void PoiActionRunner::displayIp(uint8_t ipIncrement, bool withStaticBackground){
-  // set back the ip led to black
-  _imageCache.clearRegister(0);
-  if (withStaticBackground){
-    rgbVal paleWhite = makeRGBVal(8,8,8);
-    _imageCache.fillRegister(0, paleWhite, N_POIS);
-  }
-  rgbVal* reg0 =  _imageCache.getRegister(0);
-    // display colored led (first one less bright for each)
-  uint8_t b = 64;
-  if (ipIncrement %2 == 0){
-    b=8;
-  }
-  rgbVal color =  makeRGBValue(RED, b);
-  switch(ipIncrement/2){
-    case 1:
-    color =  makeRGBValue(GREEN, b);
-    break;
+void PoiActionRunner::displayIp(uint8_t ipOffset, bool withStaticBackground){
+  
+  _displayIpHandler.init(ipOffset, withStaticBackground);
 
-    case 2:
-    color =  makeRGBValue(BLUE, b);
-    break;
-
-    case 3:
-    color =  makeRGBValue(YELLOW, b);
-    break;
-
-    case 4:
-    color =  makeRGBValue(LILA, b);
-    break;
-  }
-  reg0[ipIncrement]= color;
-
-  _displayRegister(0);
+  _currentAction = DISPLAY_IP;
+  _currentHandler = &_displayIpHandler;
+  
+  _ptimer.disable();
+  _display(_currentHandler->getDisplayFrame());
 }
 
 /****************************
