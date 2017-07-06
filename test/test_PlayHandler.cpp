@@ -141,15 +141,32 @@ TEST(PlayHandler_tests, testFinishedAbstract){
   }
   // last iteration
   aPlayHandler.next();
-  EXPECT_EQ(playHandler.__getCurrentFrame(), 12);
-  EXPECT_EQ(playHandler.__getCurrentLoop(), 2);
   EXPECT_TRUE(aPlayHandler.isActive());
 
   // finished
   aPlayHandler.next();
-  EXPECT_EQ(playHandler.__getCurrentFrame(), 12);
-  EXPECT_EQ(playHandler.__getCurrentLoop(), 2);
   EXPECT_FALSE(aPlayHandler.isActive());
+}
+
+TEST(PlayHandler_tests, testFinishedAbstractPtr){
+  ImageCache ic(3*N_FRAMES*N_PIXELS, MUTE);
+  PlayHandler playHandler(ic);
+  playHandler.init(10, 12, 100, 3);
+  EXPECT_EQ(playHandler.__getCurrentFrame(), 10);
+  EXPECT_EQ(playHandler.__getCurrentLoop(), 0);
+ 
+ AbstractHandler *aPlayHandler = &playHandler;
+
+  for (int i=0; i<3*3-2; i++) {
+    aPlayHandler->next();
+  }
+  // last iteration
+  aPlayHandler->next();
+  EXPECT_TRUE(aPlayHandler->isActive());
+
+  // finished
+  aPlayHandler->next();
+  EXPECT_FALSE(aPlayHandler->isActive());
 }
 
 TEST(PlayHandler_tests, testFinished){

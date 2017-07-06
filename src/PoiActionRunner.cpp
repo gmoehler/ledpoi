@@ -162,7 +162,7 @@ void PoiActionRunner::showStaticRgb(uint8_t r, uint8_t g, uint8_t b, uint8_t nLe
   _staticRgbHandler.init(r,g,b,nLeds);
 
   _currentAction = SHOW_STATIC_RGB;
-  _currentHandler=_staticRgbHandler;
+  _currentHandler = &_staticRgbHandler;
   
   _ptimer.disable();
   _display(_currentHandler->getDisplayFrame());

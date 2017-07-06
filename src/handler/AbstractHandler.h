@@ -1,6 +1,7 @@
 #ifndef ABSTRACT_HANDLER_H
 #define ABSTRACT_HANDLER_H
 
+#include "ledpoi.h"
 
 /**
  * Holds the information for an action

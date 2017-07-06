@@ -52,6 +52,7 @@ TESTSOURCES  := $(TESTDIR)/test.cpp \
 								$(TESTDIR)/test_PlayHandler.cpp \
 								$(TESTDIR)/test_FadeHandler.cpp \
 								$(TESTDIR)/test_AnimationHandler.cpp \
+								$(TESTDIR)/test_StaticRgbHandler.cpp \
 								$(TESTDIR)/test_PoiFlashMemory.cpp \
 								$(TESTDIR)/test_PoiProgramHandler.cpp \
 								$(TESTDIR)/test_ImageCache.cpp
