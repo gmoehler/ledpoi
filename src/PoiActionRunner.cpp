@@ -78,16 +78,18 @@ void PoiActionRunner::_updateSceneFromFlash(uint8_t scene){
   *******************************/
   
 void PoiActionRunner::showStaticFrame(uint8_t scene, uint8_t frame, uint8_t timeOutMSB, uint8_t timeOutLSB){
-  _currentAction = SHOW_STATIC_FRAME;
-  _updateSceneFromFlash(scene);
+  
+  if (scene != _currentScene){
+    _updateSceneFromFlash(scene);
+    _currentScene = scene;
+  }
+
   uint8_t timeout = (uint16_t)timeOutMSB *256 + timeOutLSB;
   if (_logLevel != MUTE)  printf("Play static frame: %d timeout: %d \n", frame, timeout);
-  _imageCache.copyFrameToRegister(0, frame);
 
-  // play initial frame right away
-  _ptimer.disable();
-  _displayRegister(0);
-  _ptimer.setIntervalAndEnable( timeout );
+  // use frame player but with same start and end frame and timeout as speed
+  _playHandler.init(frame, frame, timeout, 1);
+  _currentHandlerStart(&_playHandler, SHOW_STATIC_FRAME);
 }
 
 void PoiActionRunner::playScene(uint8_t scene, uint8_t startFrame, uint8_t endFrame, uint8_t speed, uint8_t loops){
@@ -339,6 +341,7 @@ void PoiActionRunner::loop(){
 
       case NO_ACTION:
       case PAUSE_PROG:
+      case SHOW_STATIC_RGB:
       // do nothing
       break;
 
