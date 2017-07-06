@@ -1,12 +1,12 @@
-#ifndef STATIC_HANDLER_H
-#define STATIC_HANDLER_H
+#ifndef ABSTRACTSTATIC_HANDLER_H
+#define ABSTRACTSTATIC_HANDLER_H
 
 
 /**
  * Holds the information for a static action
  **/
 
-class StaticHandler : public AbstractHandler
+class AbstractStaticHandler : public AbstractHandler
 {
 public:
   virtual const char* getActionName() = 0;
