@@ -5,7 +5,8 @@ PoiActionRunner::PoiActionRunner(PoiTimer& ptimer, LogLevel logLevel) :
   _imageCache(_flashMemory.getSizeOfImageSection(), logLevel),
   _playHandler(_imageCache), _fadeHandler(_imageCache),
   _progHandler(_playHandler, _flashMemory, logLevel),
-  _animationHandler(_imageCache), _currentHandler(&_playHandler), 
+  _animationHandler(_imageCache), _staticRgbHandler(_imageCache),
+  _currentHandler(&_playHandler), 
   _ptimer(ptimer), _logLevel(logLevel)
 {}
 
@@ -72,6 +73,10 @@ void PoiActionRunner::_updateSceneFromFlash(uint8_t scene){
   }
 }
 
+/********************************
+  * Actions operated by handler *
+  *******************************/
+  
 void PoiActionRunner::showStaticFrame(uint8_t scene, uint8_t frame, uint8_t timeOutMSB, uint8_t timeOutLSB){
   _currentAction = SHOW_STATIC_FRAME;
   _updateSceneFromFlash(scene);
@@ -153,12 +158,14 @@ void PoiActionRunner::_currentHandlerStart(AbstractHandler* handler,
 }
 
 void PoiActionRunner::showStaticRgb(uint8_t r, uint8_t g, uint8_t b, uint8_t nLeds) {
-  // directly "play" out of register
-  _imageCache.fillRegister(0, makeRGBVal(r,g,b), nLeds);
+
+  _staticRgbHandler.init(r,g,b,nLeds);
 
   _currentAction = SHOW_STATIC_RGB;
+  _currentHandler=_staticRgbHandler;
+  
   _ptimer.disable();
-  _displayRegister(0);
+  _display(_currentHandler->getDisplayFrame());
 }
 
 void PoiActionRunner::displayOff() {

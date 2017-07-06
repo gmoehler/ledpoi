@@ -28,7 +28,7 @@ Byte[n] may not contain any 0xFF!
 ||loop||4|loopCt MSB|loopCt LSB|labelId||(done)|loop starting at label with labelId|
 ||setActiveScene||5|scene||||(done)||
 ||presetRGB||6|r|g|b|||pre-set RGB color for following commands|
-||FadetoRGB||7|scene|frame|delayMSB|delay LSB||goto next [scene/frame] - nofade|
+||FadetoRGB||7|r|g|b|delay (in 10ms)||goto next|
 ||FadetoFrame||8|scene|frame|delayMSB|delay LSB||goto next [scene/frame] - nofade|
 ||jumpto||9|labelId|||||jump to label with labelId|
 ||||*default*||||||do nothing|

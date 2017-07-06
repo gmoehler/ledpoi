@@ -1,6 +1,7 @@
 #ifndef ABSTRACTSTATIC_HANDLER_H
 #define ABSTRACTSTATIC_HANDLER_H
 
+#include "AbstractHandler.h"
 
 /**
  * Holds the information for a static action

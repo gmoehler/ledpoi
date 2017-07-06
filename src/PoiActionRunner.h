@@ -17,6 +17,7 @@
 #include "handler/FadeHandler.h"
 #include "handler/AnimationHandler.h"
 #include "handler/PoiProgramHandler.h"
+#include "handler/StaticRgbHandler.h"
 
 enum PoiAction {  NO_ACTION,
                   SHOW_STATIC_RGB,
@@ -95,6 +96,7 @@ private:
   FadeHandler _fadeHandler;
   PoiProgramHandler _progHandler;
   AnimationHandler _animationHandler;
+  StaticRgbHandler _staticRgbHandler;
 
   AbstractHandler *_currentHandler;
 

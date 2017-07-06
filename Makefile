@@ -43,6 +43,7 @@ SOURCES      := $(SRCDIR)/ledpoi_utils.cpp \
  								$(SRCDIR)/handler/FadeHandler.cpp \
 								$(SRCDIR)/handler/AnimationHandler.cpp \
 								$(SRCDIR)/handler/PoiProgramHandler.cpp \
+								$(SRCDIR)/handler/StaticRgbHandler.cpp \
 								$(SRCDIR)/ImageCache.cpp
 TESTSOURCES  := $(TESTDIR)/test.cpp \
 								$(TESTDIR)/mock_Arduino.cpp \
