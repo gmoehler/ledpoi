@@ -27,9 +27,9 @@ Byte[n] may not contain any 0xFF!
 ||play||3|frameStart|frameEnd|delayMSB|delay LSB|done|Play frames of active scene, or single frame with timeout|
 ||loop||4|loopCt MSB|loopCt LSB|labelId||(done)|loop starting at label with labelId|
 ||setActiveScene||5|scene||||(done)||
-||presetRGB||6|r|g|b|||pre-set RGB color for following commands|
-||FadetoRGB||7|scene|frame|delayMSB|delay LSB||goto next [scene/frame] - nofade|
-||FadetoFrame||8|scene|frame|delayMSB|delay LSB||goto next [scene/frame] - nofade|
+||presetRGB||6|r|g|b|||pre-set RGB color for following command|
+||FadetoRGB||7|scene|frame|delayMSB|delayLSB||fade from scene/frame (or current colors?) to RGB (as defined by presetRGB - or black if not defined)|
+||FadetoFrame||8|scene|frame|delayMSB|delayLSB||fade from current color to scene/frame|
 ||jumpto||9|labelId|||||jump to label with labelId|
 ||||*default*||||||do nothing|
 |**playDirect**||**252**|scene|start|end|delay |loops|||

@@ -57,8 +57,15 @@ void PoiProgramHandler::_printProgram(){
 }
 
 void PoiProgramHandler::init(){
+    if (!_checkProgram()){
+    printf("Error. Program check results in errors. Resetting program.");
+    _resetProgram();
+    return;
+  }
+
 	_currentProgStep = 0;
-	if (_logLevel != MUTE) printf("Starting program...\n");
+	
+  if (_logLevel != MUTE) printf("Starting program...\n");
 	 _nextProgramStep(true);
 	 if (_logLevel != MUTE) _playHandler.printInfo();
 	 _active = true;
@@ -66,6 +73,12 @@ void PoiProgramHandler::init(){
 }
 
 void PoiProgramHandler::next(){
+
+  if (!_checkProgram()){
+    printf("Error. Program check results in errors. Resetting program.");
+    _resetProgram();
+    return;
+  }
 
 	_playHandler.next();
 
@@ -123,10 +136,6 @@ bool PoiProgramHandler::hasDelayChanged(){
 
 uint8_t PoiProgramHandler::getCurrentScene(){
   return _currentScene;
-}
-
-uint8_t PoiProgramHandler::getCurrentFrame(){
-  return _playHandler.getCurrentFrame();
 }
 
 uint16_t PoiProgramHandler::getDelayMs(){
@@ -284,22 +293,28 @@ void PoiProgramHandler::_evaluateCommand(uint8_t index) {
   }
 }
 
-void PoiProgramHandler::_clearProgram(){
-  _duringProgramming = false;
+void PoiProgramHandler::_resetProgram(){
   _inLoop = false;
-	_delayChanged = false;
+	_delayChanged = true; // in any case
 	_active = false;
+
+	_currentLoop = 0;
+	_currentProgStep = 0;
+
+}
+
+void PoiProgramHandler::_clearProgram(){
+  _resetProgram();
+  _duringProgramming = false;
 
 	_numLoops = 0;
   _numProgSteps = 0;
-	_currentLoop = 0;
-	_currentProgStep = 0;
 
   _labelMap.clear();
   _syncMap.clear();
 }
 
-bool PoiProgramHandler::checkProgram(){
+bool PoiProgramHandler::_checkProgram(){
 	if (_duringProgramming){
     printf("Error. Cannot start a program when upload is not completed.\n" );
     return false;
@@ -327,6 +342,16 @@ void PoiProgramHandler::printState(){
 	_playHandler.printState();
 }
 
-uint8_t PoiProgramHandler::getNumProgSteps(){
+const char* PoiProgramHandler::getActionName(){
+  return "Play Program";
+}
+
+#ifdef WITHIN_UNITTEST
+uint8_t PoiProgramHandler::__getNumProgSteps(){
 	return _numProgSteps;
 }
+
+uint8_t PoiProgramHandler::__getCurrentFrame(){
+  return _playHandler.__getCurrentFrame();
+}
+#endif

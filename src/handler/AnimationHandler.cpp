@@ -45,8 +45,8 @@ void AnimationHandler::next(){
         _active = false;
       }
       else {
-      _currentLoop++;
-      _currentStep = 0;
+        _currentLoop++;
+        _currentStep = 0;
       }
     }
     else {
@@ -56,7 +56,7 @@ void AnimationHandler::next(){
 
   if (_active){
     // be cyclic except in last loop and on first step on last loop
-    bool cyclic = !isLastLoop() || _currentStep == 0;
+    bool cyclic = !_isLastLoop() || _currentStep == 0;
     _imageCache.shiftRegister(0, _registerLength, cyclic);
   }
   else {
@@ -73,20 +73,12 @@ rgbVal* AnimationHandler::getDisplayFrame(){
 	return _imageCache.getRegister(0);
 }
 
-bool AnimationHandler::isLastStep(){
-  return (_currentStep == _registerLength - 1 && _currentLoop == _numLoops - 1 && _active);
-}
-
-bool AnimationHandler::isLastLoop(){
+bool AnimationHandler::_isLastLoop(){
   return (_numLoops > 0 && _currentLoop + 1 >= _numLoops && _active);
 }
 
 uint16_t AnimationHandler::getDelayMs(){
   return _delayMs;
-}
-
-uint8_t AnimationHandler::getCurrentLoop(){
-  return _currentLoop;
 }
 
 void AnimationHandler::printInfo(){
@@ -97,3 +89,13 @@ void AnimationHandler::printState(){
   printf("AnimationHandler: Active: %d Current step: %d Current loop: %d \n",
     _active, _currentStep, _currentLoop);
 }
+
+const char* AnimationHandler::getActionName(){
+  return "Worm Animation";
+}
+
+#ifdef WITHIN_UNITTEST
+uint8_t AnimationHandler::__getCurrentLoop(){
+  return _currentLoop;
+}
+#endif
