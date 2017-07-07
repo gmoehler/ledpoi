@@ -31,10 +31,6 @@ void PoiActionRunner::_display(rgbVal* frame){
     ws2812_setColors(N_PIXELS, frame);
 }
 
-void PoiActionRunner::_displayRegister(uint8_t registerId){
-    ws2812_setColors(N_PIXELS, _imageCache.getRegister(registerId));
-}
-
 /****************************
   * External action methods *
   ***************************/
@@ -76,7 +72,7 @@ void PoiActionRunner::_updateSceneFromFlash(uint8_t scene){
 /********************************
   * Actions operated by handler *
   *******************************/
-// set current handler to passed in handler, display and start timer
+// generic method to set current handler to passed in handler, display and start timer
 void PoiActionRunner::_currentHandlerStart(AbstractHandler* handler, 
   PoiAction action){
   _currentAction = action;  
@@ -316,6 +312,7 @@ void PoiActionRunner::loop(){
       case NO_ACTION:
       case PAUSE_PROG:
       case SHOW_STATIC_RGB:
+      case DISPLAY_IP:
       // do nothing
       break;
 

@@ -83,9 +83,7 @@ private:
 
   // display functions
   void _display(rgbVal* frame);
-  void _displayFrame(uint8_t frame);
-  void _displayRegister(uint8_t register Id);
-
+  
   PoiAction _currentAction;
   uint8_t _currentSyncId;
   uint8_t _currentScene;
