@@ -9,7 +9,7 @@
 #include "OneButton.h"
 
 enum PoiState { POI_INIT,               // 0
-                POI_IP_CONFIG_OPTION,         // 1
+                POI_IP_CONFIG_OPTION,   // 1
                 POI_IP_CONFIG,          // 2
                 POI_NETWORK_SEARCH,     // 3
                 POI_CLIENT_CONNECTING,  // 4
@@ -358,6 +358,7 @@ void protocoll_receive_data(){
 // ====  BUTTONS ====================================
 // ===============================================
 
+// long click
 void longPressStart1() {
   printf("Long press1\n");
   if (poiState == POI_IP_CONFIG_OPTION) {
@@ -373,8 +374,12 @@ void longPressStart1() {
   }
 }
 
+// single short click
 void click1() {
-  if (poiState == POI_IP_CONFIG){
+  if (poiState == POI_IP_CONFIG_OPTION){
+    nextPoiState = POI_AWAIT_PROGRAM_SYNC;
+  }
+  else if (poiState == POI_IP_CONFIG){
     // set back the ip led to black
     ipIncrement++;
     if (ipIncrement + 1 > N_POIS){
@@ -402,7 +407,7 @@ void loop()
 
   // exit actions
   if (state_changed){
-    if (logLevel != MUTE) printf("State changed: %d -> %d\n", (poiState), (nextPoiState));
+    if (logLevel != MUTE) printf("Poi State changed: %d -> %d\n", (poiState), (nextPoiState));
 
     switch(poiState){
       case POI_INIT:
@@ -410,7 +415,7 @@ void loop()
 
       case POI_IP_CONFIG_OPTION:
       // switch off ip display
-      runner.showStaticRgb(0,0,0);
+      //runner.displayOff();
       break;
 
       case POI_IP_CONFIG:
@@ -421,7 +426,9 @@ void loop()
       break;
 
       case POI_CLIENT_CONNECTING:
-      runner.playWorm(GREEN, N_PIXELS, 1);
+      if (nextPoiState == POI_RECEIVING_DATA){
+        runner.playWorm(GREEN, N_PIXELS, 1);
+      }
       break;
 
       case POI_RECEIVING_DATA:
@@ -436,7 +443,7 @@ void loop()
       case POI_PLAY_PROGRAM:
       // on exit stop the program
       runner.pauseProg();
-      runner.showStaticRgb(0,0,0);
+      runner.displayOff();
       break;
 
       default:
@@ -475,6 +482,7 @@ void loop()
     case POI_IP_CONFIG:
     if (state_changed){
       runner.playWorm(RAINBOW, N_POIS, 1);
+      delay (100); // otherwise the worm may overtake the displayIp
       runner.displayIp(ipIncrement, false);
     }
     // operation is done thru click1
@@ -535,6 +543,9 @@ void loop()
     break;
 
     case POI_AWAIT_PROGRAM_SYNC:
+    if (state_changed){
+      runner.displayOff();
+    }
     // just wait for click to start program
     break;
 
