@@ -77,7 +77,12 @@ uint16_t PlayHandler::getDelayMs(){
 
 
 void PlayHandler::printInfo(){
-  printf("PlayHandler: Frames [%d,%d] delay: %d loops:%d \n", _startFrame, _endFrame, _delayMs, _numLoops);
+  if (_startFrame == _endFrame && _numLoops == 1){
+    printf("PlayHandler: Static Frame %d timeout: %d \n", _startFrame, _delayMs);
+  }
+  else {
+    printf("PlayHandler: Frames [%d,%d] delay: %d loops:%d \n", _startFrame, _endFrame, _delayMs, _numLoops);
+  }
 }
 
 void PlayHandler::printState(){

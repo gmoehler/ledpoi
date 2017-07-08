@@ -31,10 +31,6 @@ void PoiActionRunner::_display(rgbVal* frame){
     ws2812_setColors(N_PIXELS, frame);
 }
 
-void PoiActionRunner::_displayRegister(uint8_t registerId){
-    ws2812_setColors(N_PIXELS, _imageCache.getRegister(registerId));
-}
-
 /****************************
   * External action methods *
   ***************************/
@@ -76,13 +72,16 @@ void PoiActionRunner::_updateSceneFromFlash(uint8_t scene){
 /********************************
   * Actions operated by handler *
   *******************************/
-// set current handler to passed in handler, display and start timer
+// generic method to set current handler to passed in handler, display and start timer
 void PoiActionRunner::_currentHandlerStart(AbstractHandler* handler, 
   PoiAction action){
   _currentAction = action;  
   _currentHandler = handler;
-  printf("Starting action %s.\n", _currentHandler->getActionName());
-  if (_logLevel != MUTE) _currentHandler->printInfo();
+
+  if (_logLevel != MUTE) {
+    printf("Starting action %s:\n", _currentHandler->getActionName());
+    _currentHandler->printInfo();
+  }
 
   // play initial frame right away
   _ptimer.disable();
@@ -98,7 +97,6 @@ void PoiActionRunner::showStaticFrame(uint8_t scene, uint8_t frame, uint8_t time
   }
 
   uint8_t timeout = (uint16_t)timeOutMSB *256 + timeOutLSB;
-  if (_logLevel != MUTE)  printf("Play static frame: %d timeout: %d \n", frame, timeout);
 
   // use frame player but with same start and end frame and timeout as speed
   _playHandler.init(frame, frame, timeout, 1);
@@ -134,11 +132,6 @@ void PoiActionRunner::playWorm(Color color, uint8_t registerLength, uint8_t numL
   uint16_t delayMs = 25;
   _animationHandler.init(ANIMATIONTYPE_WORM, registerLength, numLoops, color, delayMs);
 
-  if (_logLevel != MUTE)  {
-    printf("Play Worm Animation: Color %d Len: %d delay: %d \n",
-    color, registerLength, delayMs);
-  }
-
   if (synchronous){
     _ptimer.disable();
     _display(_animationHandler.getDisplayFrame());
@@ -159,14 +152,8 @@ void PoiActionRunner::playWorm(Color color, uint8_t registerLength, uint8_t numL
 }
 
 void PoiActionRunner::showStaticRgb(uint8_t r, uint8_t g, uint8_t b, uint8_t nLeds) {
-
   _staticRgbHandler.init(r,g,b,nLeds);
-
-  _currentAction = SHOW_STATIC_RGB;
-  _currentHandler = &_staticRgbHandler;
-  
-  _ptimer.disable();
-  _display(_currentHandler->getDisplayFrame());
+  _currentHandlerStart(&_staticRgbHandler, SHOW_STATIC_RGB);
 }
 
 void PoiActionRunner::displayOff() {
@@ -174,14 +161,8 @@ void PoiActionRunner::displayOff() {
 }
 
 void PoiActionRunner::displayIp(uint8_t ipOffset, bool withStaticBackground){
-  
   _displayIpHandler.init(ipOffset, withStaticBackground);
-
-  _currentAction = DISPLAY_IP;
-  _currentHandler = &_displayIpHandler;
-  
-  _ptimer.disable();
-  _display(_currentHandler->getDisplayFrame());
+  _currentHandlerStart(&_displayIpHandler, SHOW_STATIC_RGB);
 }
 
 /****************************
@@ -316,6 +297,7 @@ void PoiActionRunner::loop(){
       case NO_ACTION:
       case PAUSE_PROG:
       case SHOW_STATIC_RGB:
+      case DISPLAY_IP:
       // do nothing
       break;
 

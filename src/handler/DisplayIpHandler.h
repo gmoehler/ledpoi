@@ -24,5 +24,6 @@ public:
 private:
   ImageCache _imageCache;
   uint8_t _ipOffset;
+  bool _withStaticBackground;
 };
 #endif

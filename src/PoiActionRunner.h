@@ -20,16 +20,16 @@
 #include "handler/StaticRgbHandler.h"
 #include "handler/DisplayIpHandler.h"
 
-enum PoiAction {  NO_ACTION,
-                  SHOW_STATIC_RGB,
-                  PLAY_DIRECT,
-                  SHOW_CURRENT_FRAME,
-                  SHOW_STATIC_FRAME,
-                  FADE_TO_BLACK,
-                  DISPLAY_IP,
-                  PLAY_PROG,
-                  PAUSE_PROG,
-                  ANIMATION_WORM
+enum PoiAction {  NO_ACTION,            // 0
+                  SHOW_STATIC_RGB,      // 1
+                  PLAY_DIRECT,          // 2
+                  SHOW_CURRENT_FRAME,   // 3
+                  SHOW_STATIC_FRAME,    // 4
+                  FADE_TO_BLACK,        // 5
+                  DISPLAY_IP,           // 6
+                  PLAY_PROG,            // 7
+                  PAUSE_PROG,           // 8
+                  ANIMATION_WORM        // 9
                 };
 
 /**
@@ -83,9 +83,7 @@ private:
 
   // display functions
   void _display(rgbVal* frame);
-  void _displayFrame(uint8_t frame);
-  void _displayRegister(uint8_t register Id);
-
+  
   PoiAction _currentAction;
   uint8_t _currentSyncId;
   uint8_t _currentScene;

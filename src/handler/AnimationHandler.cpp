@@ -13,6 +13,7 @@ void AnimationHandler::init(AnimationType animation, uint8_t registerLength,
   _currentStep = 0;
   _active = true;
   _delayMs = delay;
+  _color = color;
 
   _imageCache.clearRegister(0);
   rgbVal* reg0 =  _imageCache.getRegister(0);
@@ -82,7 +83,8 @@ uint16_t AnimationHandler::getDelayMs(){
 }
 
 void AnimationHandler::printInfo(){
-  printf("AnimationHandler: NumLoops: %d\n", _numLoops);
+  printf("AnimationHandler: Worm with color: %d len: %d numLoops: %d delay: %d\n", 
+    _color, _registerLength, _numLoops, _delayMs);
 }
 
 void AnimationHandler::printState(){

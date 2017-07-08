@@ -48,6 +48,7 @@ private:
   uint8_t _currentStep;
   uint8_t _currentLoop;
   uint16_t _delayMs;
+  Color _color;
   bool _active;
 
   ImageCache _imageCache;

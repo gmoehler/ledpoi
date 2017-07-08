@@ -5,6 +5,8 @@ DisplayIpHandler::DisplayIpHandler(ImageCache imageCache) :
 
 void DisplayIpHandler::init(uint8_t ipOffset, bool withStaticBackground){
   _ipOffset = ipOffset;
+  _withStaticBackground = withStaticBackground;
+
 
  // set back the ip led to black
   _imageCache.clearRegister(0);
@@ -44,7 +46,13 @@ rgbVal* DisplayIpHandler::getDisplayFrame(){
 }
 
 void DisplayIpHandler::printInfo(){
-  printf("DisplayIpHandler: Ip Offset: %d\n", _ipOffset);
+  printf("DisplayIpHandler: Ip Offset: %d", _ipOffset);
+  if (_withStaticBackground){
+    printf(" with static background\n");
+  }
+  else {
+    printf("\n");
+  }
 }
 
 const char* DisplayIpHandler::getActionName(){

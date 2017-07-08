@@ -44,10 +44,10 @@ enum CmdType {  PROG_END,     // 0
 // currently mainly used for playWorm()
 enum Color {       WHITE,   // 0
                    BLACK,   // 1
-                   RED,
-                   GREEN,
-                   BLUE,
-                   YELLOW,
+                   RED,     // 2
+                   GREEN,   // 3
+                   BLUE,    // 4
+                   YELLOW,  // 5
                    LILA,
                    CYAN,
                    RAINBOW,  // 8
