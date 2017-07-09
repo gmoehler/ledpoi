@@ -7,6 +7,8 @@
   #include "../test/mock_Arduino.h"
 #endif
 #include "ledpoi.h"
+#include "AbstractHandler.h"
+#include "ImageCache.h"
 
 enum AnimationType {
   ANIMATIONTYPE_WORM
@@ -16,32 +18,40 @@ enum AnimationType {
  * Holds the information for a n animation action (currently only "Worm" animation supported)
  **/
 
-class AnimationHandler
+class AnimationHandler : public AbstractHandler
 {
 public:
-  AnimationHandler();
-  void init(AnimationType animation, uint8_t registerLength, uint8_t numLoops, uint16_t delay=0);
+  AnimationHandler(ImageCache imageCache);
+  void init(AnimationType animation, uint8_t registerLength, uint8_t numLoops, Color color, uint16_t delay=0);
+
+  const char* getActionName();
 
   void next();
   bool isActive();
-  bool isLastStep();
-  bool isLastLoop();
-
+  
   uint16_t getDelayMs();
-  uint8_t getRegisterLength();
-  uint8_t getCurrentLoop();
+  rgbVal* getDisplayFrame();
 
   void printInfo();
   void printState();
+  
+#ifdef WITHIN_UNITTEST
+  uint8_t __getCurrentLoop();
+#endif
 
 private:
+  bool _isLastLoop();
+
   AnimationType _animation;
   uint8_t _registerLength;
   uint8_t _numLoops;
   uint8_t _currentStep;
   uint8_t _currentLoop;
   uint16_t _delayMs;
+  Color _color;
   bool _active;
+
+  ImageCache _imageCache;
 };
 
 #endif

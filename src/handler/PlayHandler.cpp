@@ -1,10 +1,11 @@
 #include "PlayHandler.h"
 
-PlayHandler::PlayHandler() :
+PlayHandler::PlayHandler(ImageCache imageCache) :
  _startFrame(0), _endFrame(0), _delayMs(0),
  _numLoops(0),
  _currentFrame (0), _currentLoop(0),
- _active(false), _forward(true) {}
+ _active(false), _forward(true),
+ _imageCache(imageCache) {}
 
 void PlayHandler::init(uint8_t startFrame, uint8_t endFrame, uint16_t delay, uint16_t loops) {
 
@@ -17,6 +18,7 @@ void PlayHandler::init(uint8_t startFrame, uint8_t endFrame, uint16_t delay, uin
   _currentLoop = 0;
   _active = true;
   _forward = endFrame >= startFrame;
+  _imageCache.copyFrameToRegister(0, _currentFrame);
 }
 
 void PlayHandler::next(){
@@ -55,7 +57,9 @@ void PlayHandler::next(){
       // normal operation: next frame
       _currentFrame--;
     }
-
+  }
+  if (isActive()){
+    _imageCache.copyFrameToRegister(0, _currentFrame);
   }
 }
 
@@ -63,26 +67,38 @@ bool PlayHandler::isActive(){
   return _active;
 }
 
-bool PlayHandler::isLastStep(){
-  return (_currentFrame == _endFrame && _currentLoop == _numLoops - 1 && _active);
+rgbVal* PlayHandler::getDisplayFrame(){
+	return _imageCache.getRegister(0);
 }
 
 uint16_t PlayHandler::getDelayMs(){
   return _delayMs;
 }
 
-uint8_t PlayHandler::getCurrentFrame(){
-  return _currentFrame;
-}
-
-uint16_t PlayHandler::getCurrentLoop(){
-  return _currentLoop;
-}
 
 void PlayHandler::printInfo(){
-  printf("PlayHandler: Frames [%d,%d] delay: %d loops:%d \n", _startFrame, _endFrame, _delayMs, _numLoops);
+  if (_startFrame == _endFrame && _numLoops == 1){
+    printf("PlayHandler: Static Frame %d timeout: %d \n", _startFrame, _delayMs);
+  }
+  else {
+    printf("PlayHandler: Frames [%d,%d] delay: %d loops:%d \n", _startFrame, _endFrame, _delayMs, _numLoops);
+  }
 }
 
 void PlayHandler::printState(){
   printf("PlayHandler: Active: %d Current frame: %d current loop: %d \n", _active, _currentFrame, _currentLoop);
 }
+
+const char* PlayHandler::getActionName(){
+  return "Play Frame";
+}
+
+#ifdef WITHIN_UNITTEST
+uint8_t PlayHandler::__getCurrentFrame(){
+  return _currentFrame;
+}
+
+uint16_t PlayHandler::__getCurrentLoop(){
+  return _currentLoop;
+}
+#endif

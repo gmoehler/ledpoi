@@ -1,6 +1,12 @@
 #ifndef LEDPOI_H
 #define LEDPOI_H
 
+#ifndef WITHIN_UNITTEST
+  #include <ws2812.h>
+#else
+  #include "../test/mock_ws2812.h"
+#endif
+
 // maximum number of pois that can be configured
 #define N_POIS 10
 
@@ -38,14 +44,20 @@ enum CmdType {  PROG_END,     // 0
 // currently mainly used for playWorm()
 enum Color {       WHITE,   // 0
                    BLACK,   // 1
-                   RED,
-                   GREEN,
-                   BLUE,
-                   YELLOW,
+                   RED,     // 2
+                   GREEN,   // 3
+                   BLUE,    // 4
+                   YELLOW,  // 5
                    LILA,
                    CYAN,
                    RAINBOW,  // 8
                    PALE_WHITE
                    };
+
+
+rgbVal makeRGBValue(uint8_t *rgb_array);
+
+rgbVal makeRGBValue(Color color, uint8_t brightness=255);
+
 
 #endif

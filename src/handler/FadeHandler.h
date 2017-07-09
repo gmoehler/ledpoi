@@ -7,6 +7,8 @@
   #include "../test/mock_Arduino.h"
 #endif
 #include "ledpoi.h"
+#include "AbstractHandler.h"
+#include "ImageCache.h"
 
 #define N_FADE_STEPS_DEFAULT 50
 #define MIN_FADE_TIME 20
@@ -16,30 +18,40 @@
  **/
 
 
-class FadeHandler
+class FadeHandler : public AbstractHandler
 {
 public:
-  FadeHandler();
+  FadeHandler(ImageCache imageCache);
   void init(uint16_t fadeTime);
 
+  const char* getActionName();
+
   void next();
-
   bool isActive();
-  bool isLastStep();
-
+  
   uint16_t getDelayMs();
-  float getCurrentFadeFactor();
-
+  rgbVal* getDisplayFrame();
+  
   void printInfo();
   void printState();
+  
+#ifdef WITHIN_UNITTEST
+  float __getCurrentFadeFactor();
+#endif
 
 private:
+  float _getCurrentFadeFactor();
+  
   uint16_t _fadeTime;
   uint16_t _numFadeSteps;
   uint16_t _delayMs;
 
   uint8_t _currentFadeStep;
   bool _active;
+
+  ImageCache _imageCache;
+  
+  
 
 };
 #endif

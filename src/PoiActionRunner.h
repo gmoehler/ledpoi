@@ -1,26 +1,35 @@
 #ifndef POI_ACTION_RUNNER_H
 #define POI_ACTION_RUNNER_H
 
-#include <Arduino.h>
-#include <ws2812.h>
+#ifndef WITHIN_UNITTEST
+  #include <Arduino.h>
+  #include <ws2812.h>
+#else
+  #include "../test/mock_Arduino.h"
+  #include "../test/mock_ws2812.h"
+#endif
+
 #include <map>
 #include "ledpoi.h"
 #include "PoiTimer.h"
-#include "PlayHandler.h"
-#include "FadeHandler.h"
-#include "PoiProgramHandler.h"
-#include "AnimationHandler.h"
 #include "ImageCache.h"
+#include "handler/PlayHandler.h"
+#include "handler/FadeHandler.h"
+#include "handler/AnimationHandler.h"
+#include "handler/PoiProgramHandler.h"
+#include "handler/StaticRgbHandler.h"
+#include "handler/DisplayIpHandler.h"
 
-enum PoiAction {  NO_ACTION,
-                  SHOW_STATIC_RGB,
-                  PLAY_DIRECT,
-                  SHOW_CURRENT_FRAME,
-                  SHOW_STATIC_FRAME,
-                  FADE_TO_BLACK,
-                  PLAY_PROG,
-                  PAUSE_PROG,
-                  ANIMATION_WORM
+enum PoiAction {  NO_ACTION,            // 0
+                  SHOW_STATIC_RGB,      // 1
+                  PLAY_DIRECT,          // 2
+                  SHOW_CURRENT_FRAME,   // 3
+                  SHOW_STATIC_FRAME,    // 4
+                  FADE_TO_BLACK,        // 5
+                  DISPLAY_IP,           // 6
+                  PLAY_PROG,            // 7
+                  PAUSE_PROG,           // 8
+                  ANIMATION_WORM        // 9
                 };
 
 /**
@@ -44,11 +53,10 @@ public:
   void showStaticRgb(uint8_t r, uint8_t g, uint8_t b, uint8_t nLeds=N_PIXELS);
   void displayOff();
   void fadeToBlack(uint8_t fadeMSB, uint8_t fadeLSB);
-  void showCurrent();
   void pauseAction();
   void jumptoSync(uint8_t syncId);
   void playWorm(Color color, uint8_t registerLength, uint8_t numLoops, bool synchronous = true);
-  void displayIp(uint8_t ipIncrement, bool withStaticBackgroun);
+  void displayIp(uint8_t ipOffset, bool withStaticBackgroun);
 
   // program related methods
   void addCmdToProgram(unsigned char cmd[7]);
@@ -60,38 +68,45 @@ public:
   void saveIpIncrement(uint8_t ipIncrement);
 
   void setup();             // to be called in setup()
-  void loop();               // to be called in the loop
-  void onInterrupt();   // to be called during the timer interrupt
+  void loop();              // to be called in the loop
+  void onInterrupt();       // to be called during the timer interrupt
   
   void initializeFlash();
   void clearImageMap();
 
 private:
+
+  void _currentHandlerStart(AbstractHandler *handler, PoiAction action);
+
+  // data stores
+  void _updateSceneFromFlash(uint8_t scene);
+
+  // display functions
+  void _display(rgbVal* frame);
+  
   PoiAction _currentAction;
   uint8_t _currentSyncId;
   uint8_t _currentScene;
 
+  ImageCache _imageCache;
   PoiFlashMemory _flashMemory;
 
-    // handlers for the different programs
+  // handlers for the different programs
   PlayHandler _playHandler;
   FadeHandler _fadeHandler;
   PoiProgramHandler _progHandler;
   AnimationHandler _animationHandler;
+  StaticRgbHandler _staticRgbHandler;
+  DisplayIpHandler _displayIpHandler;
 
-  // data stores
-  ImageCache _imageCache;
-  void _updateSceneFromFlash(uint8_t scene);
-
-  // display functions
-  void _displayFrame(uint8_t frame);
-  void _displayRegister(uint8_t register Id);
+  AbstractHandler *_currentHandler;
 
   // other member variables
   PoiTimer _ptimer;
   volatile SemaphoreHandle_t _timerSemaphore;
   portMUX_TYPE _timerMux;
   LogLevel _logLevel;
+
 };
 
 
