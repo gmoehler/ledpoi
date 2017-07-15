@@ -19,7 +19,7 @@ Byte[n] may not contain any 0xFF!
 ||startProg||3|||||done||
 ||pauseProg||4|||||done||
 ||continueProg||5|frame||||(done)|frame does not make sense(?)|
-||jumpTo||6|syncId||||done|jump to label with syncId immediatelly - if syncId==0 jump to next syncId|
+||jumpToSync||6|syncId||||done|jump to label with syncId immediatelly - if syncId==0 jump to next syncId|
 ||setIP||7|IP1|IP2|IP3|IP4||0.0.0.0: use DHCP|
 ||setGW||8|GW1|GW2|GW3|GW4|||
 ||initializeFlash||9|||||done|initialize(clear) flash completely|

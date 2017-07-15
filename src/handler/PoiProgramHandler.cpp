@@ -13,14 +13,14 @@ void PoiProgramHandler::setup(){
 	if (_flashMemory.loadNumProgramSteps(&_numProgSteps)){
 		if (_numProgSteps > 0){
 			if (_flashMemory.loadProgram(&_prog[0][0])){
-
           _updateLabels();
+          _updateSyncPoints();
 					loadingSuccess = true;
 
 					if (_logLevel != MUTE) {
 						printf("Program loaded from flash.\n");
 						printf("Program read (%d cmds, %d labels, %d sync points):\n", 
-              _numProgSteps, _labelMap.size(), _syncMap.size());
+                        _numProgSteps, _labelMap.size(), _syncMap.size());
 						_printProgram();
 					}
 				}
@@ -46,6 +46,16 @@ void PoiProgramHandler::_updateLabels(){
     }
 	}
 }
+
+void PoiProgramHandler::_updateSyncPoints(){
+  _syncMap.clear();
+	for (int i=0; i<_numProgSteps; i++){
+    if (_prog[i][0] == SYNC_POINT){
+      _syncMap[_prog[i][1]] = i;
+    }
+	}
+}
+
 
 void PoiProgramHandler::_printProgram(){
 	for (int i=0; i<_numProgSteps; i++){
@@ -91,6 +101,7 @@ void PoiProgramHandler::next(){
 			_nextProgramStep();
 			 if (_logLevel != MUTE) _playHandler.printInfo();
 			// set timer in any case for a new command
+			// TODO: do it smarter
 			_delayChanged = true;
 		}
 	}
@@ -105,6 +116,7 @@ bool PoiProgramHandler::syncNow(uint8_t syncId){
       return false;
   }
 
+  // works only when program is already running
   std::map<uint8_t,uint8_t>::iterator it = _syncMap.find(syncId);
   if (it != _syncMap.end()) {
     if (_logLevel != MUTE) printf("Jumping to sync id %d.\n", syncId);
@@ -112,12 +124,12 @@ bool PoiProgramHandler::syncNow(uint8_t syncId){
 		_nextProgramStep();
 		 if (_logLevel != MUTE) _playHandler.printInfo();
 		// set timer in any case for a new command
-		_delayChanged = true;
+	  _delayChanged = true;
 
     return true;
   }
 
-  printf("Error. Loop jump label %d not found.\n", syncId);
+  printf("Error. Sync jump label %d not found.\n", syncId);
   return false;
 }
 
@@ -193,6 +205,11 @@ void PoiProgramHandler::addCmdToProgram(unsigned char cmd[7]){
   if ((CmdType) cmd[1] == LABEL){
     // keep labels separate in a map along with (next) cmd number
     _labelMap[cmd[2]] = _numProgSteps;
+  }
+  
+  if ((CmdType) cmd[1] == SYNC_POINT){
+    // keep lsync points separate in a map along with (next) cmd number
+    _syncMap[cmd[2]] = _numProgSteps;
   }
 
   // add cmd to program memory
@@ -353,5 +370,13 @@ uint8_t PoiProgramHandler::__getNumProgSteps(){
 
 uint8_t PoiProgramHandler::__getCurrentFrame(){
   return _playHandler.__getCurrentFrame();
+}
+
+uint8_t PoiProgramHandler::__getNumSyncPoints(){
+	return _syncMap.size();
+}
+
+uint8_t PoiProgramHandler::__getNumLabels(){
+	return _labelMap.size();
 }
 #endif

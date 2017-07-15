@@ -50,6 +50,8 @@ public:
 #ifdef WITHIN_UNITTEST
   uint8_t __getNumProgSteps();
   uint8_t __getCurrentFrame();
+  uint8_t __getNumLabels();
+  uint8_t __getNumSyncPoints();
 #endif  
 
 private:
@@ -75,6 +77,7 @@ private:
   void _clearProgram();
   void _resetProgram();
   void _updateLabels();
+  void _updateSyncPoints();
   CmdType _getCommandType(uint8_t cmd[N_PROG_FIELDS]);
   void _nextProgramStep(bool initial=false);
   void _evaluateCommand(uint8_t index);

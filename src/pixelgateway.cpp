@@ -247,9 +247,9 @@ void realize_cmd(){
       break;
 
       case 6:
-      // TODO: changet this back to jumptoSync
-      //runner.jumptoSync(cmd[2]);
-      runner.saveScene(cmd[2]);
+      runner.jumptoSync(cmd[2]);
+      // for experimental purposes:
+      // runner.saveScene(cmd[2]);
       break;
 
       case 7:

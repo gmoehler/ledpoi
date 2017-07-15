@@ -154,7 +154,7 @@ bool PoiFlashMemory::saveProgram(uint8_t *programData, uint16_t numLines, uint8_
 bool PoiFlashMemory::loadProgram(uint8_t *programData){
   esp_err_t err = _nvs_read_uint8_array(NVS_PROGRAM_NAMESPACE, NVS_PROGRAM_KEY, programData);
   if (err != ESP_OK) {
-    printf("Error (%4x) readimg program data from flash.\n", err);
+    printf("Error (%4x) reading program data from flash.\n", err);
     return false;
   }
   return true;
