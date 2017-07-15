@@ -34,3 +34,4 @@ src/WiFiCredentials.h
 .gcc-flags.json
 .vscode
 nodejs\poi-mobile\package-lock.json
+bin/

@@ -305,9 +305,12 @@ void PoiProgramHandler::_evaluateCommand(uint8_t index) {
     }
     break;
 
-    case DIM:
-    if (_logLevel != MUTE) printf("Update dim factor to: %d.\n", _dimFactor);
-    _playHandler.setDimFactor(((float)cmd[1]) / 254);
+    case DIM: {
+    float dimFactor  = ((float)cmd[1]) / 254;
+    if (_logLevel != MUTE) printf("Update dim factor to: %.2f.\n", dimFactor);
+    _playHandler.setDimFactor(dimFactor);
+    }
+    break;
 
     default:
     break;
