@@ -35,6 +35,7 @@ Byte[n] may not contain any 0xFF!
 ||FadetoRGB||7|scene|frame|delayMSB|delayLSB||fade from scene/frame (or current colors?) to RGB (as defined by presetRGB - or black if not defined)|
 ||FadetoFrame||8|scene|frame|delayMSB|delayLSB||fade from current color to scene/frame|
 ||jumpto||9|labelId|||||jump to label with labelId|
+||dim||10|level||||done|dim output by factor level/254|
 ||||*default*||||||do nothing|
 |**playDirect**||**252**|scene|start|end|delay |loops|||
 |**endOfMessage**||**251**|||||||end of message  - client can disconnect|

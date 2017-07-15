@@ -38,7 +38,8 @@ enum CmdType {  PROG_END,     // 0
                 PRESET_RGB,   // 6
                 FADE_TO_RGB,  // 7
                 FADE_TO_FRAME,// 8
-                JUMPTO          // 9
+                JUMPTO,       // 9
+                DIM           //10
               };
 
 // currently mainly used for playWorm()

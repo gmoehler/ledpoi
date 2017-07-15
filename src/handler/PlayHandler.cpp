@@ -5,6 +5,7 @@ PlayHandler::PlayHandler(ImageCache imageCache) :
  _numLoops(0),
  _currentFrame (0), _currentLoop(0),
  _active(false), _forward(true),
+ _dimFactor(1.0),
  _imageCache(imageCache) {}
 
 void PlayHandler::init(uint8_t startFrame, uint8_t endFrame, uint16_t delay, uint16_t loops) {
@@ -18,7 +19,7 @@ void PlayHandler::init(uint8_t startFrame, uint8_t endFrame, uint16_t delay, uin
   _currentLoop = 0;
   _active = true;
   _forward = endFrame >= startFrame;
-  _imageCache.copyFrameToRegister(0, _currentFrame);
+  _imageCache.copyFrameToRegister(0, _currentFrame, _dimFactor);
 }
 
 void PlayHandler::next(){
@@ -59,7 +60,7 @@ void PlayHandler::next(){
     }
   }
   if (isActive()){
-    _imageCache.copyFrameToRegister(0, _currentFrame);
+    _imageCache.copyFrameToRegister(0, _currentFrame, _dimFactor);
   }
 }
 
@@ -86,11 +87,18 @@ void PlayHandler::printInfo(){
 }
 
 void PlayHandler::printState(){
-  printf("PlayHandler: Active: %d Current frame: %d current loop: %d \n", _active, _currentFrame, _currentLoop);
+  printf("PlayHandler: Active: %d Current frame: %d current loop: %d dim:\n", 
+    _active, _currentFrame, _currentLoop, _dimFactor);
 }
 
 const char* PlayHandler::getActionName(){
   return "Play Frame";
+}
+
+void PlayHandler::setDimFactor(float factor){
+  _dimFactor = factor;
+  // update register with current dim level
+  _imageCache.copyFrameToRegister(0, _currentFrame, _dimFactor);
 }
 
 #ifdef WITHIN_UNITTEST

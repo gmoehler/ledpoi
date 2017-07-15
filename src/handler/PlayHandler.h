@@ -32,6 +32,8 @@ public:
   void printInfo();
   void printState();
 
+  void setDimFactor(float factor);
+
 #ifdef WITHIN_UNITTEST
   uint8_t __getCurrentFrame();
   uint16_t __getCurrentLoop();
@@ -47,6 +49,8 @@ private:
   uint16_t _currentLoop;
   bool _active;
   bool _forward; // false for backward
+
+  float _dimFactor;
 
   ImageCache _imageCache;
 };

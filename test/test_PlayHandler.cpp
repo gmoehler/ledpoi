@@ -111,6 +111,7 @@ TEST(PlayHandler_tests, testNextWithDisplayFrame){
   EXPECT_EQ(rgb0.r, 0);
   EXPECT_EQ(rgb0.g, 0);
   EXPECT_EQ(rgb0.b, 255);
+  playHandler.setDimFactor(0.1);
   
   playHandler.next();
   EXPECT_EQ(playHandler.__getCurrentFrame(), 2);
@@ -118,7 +119,7 @@ TEST(PlayHandler_tests, testNextWithDisplayFrame){
   reg0= playHandler.getDisplayFrame();
   rgb0 = reg0[0];
   EXPECT_EQ(rgb0.r, 0);
-  EXPECT_EQ(rgb0.g, 255);
+  EXPECT_EQ(rgb0.g, 25); // 255/10 since it is dimmed
   EXPECT_EQ(rgb0.b, 0);
  
   playHandler.next();
