@@ -271,6 +271,11 @@ void PoiProgramHandler::_evaluateCommand(uint8_t index) {
 											((uint16_t)cmd[3] * 256 + cmd[4]), 1);
     break;
 
+    case LABEL:
+    // reset loop count for next loop - potentially for this label
+    _currentLoop=0;
+    break;
+
     case LOOP:
     if (_inLoop){
       _currentLoop++;

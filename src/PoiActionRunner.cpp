@@ -48,13 +48,13 @@ void PoiActionRunner::setPixel(uint8_t scene_idx, uint8_t frame_idx, uint8_t pix
 }
 
 void PoiActionRunner::saveScene(uint8_t scene){
-  if (_logLevel != MUTE) printf("Saving image of scene %d to flash.\n", _currentScene);
+  if (_logLevel != MUTE) printf("Saving image of scene %d to flash.\n", scene);
   if (_flashMemory.saveImage(scene, _imageCache.getRawImageData())){
     _currentScene = scene;
-    if (_logLevel != MUTE) printf("Image of scene %d saved to flash.\n", _currentScene);
+    if (_logLevel != MUTE) printf("Image of scene %d saved to flash.\n", scene);
   }
   else {
-    printf("Error saving scene %d to flash.", _currentScene);
+    printf("Error saving scene %d to flash.", scene);
   }
 }
 
