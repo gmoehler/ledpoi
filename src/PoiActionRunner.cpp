@@ -151,6 +151,15 @@ void PoiActionRunner::playWorm(Color color, uint8_t registerLength, uint8_t numL
   }
 }
 
+void PoiActionRunner::playWummer(Color color, uint8_t length, uint8_t numLoops){
+
+  uint16_t delayMs = 30;
+  printf("Playing Wummer Animation...\n");
+  _animationHandler.init(ANIMATIONTYPE_WUMMER, length, numLoops, color, delayMs);  
+  _currentHandlerStart(&_animationHandler, ANIMATION_WUMMER);
+}
+
+
 void PoiActionRunner::showStaticRgb(uint8_t r, uint8_t g, uint8_t b, uint8_t nLeds) {
   _staticRgbHandler.init(r,g,b,nLeds);
   _currentHandlerStart(&_staticRgbHandler, SHOW_STATIC_RGB);
@@ -252,6 +261,7 @@ void PoiActionRunner::loop(){
       case PLAY_DIRECT:
       case FADE_TO_BLACK:
       case ANIMATION_WORM:
+      case ANIMATION_WUMMER:
       _currentHandler->next();
       if (_logLevel == CHATTY) _currentHandler->printState();
       
@@ -262,6 +272,7 @@ void PoiActionRunner::loop(){
         if (_logLevel != MUTE) printf("End of action %s.\n", 
           _currentHandler->getActionName());
       }
+      
       break;
       
       case PLAY_PROG:

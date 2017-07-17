@@ -29,7 +29,8 @@ enum PoiAction {  NO_ACTION,            // 0
                   DISPLAY_IP,           // 6
                   PLAY_PROG,            // 7
                   PAUSE_PROG,           // 8
-                  ANIMATION_WORM        // 9
+                  ANIMATION_WORM,       // 9
+                  ANIMATION_WUMMER      // 10
                 };
 
 /**
@@ -56,6 +57,8 @@ public:
   void pauseAction();
   void jumptoSync(uint8_t syncId);
   void playWorm(Color color, uint8_t registerLength, uint8_t numLoops, bool synchronous = true);
+  void playWummer(Color color, uint8_t length, uint8_t numLoops);
+
   void displayIp(uint8_t ipOffset, bool withStaticBackgroun);
 
   // program related methods

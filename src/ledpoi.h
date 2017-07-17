@@ -56,9 +56,9 @@ enum Color {       WHITE,   // 0
                    };
 
 
+// some utils
 rgbVal makeRGBValue(uint8_t *rgb_array);
-
 rgbVal makeRGBValue(Color color, uint8_t brightness=255);
-
+rgbVal fadeColor(Color color, float factor);
 
 #endif

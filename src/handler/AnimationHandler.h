@@ -11,7 +11,8 @@
 #include "ImageCache.h"
 
 enum AnimationType {
-  ANIMATIONTYPE_WORM
+  ANIMATIONTYPE_WORM,
+  ANIMATIONTYPE_WUMMER
 };
 
 /**
@@ -41,6 +42,8 @@ public:
 
 private:
   bool _isLastLoop();
+  void _init_worm();
+  void _init_wummer();
 
   AnimationType _animation;
   uint8_t _registerLength;
@@ -50,6 +53,8 @@ private:
   uint16_t _delayMs;
   Color _color;
   bool _active;
+  uint8_t _numWummerSteps;
+  float _wummerBrightnessFactor;
 
   ImageCache _imageCache;
 };

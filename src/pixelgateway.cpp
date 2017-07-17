@@ -25,7 +25,7 @@ const int LED_PIN = 2;
 const int BUTTON_PIN = 0;
 OneButton button1(BUTTON_PIN, true);
 
-const int connTimeout=20;     // client connection timeout in secs
+const int connTimeout=10;     // client connection timeout in secs
 const int maxLEDLevel = 200;  // restrict max LED brightness due to protocol
 
 const uint8_t aliveTickModulo = 10;
@@ -38,6 +38,7 @@ extern const char* WIFI_PASS;
 WiFiServer server(1110);
 WiFiClient client;
 IPAddress clientIP;
+uint32_t connectionLostTime = 0;
 
 PoiState poiState =   POI_INIT;
 PoiState nextPoiState = poiState;
@@ -144,6 +145,58 @@ void wifi_connect(){
    nextPoiState = POI_CLIENT_CONNECTING;
 }
 
+void wifi_connect_async_init(){
+  uint8_t ip4 = baseIpAdress[3] + ipIncrement;
+  printf("My address: %d.%d.%d.%d\n", baseIpAdress[0],baseIpAdress[1],baseIpAdress[2],ip4);
+  IPAddress myIP(baseIpAdress[0],baseIpAdress[1],baseIpAdress[2],ip4);
+  IPAddress gateway(192, 168, 1, 1);
+  IPAddress subnet(255, 255, 255, 0);
+
+  if (logLevel != MUTE){
+    Serial.println();
+    Serial.print("Connecting to ");
+    Serial.println(WIFI_SSID);
+  }
+  // Set WiFi to station mode and disconnect from an AP if it was previously connected
+  WiFi.mode(WIFI_STA);
+  WiFi.disconnect();
+  delay(100);
+
+  WiFi.config(myIP,gateway,subnet);
+  WiFi.begin(WIFI_SSID, WIFI_PASS);
+  if (logLevel != MUTE) Serial.print("Connecting...");
+}
+
+void wifi_connect_async(){
+    wl_status_t wifiStatus = WiFi.status();
+
+    if (wifiStatus == WL_CONNECTED) {
+      Serial.println("Connected.");
+      printWifiStatus();
+      nextPoiState = POI_CLIENT_CONNECTING;
+      return;
+    }
+
+    // first few cycles after connection is lost
+    if (wifiStatus == WL_CONNECTION_LOST) {
+      connectionLostTime = millis();
+    }
+    
+    // all other errors (connection failed, ssid not found...)
+    else if (millis() - connectionLostTime > 5000){
+      printf("Re-initializing connection process...\n");
+      wifi_connect_async_init();
+      connectionLostTime = millis();
+    }
+      
+    if (!runner.isProgramActive()){
+      delay(500);
+      if (logLevel != MUTE) Serial.print(".");
+    }
+
+    //printf("***Connection status: %d\n", WiFi.status());
+}
+
 void resetTimeout(){
   lastSignalTime = millis();
 }
@@ -154,6 +207,15 @@ bool reachedTimeout(){
 
 // connect to a client if available
 void client_connect(){
+  //printf("****client_connect status: %d", WiFi.status());
+
+  if (WiFi.status() != WL_CONNECTED) {
+    printf("***CONNECTION LOST\n");
+    nextPoiState = POI_NETWORK_SEARCH;
+    return;
+  }
+
+  server.begin(); // if server has been started it simply returns
   client = server.available();
 
   if (client.connected()){
@@ -161,7 +223,7 @@ void client_connect(){
     resetTimeout();
     nextPoiState = POI_RECEIVING_DATA;
   }
-  else {
+  else if (!runner.isProgramActive()) {
     // slow down a bit
     delay(100);
   }
@@ -426,15 +488,14 @@ void loop()
       break;
 
       case POI_CLIENT_CONNECTING:
-      if (nextPoiState == POI_RECEIVING_DATA){
-        runner.playWorm(GREEN, N_PIXELS, 1);
+      if (nextPoiState == POI_RECEIVING_DATA && !runner.isProgramActive()){
+        runner.playWummer(GREEN, 3, 4);
       }
       break;
 
       case POI_RECEIVING_DATA:
         // switch off led if we leave this state
         digitalWrite(LED_PIN,LOW);
-        runner.pauseAction();
       break;
 
       case POI_AWAIT_PROGRAM_SYNC:
@@ -491,16 +552,22 @@ void loop()
     case POI_NETWORK_SEARCH:
     if (state_changed){
       digitalWrite(LED_PIN,LOW);
-      // async no possible since wifi_connect is synchronous
-      runner.playWorm(RED, N_PIXELS, 1);
+      wifi_connect_async_init();
+      if (!runner.isProgramActive()){
+        runner.playWummer(RED, 2, 0);
+      }
     }
-    wifi_connect();
+    //wifi_connect(); 
+    wifi_connect_async();
     break;
 
     case POI_CLIENT_CONNECTING:
     if (state_changed){
       resetTimeout();
-      runner.playWorm(YELLOW, N_PIXELS, 0, false); // async forever
+      // not when connection is lost during program
+      if (!runner.isProgramActive()){
+        runner.playWummer(YELLOW, 2, 0);
+      }
       if (logLevel != MUTE) printf("Waiting for client...\n");
     }
     client_connect();

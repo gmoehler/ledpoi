@@ -1,8 +1,14 @@
+#ifndef WITHIN_UNITTEST
+  #include <Arduino.h>
+#else
+  #include "../test/mock_Arduino.h"
+#endif
 #include "ledpoi.h"
 
 rgbVal makeRGBValue(uint8_t *rgb_array){
   return makeRGBVal(rgb_array[0], rgb_array[1], rgb_array[2]);
 }
+
 rgbVal makeRGBValue(Color color, uint8_t brightness){
   rgbVal rgb = makeRGBVal(0,0,0);
   uint8_t b = brightness;
@@ -50,3 +56,7 @@ rgbVal makeRGBValue(Color color, uint8_t brightness){
       return rgb;
 }
 
+rgbVal fadeColor(Color color, float factor){
+  uint8_t brightness = constrain(factor * 255, 0, 255);
+  return makeRGBValue(color, brightness);
+}
