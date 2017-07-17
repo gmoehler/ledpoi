@@ -87,7 +87,7 @@ void PlayHandler::printInfo(){
 }
 
 void PlayHandler::printState(){
-  printf("PlayHandler: Active: %d Current frame: %d current loop: %d dim:\n", 
+  printf("PlayHandler: Active: %d Current frame: %d current loop: %d dim: %.2f\n", 
     _active, _currentFrame, _currentLoop, _dimFactor);
 }
 
