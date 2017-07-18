@@ -184,6 +184,7 @@ void PoiActionRunner::addCmdToProgram(unsigned char cmd[7]){
 
 void PoiActionRunner::startProg(){
   _currentAction = PLAY_PROG;
+  _currentSyncId = 0;
 
   _progHandler.init();
   if (!_progHandler.isActive()){
@@ -207,12 +208,19 @@ void PoiActionRunner::pauseAction(){
   if (_logLevel != MUTE) printf("Action paused.\n" );
 }
 
+void PoiActionRunner::finishAction(){
+  _currentHandler->finish();
+  _progHandler.finish();
+  if (_logLevel != MUTE) printf("Action finished.\n" );
+}
+
 void PoiActionRunner::jumptoSync(uint8_t syncId){
   if (syncId == 0){
     _currentSyncId++;
     _progHandler.syncNow(_currentSyncId);
   }
   else {
+    _currentSyncId = syncId;
     _progHandler.syncNow(syncId);
   }
 }

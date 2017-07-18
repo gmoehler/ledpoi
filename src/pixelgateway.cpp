@@ -109,8 +109,10 @@ void wifi_connect(){
   }
   // Set WiFi to station mode and disconnect from an AP if it was previously connected
   WiFi.mode(WIFI_STA);
-  WiFi.disconnect();
-  delay(100);
+  if (WiFi.status() == WL_CONNECTED){
+    WiFi.disconnect();
+    delay(100);
+  }
 
   bool connectedToWifi=false;
   WiFi.config(myIP,gateway,subnet);
@@ -159,8 +161,10 @@ void wifi_connect_async_init(){
   }
   // Set WiFi to station mode and disconnect from an AP if it was previously connected
   WiFi.mode(WIFI_STA);
-  WiFi.disconnect();
-  delay(100);
+  if (WiFi.status() == WL_CONNECTED){
+    WiFi.disconnect();
+    delay(100);
+  }
 
   WiFi.config(myIP,gateway,subnet);
   WiFi.begin(WIFI_SSID, WIFI_PASS);
@@ -181,7 +185,7 @@ void wifi_connect_async(){
     if (wifiStatus == WL_CONNECTION_LOST) {
       connectionLostTime = millis();
     }
-    
+
     // all other errors (connection failed, ssid not found...)
     else if (millis() - connectionLostTime > 5000){
       printf("Re-initializing connection process...\n");
@@ -451,6 +455,14 @@ void click1() {
     // display colored led (first one less bright for each)
     runner.displayIp(ipIncrement, false);
   }
+  else if (poiState == POI_NETWORK_SEARCH || poiState == POI_CLIENT_CONNECTING){
+    if (runner.isProgramActive()){
+      runner.jumptoSync();
+    }
+    else {
+      runner.startProg();
+    }
+  }
   else if (poiState == POI_AWAIT_PROGRAM_SYNC){
     nextPoiState = POI_PLAY_PROGRAM;
   }
@@ -520,6 +532,10 @@ void loop()
   switch (poiState){
 
     case POI_INIT:
+    if (state_changed){
+      // cleanup action
+      runner.finishAction();
+    }
     runner.playWorm(RAINBOW, N_PIXELS, 1);
     // proceed to next state
     nextPoiState = POI_IP_CONFIG_OPTION;
@@ -612,17 +628,20 @@ void loop()
     case POI_AWAIT_PROGRAM_SYNC:
     if (state_changed){
       runner.displayOff();
+      if (WiFi.status() == WL_CONNECTED){
+        WiFi.disconnect();
+      }
     }
     // just wait for click to start program
     break;
 
     case POI_PLAY_PROGRAM:
     if (state_changed){
-      printf("  Starting demo...\n" );
+      printf("  Starting program...\n" );
       runner.startProg();
     }
     else if (!runner.isProgramActive()){
-      printf("  Demo finished\n" );
+      printf("Program finished\n" );
       nextPoiState = POI_AWAIT_PROGRAM_SYNC;
     }
     break;

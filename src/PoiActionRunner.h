@@ -55,7 +55,8 @@ public:
   void displayOff();
   void fadeToBlack(uint8_t fadeMSB, uint8_t fadeLSB);
   void pauseAction();
-  void jumptoSync(uint8_t syncId);
+  void finishAction();
+  void jumptoSync(uint8_t syncId=0);
   void playWorm(Color color, uint8_t registerLength, uint8_t numLoops, bool synchronous = true);
   void playWummer(Color color, uint8_t length, uint8_t numLoops);
 

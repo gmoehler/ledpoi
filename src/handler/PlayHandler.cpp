@@ -4,7 +4,7 @@ PlayHandler::PlayHandler(ImageCache imageCache) :
  _startFrame(0), _endFrame(0), _delayMs(0),
  _numLoops(0),
  _currentFrame (0), _currentLoop(0),
- _active(false), _forward(true),
+ _active(false), _forward(true), _actionPaused(false),
  _dimFactor(1.0),
  _imageCache(imageCache) {}
 
@@ -38,7 +38,9 @@ void PlayHandler::next(){
     }
     else {
       // normal operation: next frame
-      _currentFrame++;
+      if (!_actionPaused){
+        _currentFrame++;
+      }
     }
   }
   // backward
@@ -56,7 +58,9 @@ void PlayHandler::next(){
     }
     else {
       // normal operation: next frame
-      _currentFrame--;
+      if (!_actionPaused) {
+        _currentFrame--;
+      }
     }
   }
   if (isActive()){
@@ -66,6 +70,14 @@ void PlayHandler::next(){
 
 bool PlayHandler::isActive(){
   return _active;
+}
+
+void PlayHandler::pauseAction(){
+  _actionPaused = true;
+}
+
+void PlayHandler::continueAction(){
+  _actionPaused = false;
 }
 
 rgbVal* PlayHandler::getDisplayFrame(){
@@ -87,8 +99,14 @@ void PlayHandler::printInfo(){
 }
 
 void PlayHandler::printState(){
-  printf("PlayHandler: Active: %d Current frame: %d current loop: %d dim: %.2f\n", 
+  printf("PlayHandler: Active: %d Current frame: %d current loop: %d dim: %.2f", 
     _active, _currentFrame, _currentLoop, _dimFactor);
+  if (_actionPaused){
+    printf("... pausing.\n");
+  }
+  else {
+    printf("\n");
+  }
 }
 
 const char* PlayHandler::getActionName(){

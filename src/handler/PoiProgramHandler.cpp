@@ -120,7 +120,8 @@ bool PoiProgramHandler::syncNow(uint8_t syncId){
   std::map<uint8_t,uint8_t>::iterator it = _syncMap.find(syncId);
   if (it != _syncMap.end()) {
     if (_logLevel != MUTE) printf("Jumping to sync id %d.\n", syncId);
-		_currentProgStep = it->second;
+		_currentProgStep = it->second + 1; // one behind since at the sync point we may have paused
+    _playHandler.continueAction();
 		_nextProgramStep();
 		 if (_logLevel != MUTE) _playHandler.printInfo();
 		// set timer in any case for a new command
@@ -272,9 +273,16 @@ void PoiProgramHandler::_evaluateCommand(uint8_t index) {
     break;
 
     case LABEL:
-    // reset loop count for next loop - potentially for this label
+    // reset loop count for next loop - which could run on this label
     _currentLoop=0;
     break;
+
+    case SYNC_POINT:
+    if (cmd[2] > 0){
+      _playHandler.pauseAction();
+    }
+    break;
+
 
     case LOOP:
     if (_inLoop){

@@ -29,10 +29,14 @@ public:
   uint16_t getDelayMs();
   rgbVal* getDisplayFrame();
 
+  void finish() { _active = false;};
+  
   void printInfo();
   void printState();
 
   void setDimFactor(float factor);
+  void pauseAction();
+  void continueAction();
 
 #ifdef WITHIN_UNITTEST
   uint8_t __getCurrentFrame();
@@ -49,6 +53,7 @@ private:
   uint16_t _currentLoop;
   bool _active;
   bool _forward; // false for backward
+  bool _actionPaused; // stays with current frame if true
 
   float _dimFactor;
 

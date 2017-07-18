@@ -29,6 +29,9 @@ public:
   // array of size N_PIXELS with the current colors
   virtual rgbVal* getDisplayFrame() = 0;
 
+  // set action to inactive
+  virtual void finish() = 0;
+
   // general info about the action
   virtual void printInfo() = 0;
   // info about current state of the action

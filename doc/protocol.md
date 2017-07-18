@@ -27,7 +27,7 @@ Byte[n] may not contain any 0xFF!
 |**setProg**||**253**|*progCMD*|*param0*|*param1*|*param2*|*param3*|||
 ||ProgramEnd||0|||||(done)|End of program|
 ||label||1|labelId|||||define label with id |
-||syncPoint||2|sequenceId|||||define sync point for jumpTo action|
+||syncPoint||2|sequenceId|stopAtSync||||define sync point for jumpTo action, if stopAtSync is > 0 then the show stop at the sync point until sync is received|
 ||play||3|frameStart|frameEnd|delayMSB|delay LSB|done|Play frames of active scene, or single frame with timeout|
 ||loop||4|loopCt MSB|loopCt LSB|labelId||(done)|loop starting at label with labelId|
 ||setActiveScene||5|scene||||(done)||

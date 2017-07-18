@@ -26,6 +26,10 @@ public:
 
   virtual rgbVal* getDisplayFrame() = 0;
 
+  void finish() {
+    // nothing to be done
+  };
+
   virtual void printInfo() = 0;
   
   void printState() {

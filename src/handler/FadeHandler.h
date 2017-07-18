@@ -32,6 +32,8 @@ public:
   uint16_t getDelayMs();
   rgbVal* getDisplayFrame();
   
+  void finish() { _active = false;};
+  
   void printInfo();
   void printState();
   
