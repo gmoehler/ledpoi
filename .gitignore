@@ -35,3 +35,4 @@ src/WiFiCredentials.h
 .vscode
 nodejs\poi-mobile\package-lock.json
 bin/
+.vscode/c_cpp_properties.json
