@@ -32,13 +32,16 @@ const uint8_t aliveTickModulo = 10;
 uint8_t aliveTickCnt = 0;
 
 // WiFi credentials (as defined in WiFiCredentials.h)
-extern const char* WIFI_SSID;
-extern const char* WIFI_PASS;
+extern const char* WIFI_SSID[];
+extern const char* WIFI_PASS[];
 
 WiFiServer server(1110);
 WiFiClient client;
 IPAddress clientIP;
 uint32_t connectionLostTime = 0;
+uint8_t baseIpAdress[4] = {192, 168, 1, 127};
+uint8_t ipIncrement = 0; // increment to base ip for different pois
+uint8_t currentNetworkConfig = 0; // which one of the configs defined in WiFiCredentials.h
 
 PoiState poiState =   POI_INIT;
 PoiState nextPoiState = poiState;
@@ -53,8 +56,7 @@ int cmdIndex=0;              // index into command read from server
 char c;
 bool loadingImgData = false; // tag to suppress log during image loading
 
-uint8_t baseIpAdress[4] = {192, 168, 1, 127};
-uint8_t ipIncrement = 0; // increment to base ip for different pois
+
 uint32_t poi_network_display_entered = 0;
 uint32_t currentTime = 0;
 
@@ -94,6 +96,13 @@ void printWifiStatus() {
   Serial.println(" dBm");
 }
 
+void wifi_disconnect(){
+  client.stop();
+  server.end();
+  WiFi.disconnect();
+  printf("WIFI disconnected.");
+}
+
 // synchronous method connecting to wifi
 void wifi_connect(){
   uint8_t ip4 = baseIpAdress[3] + ipIncrement;
@@ -105,7 +114,7 @@ void wifi_connect(){
   if (logLevel != MUTE){
     Serial.println();
     Serial.print("Connecting to ");
-    Serial.println(WIFI_SSID);
+    Serial.println(WIFI_SSID[currentNetworkConfig]);
   }
   // Set WiFi to station mode and disconnect from an AP if it was previously connected
   WiFi.mode(WIFI_STA);
@@ -117,7 +126,7 @@ void wifi_connect(){
   bool connectedToWifi=false;
   WiFi.config(myIP,gateway,subnet);
   while (!connectedToWifi){
-     WiFi.begin(WIFI_SSID, WIFI_PASS);
+     WiFi.begin(WIFI_SSID[currentNetworkConfig], WIFI_PASS[currentNetworkConfig]);
      if (logLevel != MUTE) Serial.print("Connecting...");
 
      while (WiFi.status() != WL_CONNECTED) {
@@ -156,8 +165,7 @@ void wifi_connect_async_init(){
 
   if (logLevel != MUTE){
     Serial.println();
-    Serial.print("Connecting to ");
-    Serial.println(WIFI_SSID);
+    Serial.printf("Connecting to SSID %s...\n", WIFI_SSID[currentNetworkConfig]);
   }
   // Set WiFi to station mode and disconnect from an AP if it was previously connected
   WiFi.mode(WIFI_STA);
@@ -167,7 +175,7 @@ void wifi_connect_async_init(){
   }
 
   WiFi.config(myIP,gateway,subnet);
-  WiFi.begin(WIFI_SSID, WIFI_PASS);
+  WiFi.begin(WIFI_SSID[currentNetworkConfig], WIFI_PASS[currentNetworkConfig]);
   if (logLevel != MUTE) Serial.print("Connecting...");
 }
 
@@ -189,6 +197,10 @@ void wifi_connect_async(){
     // all other errors (connection failed, ssid not found...)
     else if (millis() - connectionLostTime > 5000){
       printf("Re-initializing connection process...\n");
+      currentNetworkConfig++;
+      if (currentNetworkConfig > NUM_WIFI_CONFIG -1){
+        currentNetworkConfig = 0;
+      }
       wifi_connect_async_init();
       connectionLostTime = millis();
     }
@@ -314,8 +326,6 @@ void realize_cmd(){
 
       case 6:
       runner.jumptoSync(cmd[2]);
-      // for experimental purposes:
-      // runner.saveScene(cmd[2]);
       break;
 
       case 7:
@@ -335,6 +345,13 @@ void realize_cmd(){
       client_disconnect();
       nextPoiState = POI_CLIENT_CONNECTING;
       break;
+
+      case11:
+      if (cmd[2] < NUM_WIFI_CONFIG){
+        currentNetworkConfig = cmd[2];
+        nextPoiState = POI_NETWORK_SEARCH;
+        if (logLevel != MUTE) Serial.printf("Changed network configuration to SSID: %s\n", WIFI_SSID[currentNetworkConfig]);
+      }
 
       default:
       if (logLevel != MUTE) {

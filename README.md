@@ -1,4 +1,4 @@
 # ledpoi
 
-Version 2.1
-issued  2017-07-18
+Version 2.2
+issued  2017-07-19
