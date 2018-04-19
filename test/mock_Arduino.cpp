@@ -1,5 +1,7 @@
 #include "mock_Arduino.h"
 
+uint8_t currentScene =0;
+
 uint32_t _testCurrentTime=0L;
 
 unsigned long millis() {
@@ -23,6 +25,7 @@ void pinMode(int pin, int mode){
 int digitalRead(int pin){
   return LOW;
 }
+
 
 uint8_t constrain(uint8_t value, uint8_t lowerBound, uint8_t upperBound){
   if (value > upperBound){

@@ -3,7 +3,7 @@ CC          := g++
 
 #The Target Binary Program
 TARGET      := dotest
-EXAMPLE 		:= example
+EXAMPLE 	:= example
 
 # what platform we are running on
 PLATFORM    := $(shell uname -so | sed -r s'/[^a-zA-Z0-9]/_/g')
@@ -11,7 +11,6 @@ PLATFORM    := $(shell uname -so | sed -r s'/[^a-zA-Z0-9]/_/g')
 #The Directories, Source, Includes, Objects, Binary and Resources
 SRCDIR      := src
 INCDIR      := src
-INCDIR2      := src/handler
 TESTDIR     := test
 TESTINCDIR  := test
 EXDIR       := examples
@@ -23,41 +22,53 @@ SRCEXT      := cpp
 OBJEXT      := obj
 LIBDIR      := test/lib/$(PLATFORM)
 
+COVERAGE_FLAG    := --coverage
 
 #Flags, Libraries and Includes
 #CFLAGS      := -ggdb -static-libgcc -static-libstdc++ -fopenmp -Wall -O3 -g -std=gnu++11 -DWITHIN_UNITTEST
-CFLAGS      := -ggdb -Wall -O3 -g -std=gnu++11 -DWITHIN_UNITTEST
+CFLAGS      := -ggdb -Wall -O3 -g -std=gnu++11 -DWITHIN_UNITTEST 
 #LIB         := -fopenmp -lm -L$(LIBDIR) -lgtest_main -lgtest -pthread
-LIB         :=  -lm -L$(LIBDIR) -lgtest_main -lgtest -pthread
-EXLIB       := -lm -L$(LIBDIR) -lgtest_main -lgtest -pthread
+LIB         :=  -lm -L$(LIBDIR) -lgtest_main -lgtest 
+EXLIB       := -lm -L$(LIBDIR) -lgtest_main -lgtest 
 #GOOGLETEST_DIR := ../GitHub/googletest/googletest
-INC         := -I$(INCDIR) -I$(INCDIR2) -I$(TESTINCDIR) -Itest/include -I/usr/local/include #-I$(GOOGLETEST_DIR)/include
-INCDEP      := -I$(INCDIR) -I$(INCDIR2) -I$(TESTINCDIR) -I$(GOOGLETEST_DIR)/include
+INC         := -I$(INCDIR) -I$(TESTINCDIR) -Itest/include -I/usr/local/include #-I$(GOOGLETEST_DIR)/include
+INCDEP      := -I$(INCDIR) -I$(TESTINCDIR) -I$(GOOGLETEST_DIR)/include
 
 #---------------------------------------------------------------------------------
 #DO NOT EDIT BELOW THIS LINE
 #---------------------------------------------------------------------------------
 #SOURCES     := $(shell find $(SRCDIR) -type f -name *.$(SRCEXT))
+# includes all sources that are not tasks
 SOURCES      := $(SRCDIR)/ledpoi_utils.cpp \
-								$(SRCDIR)/handler/PlayHandler.cpp \
- 								$(SRCDIR)/handler/FadeHandler.cpp \
-								$(SRCDIR)/handler/AnimationHandler.cpp \
-								$(SRCDIR)/handler/PoiProgramHandler.cpp \
-								$(SRCDIR)/handler/StaticRgbHandler.cpp \
-								$(SRCDIR)/handler/DisplayIpHandler.cpp \
-								$(SRCDIR)/ImageCache.cpp
+								$(SRCDIR)/memory/ImageCache.cpp \
+								$(SRCDIR)/memory/ProgramCache.cpp \
+ 								$(SRCDIR)/player/DisplayIpAction.cpp \
+								$(SRCDIR)/player/NoAction.cpp \
+								$(SRCDIR)/player/PlayFramesAction.cpp \
+								$(SRCDIR)/player/ShowRgbAction.cpp \
+								$(SRCDIR)/player/AnimationAction.cpp \
+								$(SRCDIR)/program/PoiProgramHandler.cpp 
 TESTSOURCES  := $(TESTDIR)/test.cpp \
+								$(TESTDIR)/WString.cpp \
+								$(TESTDIR)/PoiCommand.cpp \
 								$(TESTDIR)/mock_Arduino.cpp \
+								$(TESTDIR)/mock_memory.cpp \
 								$(TESTDIR)/mock_ws2812.cpp \
+								$(TESTDIR)/mock_esp.cpp \
 								$(TESTDIR)/mock_PoiFlashMemory.cpp \
-								$(TESTDIR)/test_PlayHandler.cpp \
-								$(TESTDIR)/test_FadeHandler.cpp \
-								$(TESTDIR)/test_AnimationHandler.cpp \
-								$(TESTDIR)/test_StaticRgbHandler.cpp \
-								$(TESTDIR)/test_DisplayIpHandler.cpp \
-								$(TESTDIR)/test_PoiFlashMemory.cpp \
-								$(TESTDIR)/test_PoiProgramHandler.cpp \
-								$(TESTDIR)/test_ImageCache.cpp
+								$(TESTDIR)/test_PlayFramesAction.cpp \
+								$(TESTDIR)/test_ShowRgbAction.cpp \
+								$(TESTDIR)/test_ImageCache.cpp \
+								$(TESTDIR)/test_DisplayIpAction.cpp \
+								$(TESTDIR)/test_NoAction.cpp \
+								$(TESTDIR)/test_MockPoiFlashMemory.cpp \
+								$(TESTDIR)/test_ProgramCache.cpp \
+								$(TESTDIR)/test_PoiProgramHandler.cpp
+#								$(TESTDIR)/test_FadeHandler.cpp \
+#								$(TESTDIR)/test_AnimationHandler.cpp \
+#								$(TESTDIR)/test_StaticRgbHandler.cpp \
+#								$(TESTDIR)/test_PoiProgramHandler.cpp \
+
 EXSOURCES    :=
 
 OBJECTS     := $(patsubst $(SRCDIR)/%,$(BUILDDIR)/%,$(SOURCES:.$(SRCEXT)=.$(OBJEXT))) \
@@ -91,6 +102,14 @@ clean:
 cleaner: clean
 	@$(RM) -rf $(TARGETDIR)
 
+lcov: CFLAGS += --coverage
+lcov: LIB +=  --coverage
+lcov: EXLIB +=  --coverage
+lcov: all
+	$(TARGETDIR)/$(TARGET)
+	./cov
+
+
 #Pull in dependency info for *existing* .o files
 #-include $(OBJECTS:.$(OBJEXT)=.$(DEPEXT))
 #-include $(EXOBJECTS:.$(OBJEXT)=.$(DEPEXT))
@@ -120,3 +139,4 @@ print-%  : ; @echo $* = $($*)
 
 #Non-File Targets
 .PHONY: all remake clean cleaner resources
+

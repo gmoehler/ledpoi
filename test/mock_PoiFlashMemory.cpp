@@ -1,23 +1,29 @@
 #include "mock_PoiFlashMemory.h"
 
-  void PoiFlashMemory::setup(LogLevel logLevel, uint8_t *initImageData){
+  void PoiFlashMemory::setup(uint8_t *initImageData){
     return;
   }
 
   bool PoiFlashMemory::saveImage(uint8_t scene, uint8_t* imageData){
-    //TODO
+    for (int i=0; i< 3*N_FRAMES*N_PIXELS; i++){
+      _img[i]=imageData[i];
+    }
     return true;
   }
 
   bool PoiFlashMemory::loadImage(uint8_t scene, uint8_t* imageData){
-    //TODO
+    printf("loading\n");
+    for (int i=0; i< 3*N_FRAMES*N_PIXELS; i++){
+      imageData[i]=_img[i];
+    }
     return true;
   }
 
-  bool PoiFlashMemory::saveProgram(uint8_t* programData, uint16_t size_x, uint8_t size_y){
+  bool PoiFlashMemory::saveProgram(uint8_t* programData){
+   _numProgSteps = N_PROG_STEPS;
    for (int i=0; i< N_PROG_STEPS; i++){
-      for (int j=0; j< N_PROG_FIELDS; j++){
-        _prog[i][j] = programData [ i*N_PROG_FIELDS+j ];
+      for (int j=0; j< N_CMD_FIELDS; j++){
+        _prog[i][j] = programData [ i*N_CMD_FIELDS+j ];
       }
     }
     return true;
@@ -25,8 +31,8 @@
 
   bool PoiFlashMemory::loadProgram(uint8_t* programData) {
     for (int i=0; i< N_PROG_STEPS; i++){
-      for (int j=0; j< N_PROG_FIELDS; j++){
-         programData [ i*N_PROG_FIELDS+j ] = _prog[i][j];
+      for (int j=0; j< N_CMD_FIELDS; j++){
+         programData [ i*N_CMD_FIELDS+j ] = _prog[i][j];
       }
     }
     return true;
@@ -72,7 +78,7 @@
   }
   bool PoiFlashMemory::_initializeProgramMemory(){
     for (int i=0; i< N_PROG_STEPS; i++){
-      for (int j=0; j< N_PROG_FIELDS; j++){
+      for (int j=0; j< N_CMD_FIELDS; j++){
           _prog[i][j] = 0;
       }
     }

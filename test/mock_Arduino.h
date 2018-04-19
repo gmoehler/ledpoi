@@ -1,9 +1,12 @@
-#ifndef mock_arduino_h
-#define mock_arduino_h
+#ifndef MOCK_ARDUINO_H
+#define MOCK_ARDUINO_H
 
 #include <stdio.h>
 #include <stdint.h>
 #include <stdlib.h>
+#include "WString.h"
+
+#define SPI_FLASH_SEC_SIZE 4096
 
 // functions mocking Arduino.h to be used
 

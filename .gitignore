@@ -27,12 +27,26 @@
 *.out
 *.app
 
-src/WiFiCredentials.h
+# coverage files
+*.gcda
+*.gcno
+coverage.info
+coverage/
+
+# Platform.io files
 .pioenvs
 .piolibdeps
 .clang_complete
 .gcc-flags.json
-.vscode
-nodejs\poi-mobile\package-lock.json
+
+# VS Code files
+.vscode/.browse.c_cpp.db*
+
+# Node.js resources
+nodejs/node_modules/
+nodejs/poi/node_modules/
+nodejs/poi-mobile/package-lock.json
+
+src_legacy/WiFiCredentials.h
 bin/
-.vscode/c_cpp_properties.json
+

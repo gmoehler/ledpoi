@@ -26,12 +26,12 @@ class PoiFlashMemory
 {
 public:
 
-  void setup(LogLevel logLevel, uint8_t *initImageData); // to be called during setup
+  void setup(uint8_t *initImageData); // to be called during setup
 
   bool saveImage(uint8_t scene, uint8_t* imageData);
   bool loadImage(uint8_t scene, uint8_t* imageData);
 
-  bool saveProgram(uint8_t* programData, uint16_t size_x, uint8_t size_y);
+  bool saveProgram(uint8_t* programData);
   bool loadProgram(uint8_t* programData);
 
   bool saveNumProgramSteps(uint16_t numProgSteps);
@@ -55,8 +55,8 @@ private:
   uint8_t _numScenes = 0;
   uint16_t _numProgSteps = 0;
   uint8_t _ipIncrement = 0;
-  uint8_t _prog[N_PROG_STEPS][N_PROG_FIELDS];
-
+  uint8_t _prog[N_PROG_STEPS][N_CMD_FIELDS];
+  uint8_t _img[3 * N_FRAMES * N_PIXELS];
   void _listPartitions();
 };
 

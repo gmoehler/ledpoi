@@ -1,0 +1,4 @@
+214,  1,  0,  0,  0,   0  # label 1
+203,  0,  0,  0,  1, 254  # display ip
+201,  0,  1,  0,  2, 254  # play frame 0-1
+216,  1,  0,  0,  0,  10  # loop to label 1, 10 loops

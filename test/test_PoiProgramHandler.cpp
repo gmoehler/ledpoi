@@ -1,43 +1,74 @@
 #include "test.h"
-#include <PoiProgramHandler.h>
+#include <program/PoiProgramHandler.h>
 
-// smaller init helper
-PoiProgramHandler createProghandler(){
-  ImageCache ic(3*N_FRAMES*N_PIXELS, MUTE);
-  PlayHandler playHandler(ic);;
-  PoiFlashMemory flash;
-  PoiProgramHandler progHandler(playHandler, flash, QUIET);
-  return progHandler;
+uint8_t numCommands1 = 7;
+RawPoiCommand rawCmd1[] = {
+  {{ANIMATE,  0,  0,  0,  0,  20}}, 
+  {{DISPLAY_IP,  0,  0,  0,  1, 254}}, 
+  {{SYNC_POINT, 11, 0, 0, 0, 0}},
+  {{DISPLAY_IP,  4,  1,  0, 10, 254}}, 
+  {{LOOP_START, 12, 0, 0, 0, 3}},
+  {{PLAY_FRAMES,  0,  1,  2,  4, 254}},
+  {{LOOP_END, 12, 0, 0, 0, 0}}
+};
+
+void loadPrgToCache(RawPoiCommand rawCmd[], uint8_t numCommands) {
+  programCache.clearProgram();
+  for (int i=0; i<numCommands; i++) {
+    PoiCommand cmd(rawCmd[i]);
+    programCache.addCommand(cmd);
+  }
 }
 
-TEST(PoiProgramHandler_tests, afterDeclaration){
-  PoiProgramHandler progHandler = createProghandler();
-  EXPECT_FALSE(progHandler.isActive());
-  EXPECT_EQ(progHandler.getCurrentScene(), 0);
-  EXPECT_EQ(progHandler.__getCurrentFrame(), 0);
-  EXPECT_EQ(progHandler.getDelayMs(), 0);
+TEST(PoiProgramHandler_tests, readProgLines){
+  
+  loadPrgToCache(rawCmd1, numCommands1);
+  PoiProgramHandler progHandler;
+  
+  // expected sequence of commands
+  int expectedCmdNum[] = {
+  	0 ,1 ,3 ,5, 5, 5};
+  int numSteps = 6;
+  
+  for(int i=0; i< numSteps; i++) {
+    // first next() does not advance prg
+    bool hasNext = progHandler.next();
+    EXPECT_TRUE(i==numSteps-1 || hasNext);
+  
+    int expCmd = expectedCmdNum[i];
+    PoiCommand cmd1(rawCmd1[expCmd]);
+    PoiCommand cmd2 = progHandler.getCurrentCommand();
+    //printf("%d: %s %s\n", expCmd, cmd1.toString().c_str(), cmd2.toString().c_str());
+    EXPECT_TRUE(cmd1 == cmd2);
+  }
+  EXPECT_FALSE(progHandler.next());
 }
 
-TEST(PoiProgramHandler_tests, addProgram){
-  PoiProgramHandler progHandler = createProghandler();
-  char unsigned cmd1[7] = {253, PLAY_FRAMES,0,200,0,100};
-  progHandler.addCmdToProgram(cmd1);
-  char unsigned cmd2[7] = {253, PROG_END,0,0,0,0};
-  progHandler.addCmdToProgram(cmd2);
-  EXPECT_EQ(progHandler.__getNumProgSteps(), 1); // PROG_END does not count
+TEST(PoiProgramHandler_tests, jumptosync){
+  
+  loadPrgToCache(rawCmd1, numCommands1);
+  PoiProgramHandler progHandler;
+  
+  //jump to sync 11
+  uint8_t progLine = programCache.getLineOfSyncPoint(11);
+  progHandler.init(progLine);
+  
+  // expected sequence of commands
+  int expectedCmdNum[] = {
+  	3 ,5, 5, 5};
+  int numSteps =4;
+  
+  for(int i=0; i< numSteps; i++) {
+    // first next() does not advance prg
+    bool hasNext = progHandler.next();
+    EXPECT_TRUE(i==numSteps-1 || hasNext);
+  
+    int expCmd = expectedCmdNum[i];
+    PoiCommand cmd1(rawCmd1[expCmd]);
+    PoiCommand cmd2 = progHandler.getCurrentCommand();
+    //printf("%d: %s %s\n", expCmd, cmd1.toString().c_str(), cmd2.toString().c_str());
+    EXPECT_TRUE(cmd1 == cmd2);
+  }
+  
+  EXPECT_FALSE(progHandler.next());
 }
-
-TEST(PoiProgramHandler_tests, programWithSyncPoint){
-  PoiProgramHandler progHandler = createProghandler();
-  char unsigned cmd1[7] = {253, SYNC_POINT,2,0,0,0};
-  progHandler.addCmdToProgram(cmd1);
-  char unsigned cmd2[7] = {253, LABEL,5,0,0,0};
-  progHandler.addCmdToProgram(cmd2);
-  char unsigned cmd3[7] = {253, PROG_END,0,0,0,0};
-  progHandler.addCmdToProgram(cmd3);
-  EXPECT_EQ(progHandler.__getNumSyncPoints(), 1); 
-  EXPECT_EQ(progHandler.__getNumLabels(), 1); 
-}
-
-
-//TODO more testing on how handler work with programs

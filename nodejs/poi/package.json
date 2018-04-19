@@ -1,0 +1,18 @@
+{
+  "name": "poi",
+  "version": "1.0.0",
+  "description": "poi cli",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js"
+  },
+  "author": "gm",
+  "license": "MIT",
+  "dependencies": {
+    "csv-parse": "^2.0.4",
+    "inquirer": "5.2.0",
+    "net": "1.0.2",
+    "pngjs": "^3.3.2",
+    "serialport": "6.1.1"
+  }
+}
