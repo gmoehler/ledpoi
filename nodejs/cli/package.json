@@ -1,5 +1,5 @@
 {
-  "name": "poi",
+  "name": "cli",
   "version": "1.0.0",
   "description": "poi cli",
   "main": "index.js",

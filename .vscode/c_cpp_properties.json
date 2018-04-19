@@ -46,7 +46,6 @@
                 "c:/Users/Gregor/git/ledpoi/lib/ws2812",
                 "C:/Users/Gregor/.platformio/packages/framework-arduinoespressif32/libraries/WiFi/src",
                 "c:/Users/Gregor/git/ledpoi/lib/RobustWifiServer",
-                "c:/Users/Gregor/git/ledpoi/.piolibdeps/OneButton_ID1260/src",
                 "C:/Users/Gregor/.platformio/packages/framework-arduinoespressif32/libraries/ArduinoOTA/src",
                 "C:/Users/Gregor/.platformio/packages/framework-arduinoespressif32/libraries/BLE/src",
                 "C:/Users/Gregor/.platformio/packages/framework-arduinoespressif32/libraries/EEPROM",
@@ -118,7 +117,6 @@
                     "c:/Users/Gregor/git/ledpoi/lib/ws2812",
                     "C:/Users/Gregor/.platformio/packages/framework-arduinoespressif32/libraries/WiFi/src",
                     "c:/Users/Gregor/git/ledpoi/lib/RobustWifiServer",
-                    "c:/Users/Gregor/git/ledpoi/.piolibdeps/OneButton_ID1260/src",
                     "C:/Users/Gregor/.platformio/packages/framework-arduinoespressif32/libraries/ArduinoOTA/src",
                     "C:/Users/Gregor/.platformio/packages/framework-arduinoespressif32/libraries/BLE/src",
                     "C:/Users/Gregor/.platformio/packages/framework-arduinoespressif32/libraries/EEPROM",
@@ -375,10 +373,7 @@
                 "__ATOMIC_RELEASE=3",
                 ""
             ],
-            "intelliSenseMode": "clang-x64",
-            "cStandard": "c11",
-            "cppStandard": "c++17"
+            "intelliSenseMode": "clang-x64"
         }
-    ],
-    "version": 3
+    ]
 }

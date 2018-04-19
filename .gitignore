@@ -44,8 +44,10 @@ coverage/
 
 # Node.js resources
 nodejs/node_modules/
-nodejs/poi/node_modules/
+**/node_modules/**
 nodejs/poi-mobile/package-lock.json
 
 src_legacy/WiFiCredentials.h
 bin/
+.vscode/c_cpp_properties.json
+.vscode/launch.json
