@@ -40,14 +40,15 @@ module.exports = class SerialClient {
 	}
 
 	connect() {
+		var that = this;
 		return new Promise ((resolve, reject) => {
-			this.port.open((err) => {
+			that.port.open((err) => {
 				if (err) {
 					console.log("ERROR connecting:" + err);
 					return reject(err);
 				}
 				console.log("Connected.")
-				this.connected = true;
+				that.connected = true;
 				return resolve();
 			});
 		});
@@ -66,14 +67,15 @@ module.exports = class SerialClient {
 	}
 
 	disconnect() {
+		var that = this;
 		return new Promise ((resolve, reject) => {
-			this.port.close((err) => {
+			that.port.close((err) => {
 				if (err) {
 					console.log("ERROR closing:" + err);
 					return reject(err);
 				}
 				console.log("Disconnected.")
-				this.connected = false;
+				that.connected = false;
 				return resolve();
 			});
 		});
