@@ -2,6 +2,82 @@ const fs = require('fs');
 const parse = require('csv-parse');
 const util = require('./utils');
 
+function _uploadProgramHeader(client) {
+
+ 	// send program tail command
+	console.log("Starting program upload....");
+	client.sendCmd([195, 0, 0, 0, 0, 0]);   
+	return Promise.resolve();
+}
+
+function _uploadProgramTailAndSave(client) {
+
+ 	// send program tail command
+	client.sendCmd([196,  0,  0,  0,  0,  0]);     
+	console.log("Saving program....");
+	client.sendCmd([197,  0,  0,  0, 0,  0]);     
+	return Promise.resolve();
+}
+
+function _uploadProgram(client, prog) {
+	for (let i = 0; i < prog.length; i++) {
+ 		client.sendCmd(prog[i]);         
+ 	}
+	return Promise.resolve();
+}
+
+function _collectProgramBody(programFile, prog) {
+
+  return new Promise((resolve, reject) => {
+
+	if (!fs.existsSync(programFile)) {
+		return reject(new Error("File does not exist."));
+	  }
+		console.log(`Sending program from ${programFile}....`);
+		
+  	fs.createReadStream(programFile)
+    	.pipe(parse({delimiter: ',', comment: '#'}))
+    	.on('data', function(csvrow) {
+        	// convert into numbers
+        	const cmd=csvrow.map(Number);
+        	prog.push(cmd);
+    	})
+    	.on('end',function() {
+			return resolve(prog);
+		})
+    	.on('error',function(err) {
+			console.log(err);
+			return reject(err);
+    	});
+  });
+}
+
+async function _uploadProgram2(client, programFile) {
+
+	const prog = await _collectProgramBody(programFile, []);
+	await _uploadProgramHeader(client);
+	await _uploadProgramBody(client, prog);
+	await _uploadProgramTailAndSave(client);
+}
+
+async function _uploadPrograms(client, programFiles) {
+	const prog = [];
+	if (Array.isArray(programFiles)) {
+		for (let i = 0; i < programFiles.length; i++) {
+			prog = await _collectProgramBody(programFile[i], prog);
+		}
+	} else {
+		prog = await _collectProgramBody(programFile, []);
+	}
+	
+	await _uploadProgramHeader(client);
+	await _uploadProgramBody(client, prog);
+	await _uploadProgramTailAndSave(client);
+
+	return Promise.resolve();
+}
+
+
 function _uploadProgram(client, programFile) {
 
   return new Promise((resolve, reject) => {
@@ -56,7 +132,8 @@ function _syncProgram(client) {
 }
 
 module.exports = {
-	uploadProgram: _uploadProgram,
+	uploadProgram: _uploadProgram2,
+	uploadPrograms: _uploadPrograms,
 	startProgram: _startProgram,
 	stopProgram: _stopProgram,
 	pauseProgram: _pauseProgram,

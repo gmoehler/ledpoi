@@ -23,7 +23,7 @@ var mainMenu = [
 				value: 'disconnect'
 			},
 			{
-	   			name: 'Upload image', 
+	   			name: 'Upload image with id 0', 
 		    	value:'up_image'
 			} ,
 			{
@@ -113,7 +113,7 @@ function main(){
 		else if (answer.selection === "up_image") {
 			utils.checkConnected(client) 
 			.then(() => {
-				return img.uploadImage(client, answer.filename);
+				return img.uploadImage(client, 0, answer.filename);
 			})
 			.then(main)
 			.catch(handleError);

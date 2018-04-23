@@ -2,7 +2,7 @@ const fs = require('fs');
 const png = require('pngjs').PNG;
 const utils = require('./utils');
 
-function _uploadImage(client, imageFile) {
+function _uploadImage(client, id, imageFile) {
 	
   return new Promise((resolve,reject) => {
     if (!fs.existsSync(imageFile)) {
@@ -22,7 +22,7 @@ function _uploadImage(client, imageFile) {
       console.log(`Read image with ${this.width} frames and ${this.height} px` );
 
       // start transmission scene 0
-      client.sendCmd([255, 192, 0, 0, 0, 0, 0]);
+      client.sendCmd([255, 192, id, 0, 0, 0, 0]);
 
       for (let w = 0; w < this.width; w++) {
         // console.log(`frame: ${w}`);
