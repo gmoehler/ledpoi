@@ -1,4 +1,1 @@
-214,  1,  0,  0,  0,  10  # loop start 1, 10 iterations
-203,  0,  0,  0,  1, 254  # display ip
-201,  0,  1,  0,  2, 254  # play frame 0-1
-216,  1,  0,  0,  0,   0  # loop end 1
+201, 10, 20,  0,  2, 254  # play frame 0-1

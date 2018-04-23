@@ -90,9 +90,13 @@ module.exports = class SerialClient {
 	}
 	
 	sendCmd(cmd, doLog){
+		const doLogFlag = (doLog === undefined) || Boolean(doLog) === true; // default: true
+		
 		// add cmd separator
 		cmd.unshift(255);
-		console.log("cmd: " + cmd);
+		if (doLogFlag) {
+			console.log("cmd: " + cmd);
+		}
 		const buf = new Buffer(cmd);
 		this.write(buf);   
 	}
