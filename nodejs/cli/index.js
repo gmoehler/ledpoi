@@ -97,7 +97,9 @@ function main(){
 
 		else if (answer.selection === "disconnect") {
 			utils.checkConnected(client) 
-			.then(client.disconnect)
+			.then((client) => {
+				return client.disconnect();
+			})
 			.then(main)
 			.catch(handleError);
 

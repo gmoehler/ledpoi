@@ -19,7 +19,7 @@ function _uploadProgramTailAndSave(client) {
 	return Promise.resolve();
 }
 
-function _uploadProgram(client, prog) {
+function _uploadProgramBody(client, prog) {
 	for (let i = 0; i < prog.length; i++) {
  		client.sendCmd(prog[i]);         
  	}
