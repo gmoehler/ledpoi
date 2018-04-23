@@ -1,3 +1,4 @@
+"use strict"
 const fs = require('fs');
 const parse = require('csv-parse');
 const util = require('./utils');
@@ -31,9 +32,9 @@ function _collectProgramBody(programFile, prog) {
   return new Promise((resolve, reject) => {
 
 	if (!fs.existsSync(programFile)) {
-		return reject(new Error("File does not exist."));
+		return reject(new Error(`Program file ${programFile} does not exist.`));
 	  }
-		console.log(`Sending program from ${programFile}....`);
+	console.log(`Sending program from ${programFile}....`);
 		
   	fs.createReadStream(programFile)
     	.pipe(parse({delimiter: ',', comment: '#'}))
@@ -61,13 +62,13 @@ async function _uploadProgram2(client, programFile) {
 }
 
 async function _uploadPrograms(client, programFiles) {
-	const prog = [];
+	let prog = [];
 	if (Array.isArray(programFiles)) {
 		for (let i = 0; i < programFiles.length; i++) {
-			prog = await _collectProgramBody(programFile[i], prog);
+			prog = await _collectProgramBody(programFiles[i], prog);
 		}
 	} else {
-		prog = await _collectProgramBody(programFile, []);
+		prog = await _collectProgramBody(programFiles, []);
 	}
 	
 	await _uploadProgramHeader(client);
@@ -76,7 +77,6 @@ async function _uploadPrograms(client, programFiles) {
 
 	return Promise.resolve();
 }
-
 
 function _uploadProgram(client, programFile) {
 

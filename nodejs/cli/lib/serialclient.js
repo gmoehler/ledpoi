@@ -89,7 +89,7 @@ module.exports = class SerialClient {
 		this.port.write(data);
 	}
 	
-	sendCmd(cmd){
+	sendCmd(cmd, doLog){
 		// add cmd separator
 		cmd.unshift(255);
 		console.log("cmd: " + cmd);
