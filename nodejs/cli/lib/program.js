@@ -2,6 +2,7 @@
 const fs = require('fs');
 const parse = require('csv-parse');
 const util = require('./utils');
+const cmd = require("./poiCommands");
 
 function _uploadProgramHeader(client) {
 
@@ -78,6 +79,14 @@ async function _uploadPrograms(client, programFiles) {
 	return Promise.resolve();
 }
 
+async function _uploadProgramsJs(client, programFile) {
+	const progFileWithPath = path.join(process.cwd(), programFile);
+	if (!fs.existsSync(progFileWithPath)) {
+		return Promise.reject(new Error(`Program file ${progFileWithPath} does not exist.`));
+	}
+	const prog = require (progFileWithPath);
+}
+
 function _uploadProgram(client, programFile) {
 
   return new Promise((resolve, reject) => {
@@ -134,6 +143,7 @@ function _syncProgram(client) {
 module.exports = {
 	uploadProgram: _uploadProgram2,
 	uploadPrograms: _uploadPrograms,
+	uploadProgramsJs: _uploadProgramsJs,
 	startProgram: _startProgram,
 	stopProgram: _stopProgram,
 	pauseProgram: _pauseProgram,
