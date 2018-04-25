@@ -1,4 +1,3 @@
-syncPoint(2)
 loadScene(0)
 loopStart(1, 10)
   animateWorm(3, 2, 15, 500)

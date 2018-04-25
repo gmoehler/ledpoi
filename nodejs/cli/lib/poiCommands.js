@@ -90,7 +90,7 @@ global.loopStart = function(loopId, delay) {
 
 global.syncPoint = function(syncId) {
 	_syncHi = syncId+_syncIncr;
-	prog.push([255, 214, u8c(_syncHi), 0, 0, 0, 0]);
+	prog.push([255, 215, u8c(_syncHi), 0, 0, 0, 0]);
 }
 
 global.loopEnd = function(loopId) {

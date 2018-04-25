@@ -5,6 +5,12 @@ const util = require('./utils');
 const path = require("path");
 const cmd = require("./poiCommands");
 
+const syncMap = {};
+
+function _getSyncMap() {
+	return syncMap;
+}
+
 function _uploadProgramHeader(client) {
 
  	// send program tail command
@@ -53,8 +59,6 @@ function _collectProgramBody(progFileWithPath) {
 
 async function _collectProgramBodyJs(progFileWithPath) {
 	
-	const hi = cmd.getHiCounts();
-	cmd.init(hi.loop, hi.sync);
 	// allow reading a file twice
 	delete require.cache[progFileWithPath] ;
 	const prog = require (progFileWithPath);
@@ -66,6 +70,7 @@ async function _uploadPrograms(client, programFiles) {
 	
 	if (Array.isArray(programFiles)) {
 		for (let i = 0; i < programFiles.length; i++) {
+			syncMap[i] = programFiles[i];
 			const progFileWithPath = path.join(process.cwd(), programFiles[i]);
 			console.log(`Sending program from ${progFileWithPath}....`);
 			
@@ -73,6 +78,10 @@ async function _uploadPrograms(client, programFiles) {
 				return Promise.reject(new Error(`Program file ${progFileWithPath} does not exist.`));
 			}
 			try {
+				const hi = cmd.getHiCounts();
+				cmd.init(hi.loop, hi.sync);
+				// add initial sync point
+				syncPoint(i);
 				const subprog = _isJpoiFile(progFileWithPath)
 					? await _collectProgramBodyJs(progFileWithPath)
 					: await _collectProgramBody(progFileWithPath);
@@ -126,6 +135,7 @@ module.exports = {
 	startProgram: _startProgram,
 	stopProgram: _stopProgram,
 	pauseProgram: _pauseProgram,
-	syncProgram: _syncProgram
+	syncProgram: _syncProgram,
+	getSyncMap: _getSyncMap
 }
 	
