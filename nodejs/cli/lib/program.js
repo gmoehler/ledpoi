@@ -2,6 +2,7 @@
 const fs = require('fs');
 const parse = require('csv-parse');
 const util = require('./utils');
+const path = require("path");
 const cmd = require("./poiCommands");
 
 function _uploadProgramHeader(client) {
@@ -64,27 +65,51 @@ async function _uploadProgram2(client, programFile) {
 
 async function _uploadPrograms(client, programFiles) {
 	let prog = [];
+	cmd.clearProg();
+	
 	if (Array.isArray(programFiles)) {
 		for (let i = 0; i < programFiles.length; i++) {
-			prog = await _collectProgramBody(programFiles[i], prog);
+			const filename = programFiles[i];
+			console.log(filename);
+			if (_isJpoiFile(filename)) {
+				prog = await _collectProgramBodyJs(filename);
+			} else {
+				prog = await _collectProgramBody(filename, prog);
+			}
+			console.log("z"+prog);
 		}
-	} else {
-		prog = await _collectProgramBody(programFiles, []);
+	} 
+
+	else {
+		if (_isJpoiFile(programFiles)) {
+			prog = await _collectProgramBodyJs(programFiles);
+		} else {
+			prog = await _collectProgramBody(programFiles, []);
+		}
 	}
 	
-	await _uploadProgramHeader(client);
-	await _uploadProgramBody(client, prog);
-	await _uploadProgramTailAndSave(client);
+	//await _uploadProgramHeader(client);
+	//await _uploadProgramBody(client, prog);
+	//await _uploadProgramTailAndSave(client);
 
 	return Promise.resolve();
 }
 
-async function _uploadProgramsJs(client, programFile) {
+async function _collectProgramBodyJs(programFile) {
+	
 	const progFileWithPath = path.join(process.cwd(), programFile);
 	if (!fs.existsSync(progFileWithPath)) {
 		return Promise.reject(new Error(`Program file ${progFileWithPath} does not exist.`));
 	}
+	console.log("x"+cmd.getProg());
 	const prog = require (progFileWithPath);
+	console.log("y"+cmd.getProg());
+	return Promise.resolve(cmd.getProg());
+}
+
+function _isJpoiFile(filename) {
+	const ext = filename.split('.').pop();
+	return ext === "jpoi";
 }
 
 function _uploadProgram(client, programFile) {
@@ -143,7 +168,6 @@ function _syncProgram(client) {
 module.exports = {
 	uploadProgram: _uploadProgram2,
 	uploadPrograms: _uploadPrograms,
-	uploadProgramsJs: _uploadProgramsJs,
 	startProgram: _startProgram,
 	stopProgram: _stopProgram,
 	pauseProgram: _pauseProgram,
