@@ -29,16 +29,12 @@ function _uploadProgramBody(client, prog) {
 	return Promise.resolve();
 }
 
-function _collectProgramBody(programFile, prog) {
+function _collectProgramBody(progFileWithPath) {
 
   return new Promise((resolve, reject) => {
-
-	if (!fs.existsSync(programFile)) {
-		return reject(new Error(`Program file ${programFile} does not exist.`));
-	  }
-	console.log(`Sending program from ${programFile}....`);
+	const prog = [];
 		
-  	fs.createReadStream(programFile)
+  	fs.createReadStream(progFileWithPath)
     	.pipe(parse({delimiter: ',', comment: '#'}))
     	.on('data', function(csvrow) {
         	// convert into numbers
@@ -55,96 +51,56 @@ function _collectProgramBody(programFile, prog) {
   });
 }
 
-async function _uploadProgram2(client, programFile) {
-
-	const prog = await _collectProgramBody(programFile, []);
-	await _uploadProgramHeader(client);
-	await _uploadProgramBody(client, prog);
-	await _uploadProgramTailAndSave(client);
+async function _collectProgramBodyJs(progFileWithPath) {
+	
+	const hi = cmd.getHiCounts();
+	cmd.init(hi.loop, hi.sync);
+	// allow reading a file twice
+	delete require.cache[progFileWithPath] ;
+	const prog = require (progFileWithPath);
+	return Promise.resolve(cmd.getProg());
 }
 
 async function _uploadPrograms(client, programFiles) {
 	let prog = [];
-	cmd.clearProg();
 	
 	if (Array.isArray(programFiles)) {
 		for (let i = 0; i < programFiles.length; i++) {
-			const filename = programFiles[i];
-			console.log(filename);
-			if (_isJpoiFile(filename)) {
-				prog = await _collectProgramBodyJs(filename);
-			} else {
-				prog = await _collectProgramBody(filename, prog);
+			const progFileWithPath = path.join(process.cwd(), programFiles[i]);
+			console.log(`Sending program from ${progFileWithPath}....`);
+			
+			if (!fs.existsSync(progFileWithPath)) {
+				return Promise.reject(new Error(`Program file ${progFileWithPath} does not exist.`));
 			}
-			console.log("z"+prog);
+			try {
+				const subprog = _isJpoiFile(progFileWithPath)
+					? await _collectProgramBodyJs(progFileWithPath)
+					: await _collectProgramBody(progFileWithPath);
+				console.log(subprog);
+				prog.push(...subprog);
+			}
+			catch(err) {
+				return Promise.reject(err);
+			}
 		}
 	} 
-
 	else {
-		if (_isJpoiFile(programFiles)) {
-			prog = await _collectProgramBodyJs(programFiles);
-		} else {
-			prog = await _collectProgramBody(programFiles, []);
-		}
+		prog = _isJpoiFile(programFiles)
+				? await _collectProgramBodyJs(programFiles)
+				: await _collectProgramBody(programFiles);
 	}
 	
 	//await _uploadProgramHeader(client);
 	//await _uploadProgramBody(client, prog);
 	//await _uploadProgramTailAndSave(client);
 
-	return Promise.resolve();
+	return Promise.resolve(prog);
 }
 
-async function _collectProgramBodyJs(programFile) {
-	
-	const progFileWithPath = path.join(process.cwd(), programFile);
-	if (!fs.existsSync(progFileWithPath)) {
-		return Promise.reject(new Error(`Program file ${progFileWithPath} does not exist.`));
-	}
-	console.log("x"+cmd.getProg());
-	const prog = require (progFileWithPath);
-	console.log("y"+cmd.getProg());
-	return Promise.resolve(cmd.getProg());
-}
 
 function _isJpoiFile(filename) {
 	const ext = filename.split('.').pop();
 	return ext === "jpoi";
-}
-
-function _uploadProgram(client, programFile) {
-
-  return new Promise((resolve, reject) => {
-
-	if (!fs.existsSync(programFile)) {
-		return reject(new Error("File does not exist."));
-	  }
-
- 	 // send head program command
-  	console.log("Starting program upload....");
-  	client.sendCmd([195, 0, 0, 0, 0, 0]);   
-
-  	fs.createReadStream(programFile)
-    	.pipe(parse({delimiter: ',', comment: '#'}))
-    	.on('data', function(csvrow) {
-        	// convert into numbers
-        	const cmd=csvrow.map(Number);
-        	client.sendCmd(cmd);         
-    	})
-    	.on('end',function() {
-			// send program tail and save
-			client.sendCmd([196,  0,  0,  0,  0,  0]);     
-			console.log("Saving program....");
-			client.sendCmd([197,  0,  0,  0,  0,  0]);           
-	
-			console.log("Program sent");
-			return resolve();
-		})
-    	.on('error',function(err) {
-			console.log(err);
-			return reject(err);
-    	});
-  });
 }
 
 function _startProgram(client) {
@@ -166,7 +122,6 @@ function _syncProgram(client) {
 }
 
 module.exports = {
-	uploadProgram: _uploadProgram2,
 	uploadPrograms: _uploadPrograms,
 	startProgram: _startProgram,
 	stopProgram: _stopProgram,

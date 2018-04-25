@@ -1,13 +1,26 @@
 "use strict"
 
 const prog = [];
+let _loopIncr =0;
+let _syncIncr =0;
+let _loopHi = 0;
+let _syncHi = 0;
 
 function _getProg() {
 	return prog;
 }
 
-function _clearProg() {
+function _init(loopIncr, syncIncr) {
 	prog.length  = 0;
+	_loopIncr =0;
+	_syncIncr =0;
+}
+
+function _getHiCounts() {
+	return {
+		loop:_loopHi,
+		sync: _syncHi
+	}
 }
 
 // uint8 constrain
@@ -67,7 +80,23 @@ global.dim = function(factor) {
 	prog.push([255, 204, val, 0, 0, 0, 0]);
 }
 
+global.loopStart = function(loopId, delay) {
+	const del = splitUint16(delay);
+	_loopHi = loopId+_loopIncr;
+	prog.push([255, 214, u8c(_loopHi), 0, 0, del.u, del.l]);
+}
+
+global.syncPoint = function(syncId) {
+	_syncHi = syncId+_syncIncr;
+	prog.push([255, 214, u8c(_syncHi), 0, 0, 0, 0]);
+}
+
+global.loopEnd = function(loopId) {
+	prog.push([255, 216, u8c(loopId+_loopIncr), 0, 0, 0, 0]);
+}
+
 module.exports = {
 	getProg: _getProg,
-	clearProg: _clearProg
+	init: _init,
+	getHiCounts: _getHiCounts
 }
