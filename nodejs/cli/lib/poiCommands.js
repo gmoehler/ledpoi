@@ -12,8 +12,10 @@ function _getProg() {
 
 function _init(loopIncr, syncIncr) {
 	prog.length  = 0;
-	_loopIncr =0;
-	_syncIncr =0;
+	_loopIncr = loopIncr;
+	_syncIncr = syncIncr;
+	_loopHi = _loopIncr;
+	_syncHi = _syncIncr;
 }
 
 function _getHiCounts() {
