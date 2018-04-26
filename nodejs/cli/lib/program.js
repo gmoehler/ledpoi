@@ -1,40 +1,115 @@
+"use strict"
 const fs = require('fs');
 const parse = require('csv-parse');
 const util = require('./utils');
+const path = require("path");
+const cmd = require("./poiCommands");
 
-function _uploadProgram(client, programFile) {
+const syncMap = {};
+
+function _getSyncMap() {
+	return syncMap;
+}
+
+function _uploadProgramHeader(client) {
+
+ 	// send program tail command
+	console.log("Starting program upload....");
+	client.sendCmd([195, 0, 0, 0, 0, 0]);   
+	return Promise.resolve();
+}
+
+function _uploadProgramTailAndSave(client) {
+
+ 	// send program tail command
+	client.sendCmd([196,  0,  0,  0,  0,  0]);     
+	console.log("Saving program....");
+	client.sendCmd([197,  0,  0,  0, 0,  0]);     
+	return Promise.resolve();
+}
+
+function _uploadProgramBody(client, prog) {
+	for (let i = 0; i < prog.length; i++) {
+ 		client.sendCmd(prog[i]);         
+ 	}
+	return Promise.resolve();
+}
+
+function _collectProgramBody(progFileWithPath) {
 
   return new Promise((resolve, reject) => {
-
-	if (!fs.existsSync(programFile)) {
-		return reject(new Error("File does not exist."));
-	  }
-
- 	 // send head program command
-  	console.log("Starting program upload....");
-  	client.sendCmd([195, 0, 0, 0, 0, 0]);   
-
-  	fs.createReadStream(programFile)
+	const prog = [];
+		
+  	fs.createReadStream(progFileWithPath)
     	.pipe(parse({delimiter: ',', comment: '#'}))
     	.on('data', function(csvrow) {
         	// convert into numbers
         	const cmd=csvrow.map(Number);
-        	client.sendCmd(cmd);         
+        	prog.push(cmd);
     	})
     	.on('end',function() {
-			// send program tail and save
-			client.sendCmd([196,  0,  0,  0,  0,  0]);     
-			console.log("Saving program....");
-			client.sendCmd([197,  0,  0,  0,  0,  0]);           
-	
-			console.log("Program sent");
-			return resolve();
+			return resolve(prog);
 		})
     	.on('error',function(err) {
 			console.log(err);
 			return reject(err);
     	});
   });
+}
+
+async function _collectProgramBodyJs(progFileWithPath) {
+	
+	// allow reading a file twice
+	delete require.cache[progFileWithPath] ;
+	const prog = require (progFileWithPath);
+	return Promise.resolve(cmd.getProg());
+}
+
+async function _uploadPrograms(client, programFiles) {
+	let prog = [];
+	
+	if (Array.isArray(programFiles)) {
+		for (let i = 0; i < programFiles.length; i++) {
+			syncMap[i] = programFiles[i];
+			const progFileWithPath = path.join(process.cwd(), programFiles[i]);
+			console.log(`Sending program from ${progFileWithPath}....`);
+			
+			if (!fs.existsSync(progFileWithPath)) {
+				return Promise.reject(new Error(`Program file ${progFileWithPath} does not exist.`));
+			}
+			try {
+				const hi = cmd.getHiCounts();
+				cmd.init(hi.loop, hi.sync);
+				// add initial sync point
+				syncPoint(i);
+				const subprog = _isJpoiFile(progFileWithPath)
+					? await _collectProgramBodyJs(progFileWithPath)
+					: await _collectProgramBody(progFileWithPath);
+				console.log(subprog);
+				prog.push(...subprog);
+			}
+			catch(err) {
+				return Promise.reject(err);
+			}
+		}
+	} 
+	else {
+		prog = _isJpoiFile(programFiles)
+				? await _collectProgramBodyJs(programFiles)
+				: await _collectProgramBody(programFiles);
+	}
+	
+	//await _uploadProgramHeader(client);
+	//await _uploadProgramBody(client, prog);
+	//await _uploadProgramTailAndSave(client);
+
+	return Promise.resolve(prog);
+}
+
+
+function _isJpoiFile(filename) {
+	const ext = filename.split('.').pop();
+	return ext === "jpoi";
 }
 
 function _startProgram(client) {
@@ -56,10 +131,11 @@ function _syncProgram(client) {
 }
 
 module.exports = {
-	uploadProgram: _uploadProgram,
+	uploadPrograms: _uploadPrograms,
 	startProgram: _startProgram,
 	stopProgram: _stopProgram,
 	pauseProgram: _pauseProgram,
-	syncProgram: _syncProgram
+	syncProgram: _syncProgram,
+	getSyncMap: _getSyncMap
 }
 	

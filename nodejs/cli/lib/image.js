@@ -2,7 +2,7 @@ const fs = require('fs');
 const png = require('pngjs').PNG;
 const utils = require('./utils');
 
-function _uploadImage(client, imageFile) {
+function _uploadImage(client, id, imageFile) {
 	
   return new Promise((resolve,reject) => {
     if (!fs.existsSync(imageFile)) {
@@ -22,7 +22,7 @@ function _uploadImage(client, imageFile) {
       console.log(`Read image with ${this.width} frames and ${this.height} px` );
 
       // start transmission scene 0
-      client.sendCmd([255, 192, 0, 0, 0, 0, 0]);
+      client.sendCmd([255, 192, id, 0, 0, 0, 0]);
 
       for (let w = 0; w < this.width; w++) {
         // console.log(`frame: ${w}`);
@@ -33,13 +33,13 @@ function _uploadImage(client, imageFile) {
           //console.log(`${h}: ${this.data[idx]} ${this.data[idx+1]} ${this.data[idx+2]}`);
           client.sendCmd(
             [255, h, w, 0, utils.constrain(this.data[idx],0,254), 
-              utils.constrain(this.data[idx+1],0,254), utils.constrain(this.data[idx+2],0,254)]);
+              utils.constrain(this.data[idx+1],0,254), utils.constrain(this.data[idx+2],0,254)], false);
           
           // mirror values on the back
           //console.log(`${2*this.height-h-1}: ${this.data[idx]} ${this.data[idx+1]} ${this.data[idx+2]}`);
           client.sendCmd(
             [255, 2*this.height-h-1, w, 0, utils.constrain(this.data[idx],0,254), 
-              utils.constrain(this.data[idx+1],0,254), utils.constrain(this.data[idx+2],0,254)]);
+              utils.constrain(this.data[idx+1],0,254), utils.constrain(this.data[idx+2],0,254)], false);
         }
       }
       // end transmission scene 0

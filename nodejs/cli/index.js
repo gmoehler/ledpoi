@@ -2,6 +2,7 @@
 const inquirer = require('inquirer');
 const prg = require('./lib/program');
 const img = require('./lib/image');
+const show = require('./lib/show');
 const ctrl = require('./lib/control');
 const utils = require('./lib/utils');
 
@@ -23,7 +24,11 @@ var mainMenu = [
 				value: 'disconnect'
 			},
 			{
-	   			name: 'Upload image', 
+				name: 'Upload show', 
+			 	value:'up_show'
+		 	} ,
+			{
+	   			name: 'Upload image with id 0', 
 		    	value:'up_image'
 			} ,
 			{
@@ -61,7 +66,7 @@ var mainMenu = [
     name: 'filename',
     message: 'Filename:',
     when: function(answers) {
-      return (["up_image", "up_prog"].includes(answers.selection));
+      return (["up_image", "up_prog", "up_show"].includes(answers.selection));
     }
   },
   {
@@ -97,15 +102,25 @@ function main(){
 
 		else if (answer.selection === "disconnect") {
 			utils.checkConnected(client) 
-			.then(client.disconnect)
+			.then((client) => {
+				return client.disconnect();
+			})
 			.then(main)
 			.catch(handleError);
 
 		}
+		else if (answer.selection === "up_show") {
+			utils.checkConnected(client) 
+			.then(() => {
+				return show.uploadShow(client, answer.filename);
+			})
+			.then(main)
+			.catch(handleError);
+		}
 		else if (answer.selection === "up_prog") {
 			utils.checkConnected(client) 
 			.then(() => {
-				return prg.uploadProgram(client, answer.filename);
+				return prg.uploadPrograms(client, [answer.filename]);
 			})
 			.then(main)
 			.catch(handleError);
@@ -113,7 +128,7 @@ function main(){
 		else if (answer.selection === "up_image") {
 			utils.checkConnected(client) 
 			.then(() => {
-				return img.uploadImage(client, answer.filename);
+				return img.uploadImage(client, 0, answer.filename);
 			})
 			.then(main)
 			.catch(handleError);
