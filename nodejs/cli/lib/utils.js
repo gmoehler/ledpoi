@@ -22,7 +22,7 @@ function _checkNotConnected(client) {
 }
 
 module.exports = {
-    constrain: _constrain,
+	constrain: _constrain,
     checkConnected: _checkConnected,
     checkNotConnected: _checkNotConnected
 }
