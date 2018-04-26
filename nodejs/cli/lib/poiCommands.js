@@ -2,26 +2,21 @@
 
 const prog = [];
 let _loopIncr =0;
-let _syncIncr =0;
 let _loopHi = 0;
-let _syncHi = 0;
 
 function _getProg() {
 	return prog;
 }
 
-function _init(loopIncr, syncIncr) {
+function _init(hi) {
 	prog.length  = 0;
-	_loopIncr = loopIncr;
-	_syncIncr = syncIncr;
+	_loopIncr = hi.loop;
 	_loopHi = _loopIncr;
-	_syncHi = _syncIncr;
 }
 
 function _getHiCounts() {
 	return {
-		loop:_loopHi,
-		sync: _syncHi
+		loop:_loopHi
 	}
 }
 
@@ -73,7 +68,7 @@ global.animateWorm = function(color, loops, pixels, delay) {
 	prog.push([255, 202, u8c(color), u8c(loops), u8c(pixels), del.u, del.l]);
 }
 
-global.displayIP = function(ipIncr) {
+function _displayIP(ipIncr) {
 	prog.push([255, 203, u8c(ipIncr), 0, 0, 0, 0]);
 }
 
@@ -88,9 +83,8 @@ global.loopStart = function(loopId, delay) {
 	prog.push([255, 214, u8c(_loopHi), 0, 0, del.u, del.l]);
 }
 
-global.syncPoint = function(syncId) {
-	_syncHi = syncId+_syncIncr;
-	prog.push([255, 215, u8c(_syncHi), 0, 0, 0, 0]);
+function _syncPoint(syncId) {
+	prog.push([255, 215, u8c(syncId), 0, 0, 0, 0]);
 }
 
 global.loopEnd = function(loopId) {
@@ -100,5 +94,7 @@ global.loopEnd = function(loopId) {
 module.exports = {
 	getProg: _getProg,
 	init: _init,
-	getHiCounts: _getHiCounts
+	getHiCounts: _getHiCounts,
+	syncPoint: _syncPoint,
+	displayIP: _displayIP
 }

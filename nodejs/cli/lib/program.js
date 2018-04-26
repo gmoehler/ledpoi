@@ -79,9 +79,9 @@ async function _uploadPrograms(client, programFiles) {
 			}
 			try {
 				const hi = cmd.getHiCounts();
-				cmd.init(hi.loop, hi.sync);
+				cmd.init(hi);
 				// add initial sync point
-				syncPoint(i);
+				cmd.syncPoint(i);
 				const subprog = _isJpoiFile(progFileWithPath)
 					? await _collectProgramBodyJs(progFileWithPath)
 					: await _collectProgramBody(progFileWithPath);
