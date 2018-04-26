@@ -4,7 +4,8 @@
   "description": "poi cli",
   "main": "index.js",
   "scripts": {
-    "start": "node index.js"
+    "start": "node index.js",
+    "test": "jest"
   },
   "author": "gm",
   "license": "MIT",
@@ -12,9 +13,8 @@
     "csv-parse": "^2.0.4",
     "inquirer": "5.2.0",
     "net": "1.0.2",
-    "pngjs": "^3.3.2",
-    "serialport": "6.1.1"
-  }
+    "pngjs": "^3.3.2"
+  },
   "devDependencies": {
     "jest": "22.4.3"
   }
