@@ -40,8 +40,9 @@ function _uploadImage(client, id, imageFile) {
           client.sendCmd(
             [255, 2*this.height-h-1, w, 0, utils.constrain(this.data[idx],0,254), 
               utils.constrain(this.data[idx+1],0,254), utils.constrain(this.data[idx+2],0,254)], false);
+          utils.delay(100);
         }
-        utils.delay(200);
+        utils.delay(500);
       }
       // end transmission scene 0
       client.sendCmd([255, 193, 0, 0, 0, 0, 0]);

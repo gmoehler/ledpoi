@@ -6,7 +6,7 @@
 #define ECHO_TEST_RTS  (UART_PIN_NO_CHANGE)
 #define ECHO_TEST_CTS  (UART_PIN_NO_CHANGE)
 
-#define BUF_SIZE (1024)
+#define BUF_SIZE (4096)
 
 static char buffer[80];
 
@@ -75,7 +75,7 @@ void uart_setup(){
     };
     uart_param_config(EX_UART_NUM, &uart_config);
     uart_set_pin(EX_UART_NUM, ECHO_TEST_TXD, ECHO_TEST_RXD, ECHO_TEST_RTS, ECHO_TEST_CTS);
-    uart_driver_install(EX_UART_NUM, BUF_SIZE, 0, 0, NULL, 0);
+    uart_driver_install(EX_UART_NUM, BUF_SIZE, BUF_SIZE, 0, NULL, 0);
 }
 
 void uart_start(uint8_t prio){ 
