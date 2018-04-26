@@ -99,9 +99,9 @@ async function _uploadPrograms(client, programFiles) {
 				: await _collectProgramBody(programFiles);
 	}
 	
-	//await _uploadProgramHeader(client);
-	//await _uploadProgramBody(client, prog);
-	//await _uploadProgramTailAndSave(client);
+	await _uploadProgramHeader(client);
+	await _uploadProgramBody(client, prog);
+	await _uploadProgramTailAndSave(client);
 
 	return Promise.resolve(prog);
 }

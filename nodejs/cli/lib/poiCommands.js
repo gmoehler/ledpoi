@@ -50,45 +50,45 @@ function splitUint16(val) {
 }
 
 global.loadScene = function(id) {
-		prog.push([255, 199, u8c(id), 0, 0, 0, 0]);
+		prog.push([199, u8c(id), 0, 0, 0, 0]);
 }
 
 global.showRgb = function(r, g, b, delay) {
 	const del = splitUint16(delay);
-	prog.push([255, 200, u8c(r), u8c(g), u8c(b), del.u, del.l]);
+	prog.push([200, u8c(r), u8c(g), u8c(b), del.u, del.l]);
 }
 
 global.playFrames = function(from, to, nTimes, delay) {
 	const del = splitUint16(delay);
-	prog.push([255, 201, u8c(from), u8c(to), u8c(nTimes), del.u, del.l]);
+	prog.push([201, u8c(from), u8c(to), u8c(nTimes), del.u, del.l]);
 }   
 
 global.animateWorm = function(color, loops, pixels, delay) {
 	const del = splitUint16(delay);
-	prog.push([255, 202, u8c(color), u8c(loops), u8c(pixels), del.u, del.l]);
+	prog.push([202, u8c(color), u8c(loops), u8c(pixels), del.u, del.l]);
 }
 
 function _displayIP(ipIncr) {
-	prog.push([255, 203, u8c(ipIncr), 0, 0, 0, 0]);
+	prog.push([203, u8c(ipIncr), 0, 0, 0, 0]);
 }
 
 global.dim = function(factor) {
 	const val = u8c(factor * 254);
-	prog.push([255, 204, val, 0, 0, 0, 0]);
+	prog.push([204, val, 0, 0, 0, 0]);
 }
 
 global.loopStart = function(loopId, delay) {
 	const del = splitUint16(delay);
 	_loopHi = loopId+_loopIncr;
-	prog.push([255, 214, u8c(_loopHi), 0, 0, del.u, del.l]);
+	prog.push([214, u8c(_loopHi), 0, 0, del.u, del.l]);
 }
 
 function _syncPoint(syncId) {
-	prog.push([255, 215, u8c(syncId), 0, 0, 0, 0]);
+	prog.push([215, u8c(syncId), 0, 0, 0, 0]);
 }
 
 global.loopEnd = function(loopId) {
-	prog.push([255, 216, u8c(loopId+_loopIncr), 0, 0, 0, 0]);
+	prog.push([216, u8c(loopId+_loopIncr), 0, 0, 0, 0]);
 }
 
 module.exports = {

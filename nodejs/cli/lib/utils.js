@@ -21,7 +21,14 @@ function _checkNotConnected(client) {
 		Promise.resolve(client);
 }
 
+function _delay(msecs) {
+	setTimeout(() => { 
+		Promise.resolve();
+	}, msecs);
+}
+
 module.exports = {
+	delay: _delay,
 	constrain: _constrain,
     checkConnected: _checkConnected,
     checkNotConnected: _checkNotConnected
