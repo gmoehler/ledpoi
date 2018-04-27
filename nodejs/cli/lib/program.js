@@ -70,8 +70,10 @@ async function _collectProgramJs(progFileWithPath, i) {
     // add initial sync point
 	cmd.syncPoint(i);
 	
-	// allow reading a file twice
-	delete require.cache[progFileWithPath] ;
+	// allow reading a file multiple times
+	//delete require.cache[require.resolve(progFileWithPath)] ;
+	Object.keys(require.cache).forEach(function(key) { delete require.cache[key] })
+	
 	const prog = require (progFileWithPath);
 	return Promise.resolve(cmd.getProg());
 }
@@ -83,7 +85,7 @@ async function _doCollectProgram(filename, i) {
 	if (!fs.existsSync(progFileWithPath)) {
 		return Promise.reject(new Error(`Program file ${progFileWithPath} does not exist.`));
 	}
-	console.log(`Sending program from ${progFileWithPath}....`);
+	console.log(`Sending program ${i} from ${progFileWithPath}....`);
 	
 	// collect cmds from program
 	const prog = _isJpoiFile(progFileWithPath)
