@@ -29,16 +29,20 @@ function _uploadProgramTailAndSave(client) {
 }
 
 function _uploadProgramBody(client, prog) {
-	for (let i = 0; i < prog.length; i++) {
- 		client.sendCmd(prog[i]);         
+	for (let i = 0; prog && i < prog.length; i++) {
+		client.sendCmd(prog[i]);         
  	}
 	return Promise.resolve();
 }
 
-function _collectProgramBody(progFileWithPath) {
+function _collectProgramCmd(progFileWithPath, i) {
 
   return new Promise((resolve, reject) => {
-	const prog = [];
+	
+	//initial sync point
+	const prog = [[215, i, 0, 0, 0, 0]];
+	
+	// todo: do loop incr
 		
   	fs.createReadStream(progFileWithPath)
     	.pipe(parse({delimiter: ',', comment: '#'}))
@@ -57,7 +61,14 @@ function _collectProgramBody(progFileWithPath) {
   });
 }
 
-async function _collectProgramBodyJs(progFileWithPath) {
+async function _collectProgramJs(progFileWithPath, i) {
+	
+    // reset prog cache
+	const hi = cmd.getHiCounts();
+	cmd.init(hi);
+
+    // add initial sync point
+	cmd.syncPoint(i);
 	
 	// allow reading a file twice
 	delete require.cache[progFileWithPath] ;
@@ -65,52 +76,53 @@ async function _collectProgramBodyJs(progFileWithPath) {
 	return Promise.resolve(cmd.getProg());
 }
 
-async function _uploadPrograms(client, programFiles) {
-	let prog = [];
+async function _doCollectProgram(filename, i) {
+	syncMap[i] = filename;
 	
-	if (Array.isArray(programFiles)) {
-		for (let i = 0; i < programFiles.length; i++) {
-			syncMap[i] = programFiles[i];
-			const progFileWithPath = path.join(process.cwd(), programFiles[i]);
-			console.log(`Sending program from ${progFileWithPath}....`);
-			
-			if (!fs.existsSync(progFileWithPath)) {
-				return Promise.reject(new Error(`Program file ${progFileWithPath} does not exist.`));
-			}
-			try {
-				const hi = cmd.getHiCounts();
-				cmd.init(hi);
-				// add initial sync point
-				cmd.syncPoint(i);
-				const subprog = _isJpoiFile(progFileWithPath)
-					? await _collectProgramBodyJs(progFileWithPath)
-					: await _collectProgramBody(progFileWithPath);
-				console.log(subprog);
-				prog.push(...subprog);
-			}
-			catch(err) {
-				return Promise.reject(err);
-			}
-		}
-	} 
-	else {
-		prog = _isJpoiFile(programFiles)
-				? await _collectProgramBodyJs(programFiles)
-				: await _collectProgramBody(programFiles);
+	const progFileWithPath = path.join(process.cwd(), filename);
+	if (!fs.existsSync(progFileWithPath)) {
+		return Promise.reject(new Error(`Program file ${progFileWithPath} does not exist.`));
 	}
+	console.log(`Sending program from ${progFileWithPath}....`);
 	
-	await _uploadProgramHeader(client);
-	await _uploadProgramBody(client, prog);
-	await _uploadProgramTailAndSave(client);
-
+	// collect cmds from program
+	const prog = _isJpoiFile(progFileWithPath)
+			? await _collectProgramJs(progFileWithPath, i)
+			: await _collectProgramCmd(progFileWithPath, i);
+			
 	return Promise.resolve(prog);
 }
 
+async function _doUpload(client, prog) {
+	await _uploadProgramHeader(client);
+	await _uploadProgramBody(client, prog);
+	await _uploadProgramTailAndSave(client);
+}
 
 function _isJpoiFile(filename) {
 	const ext = filename.split('.').pop();
 	return ext === "jpoi";
 }
+
+async function _uploadPrograms(client, programFiles) {
+	let prog = [];
+	
+	if (Array.isArray(programFiles)) {
+		for (let i = 0; i < programFiles.length; i++) {
+			const subprog= await _doCollectProgram(programFiles[i], i);
+			console.log(subprog);
+			prog.push(...subprog);
+		}
+	} 
+	else if (programFiles) {
+		prog= await _doCollectProgram(programFiles, 0);
+	}
+	
+	await _doUpload(client, prog);
+
+	return Promise.resolve(prog);
+}
+
 
 function _startProgram(client) {
 	client.sendCmd([206,  0,  0,  0,  0,  0]);
@@ -136,6 +148,9 @@ module.exports = {
 	stopProgram: _stopProgram,
 	pauseProgram: _pauseProgram,
 	syncProgram: _syncProgram,
-	getSyncMap: _getSyncMap
+	getSyncMap: _getSyncMap,
+	// export for testing only
+	doUpload: _doUpload,
+	doCollectProgram: _doCollectProgram,
 }
 	

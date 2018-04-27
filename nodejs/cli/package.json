@@ -5,7 +5,7 @@
   "main": "index.js",
   "scripts": {
     "start": "node index.js",
-    "test": "jest --projects . --colors --coverage"
+    "test": "jest --projects . --colors --coverage --runInBand"
   },
   "author": "gm",
   "license": "MIT",
@@ -18,5 +18,9 @@
   },
   "devDependencies": {
     "jest": "22.4.3"
+  },
+  "jest": {
+    "verbose": true,
+    "clearMocks": true
   }
 }
