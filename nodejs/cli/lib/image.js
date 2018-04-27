@@ -2,7 +2,7 @@ const fs = require('fs');
 const png = require('pngjs').PNG;
 const utils = require('./utils');
 
-function _uploadImage(client, id, imageFile) {
+async function _uploadImage(client, id, imageFile) {
 	
   return new Promise((resolve,reject) => {
     if (!fs.existsSync(imageFile)) {
@@ -19,7 +19,7 @@ function _uploadImage(client, id, imageFile) {
     })
 
     pipe.on('parsed', function() {
-      console.log(`Read image with ${this.width} frames and ${this.height} px` );
+      console.log(`Read image ${imageFile} with ${this.width} frames and ${this.height} px` );
 
       // start transmission scene 0
       client.sendCmd([255, 192, id, 0, 0, 0, 0]);
@@ -40,9 +40,9 @@ function _uploadImage(client, id, imageFile) {
           client.sendCmd(
             [255, 2*this.height-h-1, w, 0, utils.constrain(this.data[idx],0,254), 
               utils.constrain(this.data[idx+1],0,254), utils.constrain(this.data[idx+2],0,254)], false);
-          utils.delay(100);
+          await utils.delay(100);
         }
-        utils.delay(500);
+        await utils.delay(1000);
       }
       // end transmission scene 0
       client.sendCmd([255, 193, 0, 0, 0, 0, 0]);

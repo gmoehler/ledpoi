@@ -23,7 +23,7 @@ function _checkNotConnected(client) {
 
 function _delay(msecs) {
 	setTimeout(() => { 
-		Promise.resolve();
+		return Promise.resolve();
 	}, msecs);
 }
 
