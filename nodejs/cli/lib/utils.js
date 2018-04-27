@@ -21,10 +21,12 @@ function _checkNotConnected(client) {
 		Promise.resolve(client);
 }
 
-function _delay(msecs) {
-	setTimeout(() => { 
-		return Promise.resolve();
-	}, msecs);
+function _delay (msec) {
+	return new Promise((resolve, reject) => {
+    	setTimeout(() => { 
+        	resolve();
+ 	   }, msec);
+    });
 }
 
 module.exports = {

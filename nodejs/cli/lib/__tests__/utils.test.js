@@ -28,3 +28,11 @@ test('checkNotConnected', () => {
 	expect (utils.checkNotConnected(connectedClient))
 		.rejects.toThrow("Already connected.");
 });
+
+test('delay', async () => {	
+	const startTime = new Date();
+	await utils.delay(1000);
+	const diff = new Date() - startTime;
+	expect(Math.abs(diff-1000))
+		.toBeLessThan(10);
+});
