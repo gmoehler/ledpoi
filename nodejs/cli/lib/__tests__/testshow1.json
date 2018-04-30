@@ -1,0 +1,12 @@
+{
+	"program": {
+		"files": [
+			"prog1.poi",
+			"prog2.jpoi"
+		]
+	},
+	"images": {
+		"0": "image1.png",
+		"1": "image2.png"
+	}
+}
