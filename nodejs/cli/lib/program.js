@@ -75,14 +75,14 @@ async function _collectProgramJs(progFileWithPath, i) {
     // add initial sync point
 	cmd.syncPoint(i);
 	
-	const thisScriptPath=path.join(process.cwd(), "lib");
-	const pathToMod= "." + path.sep + path.relative(thisScriptPath, progFileWithPath);
+	// const thisScriptPath=path.join(process.cwd(), "lib");
+	// const pathToMod= "." + path.sep + path.relative(thisScriptPath, progFileWithPath);
 	// console.log("program script:" + thisScriptPath);
 	// console.log("pro with path   :" + progFileWithPath);
-	console.log("module  path:" + pathToMod);
-	// console.log(require.cache);
+	// console.log("module  path:" + pathToMod);
+	console.log(require.cache);
 	// uncached load: allow reading a file multiple times
-	const prog = requireUncached (pathToMod);
+	const prog = requireUncached (progFileWithPath);
 	return Promise.resolve(cmd.getProg());
 }
 
