@@ -61,6 +61,11 @@ function _collectProgramCmd(progFileWithPath, i) {
   });
 }
 
+function requireUncached(module){
+    delete require.cache[require.resolve(module)]
+    return require(module)
+}
+
 async function _collectProgramJs(progFileWithPath, i) {
 	
     // reset prog cache
@@ -70,11 +75,14 @@ async function _collectProgramJs(progFileWithPath, i) {
     // add initial sync point
 	cmd.syncPoint(i);
 	
-	// allow reading a file multiple times
-	//delete require.cache[require.resolve(progFileWithPath)] ;
-	Object.keys(require.cache).forEach(function(key) { delete require.cache[key] })
-	
-	const prog = require (progFileWithPath);
+	const thisScriptPath=path.join(process.cwd(), "lib");
+	const pathToMod= "./" + path.relative(thisScriptPath, progFileWithPath);
+	console.log("program script:" + thisScriptPath);
+	console.log("pro with path   :" + thisScriptPath);
+	console.log("module  :" + pathToMod);
+	console.log(require.cache);
+	// uncached load: allow reading a file multiple times
+	const prog = requireUncached (pathToMod);
 	return Promise.resolve(cmd.getProg());
 }
 
@@ -82,6 +90,7 @@ async function _doCollectProgram(filename, i) {
 	syncMap[i] = filename;
 	
 	const progFileWithPath = path.join(process.cwd(), filename);
+	
 	if (!fs.existsSync(progFileWithPath)) {
 		return Promise.reject(new Error(`Program file ${progFileWithPath} does not exist.`));
 	}
