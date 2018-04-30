@@ -77,8 +77,27 @@ var mainMenu = [
     when: function(answers) {
       return (answers.selection == "wifi_connect");
 	}
+  },
+  {
+    type: 'input',
+    name: 'sync_point',
+    message: getSyncs,
+    default: '0',
+    when: function(answers) {
+      return (answers.selection == "sync");
+	}
   }
 ]
+
+function getSyncs(){
+	var str = "Choose sync point: ";
+	const syncs = prg.getSyncMap();
+	for (let i in syncs) {
+		str = str.concat(i + ":" + syncs[i] + " ");
+	}
+	
+	return str;
+}
 
 function handleError(err) {
 	console.log("Error: " + err.message);
@@ -167,7 +186,7 @@ function main(){
 		}
 		else if (answer.selection === "sync") {
 			utils.checkConnected(client) 
-			.then(prg.syncProgram)
+			.then((client) => prg.syncProgram(client, parseInt(answer.sync_point)))
 			.then(main)
 			.catch(handleError);
 		}

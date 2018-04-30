@@ -1,7 +1,7 @@
 "use strict"
 const fs = require('fs');
 const parse = require('csv-parse');
-const util = require('./utils');
+const utils = require('./utils');
 const path = require("path");
 const cmd = require("./poiCommands");
 
@@ -76,11 +76,11 @@ async function _collectProgramJs(progFileWithPath, i) {
 	cmd.syncPoint(i);
 	
 	const thisScriptPath=path.join(process.cwd(), "lib");
-	const pathToMod= "./" + path.relative(thisScriptPath, progFileWithPath);
-	console.log("program script:" + thisScriptPath);
-	console.log("pro with path   :" + thisScriptPath);
-	console.log("module  :" + pathToMod);
-	console.log(require.cache);
+	const pathToMod= "." + path.sep + path.relative(thisScriptPath, progFileWithPath);
+	// console.log("program script:" + thisScriptPath);
+	// console.log("pro with path   :" + progFileWithPath);
+	console.log("module  path:" + pathToMod);
+	// console.log(require.cache);
 	// uncached load: allow reading a file multiple times
 	const prog = requireUncached (pathToMod);
 	return Promise.resolve(cmd.getProg());
@@ -149,8 +149,8 @@ function _pauseProgram(client) {
 	client.sendCmd([208,  0,  0,  0,  0,  0]);    
 }
 
-function _syncProgram(client) {
-	client.sendCmd([209,  0,  0,  0,  0,  0]);    
+function _syncProgram(client, i) {
+	client.sendCmd([209,  i,  0,  0,  0,  0]);    
 }
 
 module.exports = {

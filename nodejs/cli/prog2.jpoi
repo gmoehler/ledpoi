@@ -1,5 +1,5 @@
-loadScene(0)
+loadScene(1)
 loopStart(1, 2)
-  animateWorm(3, 2, 15, 500)
-  playFrames(10, 20, 3, 100)
+  animateWorm(3, 2, 30, 500)
+  playFrames(10, 20, 3, 200)
 loopEnd(1)

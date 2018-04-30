@@ -1,8 +1,8 @@
 {
 	"program": {
 		"files": [
-			"prog1.poi",
-			"prog2.poi"
+			"prog1.jpoi",
+			"prog2.jpoi"
 		]
 	},
 	"images": {

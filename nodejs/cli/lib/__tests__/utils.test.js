@@ -34,5 +34,5 @@ test('delay', async () => {
 	await utils.delay(1000);
 	const diff = new Date() - startTime;
 	expect(Math.abs(diff-1000))
-		.toBeLessThan(10);
+		.toBeLessThan(20);
 });

@@ -40,9 +40,7 @@ async function _uploadImage(client, id, imageFile) {
           client.sendCmd(
             [255, 2*this.height-h-1, w, 0, utils.constrain(this.data[idx],0,254), 
               utils.constrain(this.data[idx+1],0,254), utils.constrain(this.data[idx+2],0,254)], false);
-          await utils.delay(100);
         }
-        await utils.delay(1000);
       }
       // end transmission scene 0
       client.sendCmd([255, 193, 0, 0, 0, 0, 0]);
