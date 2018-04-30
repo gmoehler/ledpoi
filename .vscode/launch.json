@@ -1,12 +1,13 @@
+// AUTOMATICALLY GENERATED FILE. PLEASE DO NOT MODIFY IT MANUALLY
+
+// PIO Unified Debugger
+//
+// http://docs.platformio.org/page/plus/debugging.html
+// http://docs.platformio.org/page/section_env_debug.html#projectconf-debug-tool
+
 {
     "version": "0.2.0",
     "configurations": [
-        {
-            "type": "node",
-            "request": "attach",
-            "name": "Attach by Process ID",
-            "processId": "${command:PickProcess}"
-        },
         {
             "type": "gdb",
             "request": "launch",
@@ -16,6 +17,23 @@
             "gdbpath": "C:/Users/Gregor/.platformio/penv/Scripts/piodebuggdb",
             "autorun": [ "source .pioinit" ],
             "preLaunchTask": "PlatformIO: Pre-Debug",
+            "internalConsoleOptions": "openOnSessionStart"
+        },
+        {
+            "type": "platformio-debug",
+            "request": "launch",
+            "name": "PlatformIO Debugger (Dev)",
+            "executable": "c:/Users/Gregor/git/ledpoi/.pioenvs/esp32dev/firmware.elf",
+            "toolchainBinDir": "C:/Users/Gregor/.platformio/packages/toolchain-xtensa32/bin",
+            "preLaunchTask": "PlatformIO: Pre-Debug",
+            "internalConsoleOptions": "openOnSessionStart"
+        },
+        {
+            "type": "platformio-debug",
+            "request": "launch",
+            "name": "PlatformIO Debugger (Dev) (Quick)",
+            "executable": "c:/Users/Gregor/git/ledpoi/.pioenvs/esp32dev/firmware.elf",
+            "toolchainBinDir": "C:/Users/Gregor/.platformio/packages/toolchain-xtensa32/bin",
             "internalConsoleOptions": "openOnSessionStart"
         }
     ]
