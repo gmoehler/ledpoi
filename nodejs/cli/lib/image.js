@@ -22,7 +22,7 @@ async function _uploadImage(client, id, imageFile) {
       console.log(`Read image ${imageFile} with ${this.width} frames and ${this.height} px` );
 
       // start transmission scene 0
-      client.sendCmd([255, 192, id, 0, 0, 0, 0]);
+      client.sendCmd([192, id, 0, 0, 0, 0]);
 
       for (let w = 0; w < this.width; w++) {
         // console.log(`frame: ${w}`);
@@ -32,18 +32,18 @@ async function _uploadImage(client, id, imageFile) {
 
           //console.log(`${h}: ${this.data[idx]} ${this.data[idx+1]} ${this.data[idx+2]}`);
           client.sendCmd(
-            [255, h, w, 0, utils.constrain(this.data[idx],0,254), 
-              utils.constrain(this.data[idx+1],0,254), utils.constrain(this.data[idx+2],0,254)], false);
+            [h, w, 0, this.data[idx], this.data[idx+1], this.data[idx+2] ],
+			false);
           
           // mirror values on the back
           //console.log(`${2*this.height-h-1}: ${this.data[idx]} ${this.data[idx+1]} ${this.data[idx+2]}`);
           client.sendCmd(
-            [255, 2*this.height-h-1, w, 0, utils.constrain(this.data[idx],0,254), 
-              utils.constrain(this.data[idx+1],0,254), utils.constrain(this.data[idx+2],0,254)], false);
+            [2*this.height-h-1, w, 0, this.data[idx], this.data[idx+1], this.data[idx+2] ], 
+			false);
         }
       }
       // end transmission scene 0
-      client.sendCmd([255, 193, 0, 0, 0, 0, 0]);
+      client.sendCmd([193, 0, 0, 0, 0, 0]);
       return resolve();
     });
   })

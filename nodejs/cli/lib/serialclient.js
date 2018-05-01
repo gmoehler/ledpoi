@@ -92,12 +92,17 @@ module.exports = class SerialClient {
 	sendCmd(cmd, doLog){
 		const doLogFlag = (doLog === undefined) || Boolean(doLog) === true; // default: true
 		
-		// add cmd separator
-		cmd.unshift(255);
-		if (doLogFlag) {
-			console.log("cmd: " + cmd);
+		const verifiedCmd = [255]; // cmd separator
+		// since 255 is cmd sep we do not allow it as value
+		for (let i=0; i< 6; i++) {
+			verifiedCmd.push(
+				utils.constrain(cmd[i], 0, 254));
 		}
-		const buf = new Buffer(cmd);
+		
+		if (doLogFlag) {
+			console.log("cmd: " + verifiedCmd);
+		}
+		const buf = new Buffer(verifiedCmd);
 		this.write(buf);   
 	}
 };
