@@ -1,4 +1,3 @@
-console.log("reading testprog2.jpoi")
 loadScene(0)
 loopStart(1, 2)
   animateWorm(3, 2, 15, 500)

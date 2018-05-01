@@ -5,7 +5,7 @@ const utils = require('./utils');
 const path = require("path");
 const cmd = require("./poiCommands");
 
-const syncMap = {};
+let syncMap = {};
 
 function _getSyncMap() {
 	return syncMap;
@@ -80,7 +80,7 @@ async function _collectProgramJs(progFileWithPath, i) {
 	// console.log("program script:" + thisScriptPath);
 	// console.log("pro with path   :" + progFileWithPath);
 	// console.log("module  path:" + pathToMod);
-	console.log(require.cache);
+	
 	// uncached load: allow reading a file multiple times
 	const prog = requireUncached (progFileWithPath);
 	return Promise.resolve(cmd.getProg());
@@ -117,6 +117,7 @@ function _isJpoiFile(filename) {
 
 async function _uploadPrograms(client, programFiles) {
 	let prog = [];
+	syncMap = {};
 	
 	if (Array.isArray(programFiles)) {
 		for (let i = 0; i < programFiles.length; i++) {
