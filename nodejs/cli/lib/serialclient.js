@@ -3,6 +3,7 @@
 
 const SerialPort = require ("serialport");
 const Readline = SerialPort.parsers.Readline;
+const utils = require('./utils');
  
 module.exports = class SerialClient {
 	constructor(pathOfPort) {
