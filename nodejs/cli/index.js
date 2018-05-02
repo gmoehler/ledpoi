@@ -7,6 +7,7 @@ const ctrl = require('./lib/control');
 const utils = require('./lib/utils');
 
 let client = null;
+const config = {};
 
 var mainMenu = [
   {
@@ -65,6 +66,7 @@ var mainMenu = [
     type: 'input',
     name: 'filename',
     message: 'Filename:',
+    default: getDefaultFilename,
     when: function(answers) {
       return (["up_image", "up_prog", "up_show"].includes(answers.selection));
     }
@@ -88,6 +90,20 @@ var mainMenu = [
 	}
   }
 ]
+
+function getDefaultFilename(answers) {
+	switch (answers.selection) {
+		case "up_image":
+			return config.image;
+		case "up_prog":
+			return config.prog;
+ 		case "up_show":
+			return config.show;
+		default:
+			return "";
+	}
+}
+
 
 function getSyncs(){
 	var str = "Choose sync point: ";
@@ -133,6 +149,9 @@ function main(){
 			.then(() => {
 				return show.uploadShow(client, answer.filename);
 			})
+			.then(() => {
+				config.show = answer.filename;
+			})
 			.then(main)
 			.catch(handleError);
 		}
@@ -141,6 +160,9 @@ function main(){
 			.then(() => {
 				return prg.uploadPrograms(client, [answer.filename]);
 			})
+			.then(() => {
+				config.prog = answer.filename;
+			})
 			.then(main)
 			.catch(handleError);
 		}
@@ -148,6 +170,9 @@ function main(){
 			utils.checkConnected(client) 
 			.then(() => {
 				return img.uploadImage(client, 0, answer.filename);
+			})
+			.then(() => {
+				config.image = answer.filename;
 			})
 			.then(main)
 			.catch(handleError);
