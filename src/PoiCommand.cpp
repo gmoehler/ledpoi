@@ -66,7 +66,6 @@ PoiCommand::PoiCommand(RawPoiCommand rawCmd) {
     }
 }
 
-
 PoiCommandType& PoiCommand::getType(){
     return _type;
 }
