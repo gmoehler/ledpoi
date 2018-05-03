@@ -199,7 +199,7 @@ bool RobustWiFiServer::_wasTransitionSuccessful(Transition trans){
 bool RobustWiFiServer::_checkState(ServerState state, bool debug){
 
   bool stateok = false;
-  LOGD(RWIFIS, "wifistate: %s", wiFiStateToString().c_str());
+  LOGV(RWIFIS, "wifistate: %s", wiFiStateToString().c_str());
   switch(state){
     
     case DISCONNECTED:
