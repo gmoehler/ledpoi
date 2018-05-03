@@ -16,50 +16,54 @@ let client = null;
 
 const mainChoices =  [
 	{ 
-		name: 'Connect',
+		name: 'Connect to poi via uart',
 	   	value: 'connect'
-   },
-   { 
+   	},
+   	{ 
+		name: 'Connect to poi via wifi',
+	   	value: 'wifi_connect'
+	},
+	{ 
 		name: 'Disconnect',
 	   	value: 'disconnect'
-   },
-   {
+   	},
+   	{
 	   	name: 'Upload show', 
 		value:'up_show'
 	} ,
-   {
+   	{
 		name: 'Upload image with id 0', 
 	   	value:'up_image'
-   } ,
-   {
+	} ,
+	{
 		name: 'Upload program', 
 	   	value:'up_prog'
-   } ,
-   {
-		name: 'Connect poi to wifi', 
-		value:'wifi_connect'
-   },
-   {
-	   	name: 'Disconnect poi from wifi', 
-	   	value:'wifi_disconnect'
-   } ,
-   {
+   	} ,
+   	{
 		name: 'Start program', 
 		value:'start_prog'
-   } ,
-   {
+   	},
+   	{
 		name: 'Stop program', 
 	   	value:'stop_prog'
-   } ,
-   {
+	},
+	{
+		name: 'Send wifi connect', 
+	   	value:'ip_connect'
+   	},
+	   {
+		name: 'Send wifi disconnect', 
+	   	value:'ip_disconnect'
+   	},
+   	{
 		name: 'Sync', 
 	   	value:'sync'
-   },
-   {
+   	},
+   	{
 		name: 'Status', 
 	   	value:'status'
-   },
-   {
+   	},
+   	{
 	   	name: 'Exit', 
 		value:'exit'
 	} 
@@ -88,7 +92,7 @@ var mainMenu = [
     message: 'IP increment:',
     default: '0',
     when: function(answers) {
-      return (answers.selection == "wifi_connect");
+      return (answers.selection == "ip_connect");
 	}
   },
   {
@@ -145,7 +149,17 @@ function main(){
 			.then(main)
 			.catch(handleError);
 		}
-
+		else if (answer.selection === "wifi_connect") {
+			utils.checkNotConnected(client) 
+			.then(() => {
+				console.log("Connecting...");
+				const WifiClient = require("./lib/wificlient");
+				client = new WifiClient("192.168.1.127", 1110);
+				return client.connect();
+			})
+			.then(main)
+			.catch(handleError);
+		}
 		else if (answer.selection === "disconnect") {
 			utils.checkConnected(client) 
 			.then((client) => {
@@ -153,7 +167,6 @@ function main(){
 			})
 			.then(main)
 			.catch(handleError);
-
 		}
 		else if (answer.selection === "up_show") {
 			utils.checkConnected(client) 
@@ -188,7 +201,7 @@ function main(){
 			.then(main)
 			.catch(handleError);
 		}
-		else if (answer.selection === "wifi_connect") {
+		else if (answer.selection === "ip_connect") {
 			utils.checkConnected(client) 
 			.then((client) => {
 		  		return ctrl.connectWifi(client, parseInt(answer.ip_incr));
@@ -196,7 +209,7 @@ function main(){
 			.then(main)
 			.catch(handleError);
 		}
-		else if (answer.selection === "wifi_disconnect") {
+		else if (answer.selection === "ip_disconnect") {
 			utils.checkConnected(client) 
 			.then(ctrl.disconnectWifi)
 			.then(main)
