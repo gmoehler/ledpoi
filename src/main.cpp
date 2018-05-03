@@ -40,10 +40,10 @@ void logging_setup(){
 }
 
 void setup() {
+  uart_setup(); // first one because this sets serial baudrate
   logging_setup();
 
   // setup tasks and queues with sizes
-  uart_setup();
   
   button_setup();
   memory_setup(10); 

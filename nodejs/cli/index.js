@@ -1,70 +1,77 @@
 'use strict';
+
+const configFile = "config.json";
+
+const fs = require('fs');
 const inquirer = require('inquirer');
 const prg = require('./lib/program');
 const img = require('./lib/image');
 const show = require('./lib/show');
 const ctrl = require('./lib/control');
 const utils = require('./lib/utils');
+const config = fs.existsSync(configFile) 
+	? require('./' + configFile) : {};
 
 let client = null;
-const config = {};
+
+const mainChoices =  [
+	{ 
+		name: 'Connect',
+	   	value: 'connect'
+   },
+   { 
+		name: 'Disconnect',
+	   	value: 'disconnect'
+   },
+   {
+	   	name: 'Upload show', 
+		value:'up_show'
+	} ,
+   {
+		name: 'Upload image with id 0', 
+	   	value:'up_image'
+   } ,
+   {
+		name: 'Upload program', 
+	   	value:'up_prog'
+   } ,
+   {
+		name: 'Connect poi to wifi', 
+		value:'wifi_connect'
+   },
+   {
+	   	name: 'Disconnect poi from wifi', 
+	   	value:'wifi_disconnect'
+   } ,
+   {
+		name: 'Start program', 
+		value:'start_prog'
+   } ,
+   {
+		name: 'Stop program', 
+	   	value:'stop_prog'
+   } ,
+   {
+		name: 'Sync', 
+	   	value:'sync'
+   },
+   {
+		name: 'Status', 
+	   	value:'status'
+   },
+   {
+	   	name: 'Exit', 
+		value:'exit'
+	} 
+];
 
 var mainMenu = [
   {
     type: 'rawlist',
     name: 'selection',
-		message: 'Poi Commander',
-		pageSize: 20,
-    	choices: [
-		 	{ 
-	      		name: 'Connect',
-				value: 'connect'
-			},
-			{ 
-	      		name: 'Disconnect',
-				value: 'disconnect'
-			},
-			{
-				name: 'Upload show', 
-			 	value:'up_show'
-		 	} ,
-			{
-	   			name: 'Upload image with id 0', 
-		    	value:'up_image'
-			} ,
-			{
-	   			name: 'Upload program', 
-		    	value:'up_prog'
-			} ,
-			{
-				 name: 'Connect poi to wifi', 
-				 value:'wifi_connect'
-			},
-			{
-				name: 'Disconnect poi from wifi', 
-				value:'wifi_disconnect'
-		    } ,
-			{
-				 name: 'Start program', 
-				 value:'start_prog'
-			} ,
-			{
-	   			name: 'Stop program', 
-				value:'stop_prog'
-			} ,
-			{
-	   			name: 'Sync', 
-		    	value:'sync'
-			},
-			{
-	   			name: 'Status', 
-		    	value:'status'
-			},
-			{
-				name: 'Exit', 
-			 	value:'exit'
-		 	} 
-		]
+	message: 'Poi Commander',
+	pageSize: 20,
+    choices: mainChoices
   },
   {
     type: 'input',
@@ -227,6 +234,10 @@ function main(){
 		}
 		else {
 			client && client.isConnected() && client.disconnect();
+			fs.writeFile(configFile, JSON.stringify(config), 'utf8', (err) => {
+				if (err) throw err;
+				console.log('Wrote ' + configFile);
+				});
 			return;
 		}
 
