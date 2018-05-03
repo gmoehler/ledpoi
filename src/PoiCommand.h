@@ -33,7 +33,7 @@ enum PoiCommandType {
     END_PREDEF_COMMANDS,
 
     START_INTERNAL_COMMANDS=230,//  internal commands/events follow
-    POISTATUS,						  // queue status
+    POISTATUS,				    // queue status
 	BUTTON0_CLICK,              // event for button 0 was clicked
     BUTTON0_LONGCLICK,          // event for button 0 was clicked a long time
     BUTTON0_RELEASE,            // event for button 0 was pressed very long and released

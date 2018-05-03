@@ -14,7 +14,7 @@ var mainMenu = [
     type: 'rawlist',
     name: 'selection',
 		message: 'Poi Commander',
-		pageSize: 12,
+		pageSize: 20,
     	choices: [
 		 	{ 
 	      		name: 'Connect',

@@ -29,10 +29,10 @@ const char *commandNames [] = {
 };
 
 const char *internalCommandNames [] = {
+    "POISTATUS",
     "BUT0_CLICK",
     "BUT0_LONGCLICK",
     "BUT0_RELEASE",
-    "POISTATUS"
 };
 
 const char* commandNameNoCommand = "NO_COMMAND      ";
