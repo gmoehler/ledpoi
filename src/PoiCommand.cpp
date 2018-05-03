@@ -32,7 +32,7 @@ const char *internalCommandNames [] = {
     "BUT0_CLICK",
     "BUT0_LONGCLICK",
     "BUT0_RELEASE",
-    "STATUS"
+    "POISTATUS"
 };
 
 const char* commandNameNoCommand = "NO_COMMAND      ";

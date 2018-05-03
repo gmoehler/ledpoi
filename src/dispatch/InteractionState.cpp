@@ -49,7 +49,7 @@ void InteractionState::_triggerStateTransition(PoiCommand cmd) {
         }
         break;
         
-        case STATUS:
+        case POISTATUS:
         _monitor.logStatus();
         break;
 		
