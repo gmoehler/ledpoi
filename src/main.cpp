@@ -43,6 +43,8 @@ void setup() {
   logging_setup();
 
   // setup tasks and queues with sizes
+  uart_setup();
+  
   button_setup();
   memory_setup(10); 
   dispatch_setup(10);
@@ -50,7 +52,6 @@ void setup() {
   player_setup(5);
   program_setup(3);
   wifi_setup(3);
-  uart_setup();
 
   // start tasks with prios
   memory_start(8);     

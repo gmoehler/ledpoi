@@ -11,7 +11,7 @@ module.exports = class SerialClient {
 			this.disconnect();
 		}
 		this.port = new SerialPort(pathOfPort, {
-			baudRate: 115200, 
+			baudRate: 921600, // default is 115200
 			autoOpen: false 
 		});
 		this.init();

@@ -19,7 +19,7 @@ async function _uploadShow(client, showFile) {
 	}
 	await prog.uploadPrograms(client, show.program.files);
 	console.log("Short pause after program upload...");
-	await utils.delay(2000);
+	await utils.delay(1000);
 	console.log("Continuing...");
 
 	const images = show.images;
@@ -30,7 +30,7 @@ async function _uploadShow(client, showFile) {
 			await img.uploadImage(client, id, images[id]);
 			if (i<ids.length-1) {
 				console.log("Short pause between images...");
-				await utils.delay(2000);
+				await utils.delay(1000);
 				console.log("Continuing...");
 			}
 		}
