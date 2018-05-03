@@ -33,7 +33,7 @@ void logging_setup(){
     esp_log_level_set(POICMD,  DEFAULT_LOG_LEVEL);   // poi command util  
     esp_log_level_set(ICACHE,  DEFAULT_LOG_LEVEL);   // image cache util  
     esp_log_level_set(PCACHE,  DEFAULT_LOG_LEVEL);   // program cache util 
-    esp_log_level_set(RWIFIS,  ESP_LOG_INFO);        // Robust wifi server
+    esp_log_level_set(RWIFIS,  ESP_LOG_VERBOSE);   // Robust wifi server
     esp_log_level_set(FLASH,   ESP_LOG_INFO);        // flash memory
     esp_log_level_set(PROGH,   DEFAULT_LOG_LEVEL);   // program handler
     esp_log_level_set(INTS,    DEFAULT_LOG_LEVEL);   // interaction state

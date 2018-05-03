@@ -9,9 +9,10 @@
 #endif
 
 // define default compile time 
-#ifndef LOG_LOCAL_LEVEL
+// #ifndef LOG_LOCAL_LEVEL
+#undef LOG_LOCAL_LEVEL
 #define LOG_LOCAL_LEVEL ESP_LOG_DEBUG
-#endif
+// #endif
 
 #include "esp_log.h"
 

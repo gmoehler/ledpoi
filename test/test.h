@@ -14,8 +14,8 @@
 
 // set log level high to prevent output
 // does not work yet...
-#undef LOG_LOCAL_LEVEL
-#define LOG_LOCAL_LEVEL ESP_LOG_ERROR
+// #undef LOG_LOCAL_LEVEL
+// #define LOG_LOCAL_LEVEL ESP_LOG_DEBUG
 
 // registers are currently not used in code, but we test them anyway
 #define N_REGISTERS 2
