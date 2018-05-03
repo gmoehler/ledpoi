@@ -48,6 +48,10 @@ void InteractionState::_triggerStateTransition(PoiCommand cmd) {
             nextState = NO_INTERACTION;
         }
         break;
+        
+        case STATUS:
+        _monitor.logStatus();
+        break;
 		
 		default:
 		break;

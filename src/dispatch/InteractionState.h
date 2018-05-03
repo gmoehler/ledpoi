@@ -1,4 +1,8 @@
+#ifndef INTERACTION_STATE_H
+#define INTERACTION_STATE_H
+
 #include "PoiCommand.h"
+#include "PoiMonitor.h"
 
 #define NO_CONNECTION_IPINCR 254
 
@@ -10,8 +14,6 @@ enum PoiState {
     WAIT_FOR_PROGSTART
 };
 
-
-
 class InteractionState {
 public:
     InteractionState();
@@ -22,8 +24,11 @@ public:
 private:
     PoiState _state;
     uint8_t _ipIncr;
+    PoiMonitor _monitor;
 
     void _triggerStateTransition(PoiCommand cmd);
     void _sendRawCommand(RawPoiCommand cmd);
     void _incrementIp();
 };
+
+#endif

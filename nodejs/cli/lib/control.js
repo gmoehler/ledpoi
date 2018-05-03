@@ -9,7 +9,13 @@ function _disconnectWifi(client) {
 	return Promise.resolve();    
 }
 
+function _checkStatus(client) {
+	client.sendCmd([231,  0,  0,  0,  0,  0]);
+	return Promise.resolve();    
+}
+
 module.exports = {
 	connectWifi: _connectWifi,
-	disconnectWifi: _disconnectWifi
+	disconnectWifi: _disconnectWifi,
+	checkStatus:_checkStatus
 }

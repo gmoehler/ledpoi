@@ -57,6 +57,10 @@ var mainMenu = [
 		    	value:'sync'
 			},
 			{
+	   			name: 'Status', 
+		    	value:'status'
+			},
+			{
 				name: 'Exit', 
 			 	value:'exit'
 		 	} 
@@ -212,6 +216,12 @@ function main(){
 		else if (answer.selection === "sync") {
 			utils.checkConnected(client) 
 			.then((client) => prg.syncProgram(client, parseInt(answer.sync_point)))
+			.then(main)
+			.catch(handleError);
+		}
+		else if (answer.selection === "status") {
+			utils.checkConnected(client) 
+			.then((client) => ctrl.logStatus(client))
 			.then(main)
 			.catch(handleError);
 		}

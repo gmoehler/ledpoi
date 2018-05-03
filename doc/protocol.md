@@ -107,6 +107,7 @@ Direct commands are carried out instantly cleaning the current program and play 
 |*|syncPoint |215|sequenceId|stopAtSync||||define sync point for jumpTo action, if stopAtSync is > 0 then the show stops at the sync point until sync is received|P|
 |*|loopEnd   |216|loopId   |||||end of loop|P|
 |**Other** |
+|*|status   |231|          |||||print queue status to log|A|
 | |          |_218...254_|   |||||_reserved address space_||
 |*|          |255|          |||||keep-alive signal||
 
