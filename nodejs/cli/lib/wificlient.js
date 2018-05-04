@@ -6,19 +6,13 @@ const utils = require('./utils');
  
 module.exports = class WifiClient {
 	constructor(host, port) {
-		if (this.connected) {
-			this.disconnect();
-		}
+		this.connected = false;
 
 		this.connectionParams = { 
 			host: host, port: port 
 		};
 
-		this.client = net.createConnection(this.connectionParams, () => {
-			console.log('connected to server!');
-			this.connected = true;
-		});
-
+		this.client = new net.Socket();
 		this.init();
 	};
  
@@ -54,11 +48,12 @@ module.exports = class WifiClient {
 	}
 
 	connect() {
-		var that = this;
+		const that = this;
 		return new Promise ((resolve, reject) => {
 			try{
 				that.client.connect(that.connectionParams, () => {
-					console.log("Connected.")
+					console.log("Connected.");
+					//socket.setKeepAlive(true);
 					that.connected = true;
 					return resolve();
 				});
@@ -103,7 +98,12 @@ module.exports = class WifiClient {
 			console.log("Not connected. Cannot write data.");
 			return;
 		}
-		this.client.write(data);
+		const allWritten = this.client.write(data, () => {
+			console.log("Data written.");
+		});
+		if (!allWritten) {
+			console.log("Some data buffered...");
+		}
 	}
 	
 	sendCmd(cmd, doLog){
