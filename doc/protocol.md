@@ -106,10 +106,11 @@ Direct commands are carried out instantly cleaning the current program and play 
 |*|loopStart |214|loopId   |||loopCt MSB|loopCt LSB|define start of loop with id and number of loops |P|
 |*|syncPoint |215|sequenceId|stopAtSync||||define sync point for jumpTo action, if stopAtSync is > 0 then the show stops at the sync point until sync is received|P|
 |*|loopEnd   |216|loopId   |||||end of loop|P|
+| |          |_217...230_|   |||||_reserved address space_||
 |**Internal** |
 |*|poistatus |231|          |||||print queue status to log|A|
+| |          |_232...254_|   |||||_reserved address space for internal commands_||
 |**Other** |
-| |          |_218...254_|   |||||_reserved address space_||
 |*|          |255|          |||||keep-alive signal||
 
 # Legacy commands

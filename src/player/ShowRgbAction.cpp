@@ -15,9 +15,9 @@ void ShowRgbAction::init(PoiCommand cmd, PixelFrame* pframe, ActionOptions optio
 
   // get color
   _rgb = makeRGBVal(
-	cmd.getField(1),
-	cmd.getField(2),
-	cmd.getField(3)
+	  cmd.getField(1),
+	  cmd.getField(2),
+	  cmd.getField(3)
 	);
 
   // generate output
@@ -25,7 +25,7 @@ void ShowRgbAction::init(PoiCommand cmd, PixelFrame* pframe, ActionOptions optio
     _pframe->pixel[i] = _rgb;
   }
   
-  _pframe->delay = 0;
+  _pframe->delay =  cmd.getCombinedField(4, 5);
   _pframe->idx = 0;
   _pframe->isLastFrame = true;
 

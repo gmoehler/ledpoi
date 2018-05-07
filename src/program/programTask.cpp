@@ -29,12 +29,13 @@ void programExecTask(void* arg){
            LOGE(PROG_T, "Could not add command to playerQueue.");
         }
   }
+  LOGI(PROG_T, "End of program...");
   programActive = false;
   vTaskDelete(NULL);
 }
 
 void stopProgramExecTask(){
-  if (programActive && programExecTaskHandle){
+  if (programActive && programExecTaskHandle != NULL){
     LOGI(PROG_T, "Stopping program...");
     vTaskDelete(programExecTaskHandle);
   }
@@ -42,7 +43,7 @@ void stopProgramExecTask(){
     LOGI(PROG_T, "No program is active that could be finished.");
   }
   programActive = false;
-
+  
   LOGD(PROG_T, "Emptying player and display queue");
   xQueueReset(playerQueue);
   xQueueReset(displayQueue);

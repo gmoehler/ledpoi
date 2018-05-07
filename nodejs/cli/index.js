@@ -32,7 +32,7 @@ const mainChoices =  [
 		value:'up_show'
 	} ,
    	{
-		name: 'Upload image with id 0', 
+		name: 'Upload image', 
 	   	value:'up_image'
 	} ,
 	{
@@ -84,6 +84,15 @@ var mainMenu = [
     default: getDefaultFilename,
     when: function(answers) {
       return (["up_image", "up_prog", "up_show"].includes(answers.selection));
+    }
+  },
+    {
+    type: 'input',
+    name: 'image_id',
+    message: 'Image ID:',
+    default: 0,
+    when: function(answers) {
+      return (answers.selection === "up_image");
     }
   },
   {
@@ -193,7 +202,8 @@ function main(){
 		else if (answer.selection === "up_image") {
 			utils.checkConnected(client) 
 			.then(() => {
-				return img.uploadImage(client, 0, answer.filename);
+				const id = answer.image_id ? answer.image_id : 0;
+				return img.uploadImage(client, id, answer.filename);
 			})
 			.then(() => {
 				config.image = answer.filename;
@@ -246,12 +256,14 @@ function main(){
 			.catch(handleError);
 		}
 		else {
-			client && client.isConnected() && client.disconnect();
-			fs.writeFile(configFile, JSON.stringify(config), 'utf8', (err) => {
-				if (err) throw err;
-				console.log('Wrote ' + configFile);
-				});
-			return;
+			utils.saveConfig(configFile, config)
+			.then(() => {
+				if (client && client.isConnected()) {
+					return client.disconnect();
+			   }
+			   return Promise.resolve();
+			})
+			.catch(handleError);
 		}
 
 	});
