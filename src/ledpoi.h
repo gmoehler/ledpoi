@@ -68,8 +68,9 @@ enum Color {       WHITE,   // 0
 #define WIFI_T  "WIFT"   // wifi task
 #define UART_T  "UART"   // wifi task
 #define PLAY_T  "PLAT"   // player task
-#define EXPL_T  "EXPT"   // program task
-#define PROG_T  "PRGT"   // example task
+#define PROG_T  "PRGT"   // program task
+#define SELF_T  "SELT"   // selftest task
+#define EXPL_T  "EXPT"   // example task
 
 #define NOACT_A "NOAA"   // void ("no") action
 #define PLAYF_A "PLFA"   // play frames action
