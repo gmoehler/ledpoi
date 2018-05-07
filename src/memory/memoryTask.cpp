@@ -174,7 +174,7 @@ void memory_setup(uint8_t queueSize){
   imageCache.clearImageMap();
   flashMemory.setup(imageCache.getRawImageData());
   loadSceneFromFlash(0);
-  //_loadProgFromFlash();
+  _loadProgFromFlash();
   // setup queue
   memoryQueue = xQueueCreate(queueSize, sizeof( RawPoiCommand ));
 }

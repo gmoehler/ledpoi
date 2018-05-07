@@ -12,15 +12,15 @@
 #include "example/exampleTask.h"
 
 // unless defined differently below this is the default log level
-#define DEFAULT_LOG_LEVEL ESP_LOG_DEBUG
+#define DEFAULT_LOG_LEVEL ESP_LOG_INFO
 
 void logging_setup(){
 
-    esp_log_level_set(DSPCH_T, DEFAULT_LOG_LEVEL);   // dispatch task
+    esp_log_level_set(DSPCH_T, ESP_LOG_DEBUG);       // dispatch task
     esp_log_level_set(DISP_T,  DEFAULT_LOG_LEVEL);   // display task
-    esp_log_level_set(WIFI_T,  DEFAULT_LOG_LEVEL);   // wifi task
-    esp_log_level_set(UART_T,  DEFAULT_LOG_LEVEL);   // uart task
-    esp_log_level_set(PROG_T,  DEFAULT_LOG_LEVEL);   // program task
+    esp_log_level_set(WIFI_T,  ESP_LOG_DEBUG);       // wifi task
+    esp_log_level_set(UART_T,  ESP_LOG_DEBUG);       // uart task
+    esp_log_level_set(PROG_T,  ESP_LOG_DEBUG);       // program task
     esp_log_level_set(PLAY_T,  DEFAULT_LOG_LEVEL);   // play task
     esp_log_level_set(MEM_T,   DEFAULT_LOG_LEVEL);   // memory task
     esp_log_level_set(EXPL_T,  DEFAULT_LOG_LEVEL);   // example task
@@ -33,8 +33,8 @@ void logging_setup(){
     esp_log_level_set(POICMD,  DEFAULT_LOG_LEVEL);   // poi command util  
     esp_log_level_set(ICACHE,  DEFAULT_LOG_LEVEL);   // image cache util  
     esp_log_level_set(PCACHE,  DEFAULT_LOG_LEVEL);   // program cache util 
-    esp_log_level_set(RWIFIS,  ESP_LOG_VERBOSE);   // Robust wifi server
-    esp_log_level_set(FLASH,   ESP_LOG_INFO);        // flash memory
+    esp_log_level_set(RWIFIS,  ESP_LOG_DEBUG);       // Robust wifi server
+    esp_log_level_set(FLASH,   DEFAULT_LOG_LEVEL);   // flash memory
     esp_log_level_set(PROGH,   DEFAULT_LOG_LEVEL);   // program handler
     esp_log_level_set(INTS,    DEFAULT_LOG_LEVEL);   // interaction state
 }
