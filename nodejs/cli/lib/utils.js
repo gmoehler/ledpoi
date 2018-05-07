@@ -1,5 +1,7 @@
 "use strict"
 
+const fs = require('fs');
+
 function _constrain(val, minval, maxval){
   const val1 = val>maxval ? maxval : val;
   return val1 < minval ? minval : val1;
@@ -29,9 +31,23 @@ function _delay (msec) {
     });
 }
 
+function _saveConfig(filename, config) {
+	
+	return new Promise((resolve, reject) => {
+		fs.writeFile(filename, JSON.stringify(config), 'utf8', (err) => {
+			if (err) {
+				return reject (err);
+			}
+			console.log('Wrote ' + filename);
+			return resolve();
+		});
+	});
+}
+
 module.exports = {
 	delay: _delay,
 	constrain: _constrain,
     checkConnected: _checkConnected,
-    checkNotConnected: _checkNotConnected
+    checkNotConnected: _checkNotConnected,
+    saveConfig: _saveConfig
 }

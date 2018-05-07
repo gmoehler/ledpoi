@@ -46,14 +46,18 @@ module.exports = class WifiClient {
 			this.client.close();
 		});
 	}
-
+	
+	type() {
+		return "wifi";
+	}
+	
 	connect() {
 		const that = this;
 		return new Promise ((resolve, reject) => {
 			try{
 				that.client.connect(that.connectionParams, () => {
 					console.log("Connected.");
-					//socket.setKeepAlive(true);
+					//that.client.setKeepAlive(true);
 					that.connected = true;
 					return resolve();
 				});
@@ -67,14 +71,6 @@ module.exports = class WifiClient {
 
 	isConnected() {
 		return this.connected;
-		/*
-		if (this.connected) {
-			if (this.port.isConnected){
-				return true;
-			}
-			this.connected = false;
-		}
-		return false; */
 	}
 
 	disconnect() {
@@ -99,7 +95,7 @@ module.exports = class WifiClient {
 			return;
 		}
 		const allWritten = this.client.write(data, () => {
-			console.log("Data written.");
+		// console.log("Data written.");
 		});
 		if (!allWritten) {
 			console.log("Some data buffered...");
