@@ -15,11 +15,14 @@ void InteractionState::_triggerStateTransition(PoiCommand cmd) {
 		case BUTTON0_LONGCLICK:
 		if (_state == NO_INTERACTION) {
 			// start of ip conf
-            // TODO stop processing and wait till done
-			// _sendRawCommand( {STOP_PROC, 0, 0, 0, 0, 0} ); 
+            // stop processing
+			_sendRawCommand( {STOP_PROC, 0, 0, 0, 0, 0} ); 
+            delay(1000); // TODO base next actions on events
+            _sendRawCommand( {SHOW_RGB, 0, 0, 0, 0, 0} ); // black
             _sendRawCommand( {ANIMATE, PALE_WHITE, 1, 15, 0, 50} ); 
-            _sendRawCommand( {DISPLAY_IP, _ipIncr, 1, 0, 0, 0} ); // only pale white background
-			nextState = IP_CONFIG;
+            //_sendRawCommand( {DISPLAY_IP, _ipIncr, 1, 0, 0, 0} ); // only pale white background
+			//nextState = IP_CONFIG;
+            nextState = WAIT_FOR_PROGSTART;
 		}
 		else if (_state == IP_CONFIG) {
 			// end of ip conf
@@ -40,7 +43,7 @@ void InteractionState::_triggerStateTransition(PoiCommand cmd) {
 		case BUTTON0_CLICK:
         if (_state == IP_CONFIG) {
     	    _incrementIp();
-   	     _sendRawCommand( {DISPLAY_IP, _ipIncr, 1, 0, 0, 0} );
+   	        _sendRawCommand( {DISPLAY_IP, _ipIncr, 1, 0, 0, 0} );
      	   // state does not change
         }
         else if (_state == WAIT_FOR_PROGSTART) {
@@ -48,10 +51,20 @@ void InteractionState::_triggerStateTransition(PoiCommand cmd) {
             nextState = NO_INTERACTION;
         }
         break;
+
+        
+        case BUTTON0_RELEASE:
+        // no action defined
+        break;
         
         case POISTATUS:
         _monitor.logStatus();
         break;
+
+        case SELFTEST:
+        selftest_start(5);
+        break;
+
 		
 		default:
 		break;

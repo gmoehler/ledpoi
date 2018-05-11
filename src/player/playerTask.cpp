@@ -1,6 +1,7 @@
 #include "playerTask.h"
 
 xQueueHandle playerQueue = NULL;
+bool playerActive = false;
 
 NoAction noAction;
 PlayFramesAction playFramesAction; 
@@ -59,7 +60,7 @@ void doAction(PoiCommand cmd) {
   paction->init(cmd, &frame, options);
   paction->printInfo("Starting action: ");
 
-  while (paction->isActive()){
+  while (playerActive && paction->isActive()){
     paction->printState();
     sendFrameToDisplayQueue(&frame, portMAX_DELAY);
     paction->next();
@@ -75,18 +76,22 @@ void playerTask(void* arg)
     // grab next command
     if(xQueueReceive(playerQueue, &( rawCmd ), portMAX_DELAY)) {
       PoiCommand cmd(rawCmd);
-
-      LOGD(PLAY_T, "Receiving cmd: %s", cmd.toString().c_str());
-
-      // play action or realize control command
-      if (cmd.isActionCommand()) {
-		    doAction(cmd);
-	    }
-	    else if (cmd.isPlayableCommand()) {
-		    doControlCommand(cmd);
+      if (!playerActive) {
+        LOGD(PLAY_T, "Skipping cmd: %s", cmd.toString().c_str());
       }
       else {
-        LOGE(PLAY_T, "Error. Non-player command sent to player task: %s", cmd.toString().c_str());
+        LOGD(PLAY_T, "Receiving cmd: %s", cmd.toString().c_str());
+
+        // play action or realize control command
+        if (cmd.isActionCommand()) {
+          doAction(cmd);
+        }
+        else if (cmd.isPlayableCommand()) {
+          doControlCommand(cmd);
+        }
+        else {
+          LOGE(PLAY_T, "Error. Non-player command sent to player task: %s", cmd.toString().c_str());
+        }
       }
     }
   }
@@ -97,5 +102,16 @@ void player_setup(uint8_t queueSize){
 }
 
 void player_start(uint8_t prio){ 
+  playerActive = true;
   xTaskCreate(playerTask, "playerTask", 4096, NULL, prio, NULL);
+}
+
+void player_stop(){ 
+  LOGI(PLAY_T, "Stopping player...");
+  playerActive = false;
+}
+
+void player_resume(){ 
+  LOGI(PLAY_T, "Resuming player...");
+  playerActive = true;
 }

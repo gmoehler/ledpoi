@@ -9,11 +9,11 @@ void PoiTimer::init(void (*timer_intr_func)()){
 }
 
 void PoiTimer::setInterval(uint16_t intervalMs){
-  _disable();
+  disable();
   // interpret always with minimal delay
   uint16_t interval = intervalMs < MINIMAL_INTERVAL ? MINIMAL_INTERVAL : intervalMs;
 	_setInterval(interval, true);
-	_enable();
+	enable();
 }
 
 void PoiTimer::_setInterval(uint16_t intervalMs, bool repeat){
@@ -22,12 +22,12 @@ void PoiTimer::_setInterval(uint16_t intervalMs, bool repeat){
   timerAlarmWrite(_timer, 1000 * intervalMs, repeat);
 }
 
-void PoiTimer::_enable(){
+void PoiTimer::enable(){
   LOGD(TIMER, "Enable timer." );
   timerAlarmEnable(_timer);
 }
 
-void PoiTimer::_disable(){
+void PoiTimer::disable(){
   LOGD(TIMER, "Disable timer." );
   timerAlarmDisable(_timer);
 }

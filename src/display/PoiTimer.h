@@ -17,11 +17,11 @@ public:
 
   void init(void (*timer_intr_func)());
   void setInterval(uint16_t intervalMs);
+  void enable();
+  void disable();
 
 private:
   void _setInterval(uint16_t intervalMs, bool repeat);
-  void _enable();
-  void _disable();
 
   hw_timer_t *_timer;
   bool _repeat;

@@ -3,6 +3,8 @@
 xQueueHandle displayQueue = NULL;
 PoiTimer ptimer;
 uint16_t currentDelay=1000;
+bool doPause = false;
+bool doAction = true;
 
 volatile SemaphoreHandle_t displayTimerSemaphore;
 //portMUX_TYPE timerMux = portMUX_INITIALIZER_UNLOCKED;
@@ -41,18 +43,23 @@ static void displayTask(void* arg)
       LOGV(DISP_T, "After semaphore - before queue - delay: %d", currentDelay);
       // grab next frame
       if(xQueueReceive(displayQueue, &( rframe ), portMAX_DELAY)) {
-        // change delay asap to make interval as exact as possible
-        // need to make sure that next semaphore is not given before this step
-        if (rframe.delay != currentDelay){
-          ptimer.setInterval(rframe.delay);
-          currentDelay = rframe.delay;
+        if (!doAction) {
+          LOGD(DISP_T, "Skipping display frame...");
         }
-        int idx=0;
-        LOGD(DISP_T, "Received: %s %s %s ...", 
-          pixelFrameToString(rframe, 0, true).c_str(),
-          pixelFrameToString(rframe, 1, false).c_str(),
-          pixelFrameToString(rframe, 2, false).c_str());
-        ws2812_setColors(N_PIXELS, rframe.pixel);
+        else {
+          // change delay asap to make interval as exact as possible
+          // need to make sure that next semaphore is not given before this step
+          if (rframe.delay != currentDelay){
+            ptimer.setInterval(rframe.delay);
+            currentDelay = rframe.delay;
+          }
+          int idx=0;
+          LOGD(DISP_T, "Received: %s %s %s ...", 
+            pixelFrameToString(rframe, 0, true).c_str(),
+            pixelFrameToString(rframe, 1, false).c_str(),
+            pixelFrameToString(rframe, 2, false).c_str());
+          ws2812_setColors(N_PIXELS, rframe.pixel);
+        }
       }
     }
   }
@@ -69,7 +76,30 @@ void display_setup(uint8_t queueSize){
 }
 
 void display_start(uint8_t prio){ 
+  doPause = false;
+  doAction = true;
   xTaskCreate(displayTask, "displayTask", 4096, NULL, prio, NULL);
   ptimer.setInterval(currentDelay);
 }
 
+void display_pause(){ 
+  LOGI(DISP_T, "Display pausing...");
+  ptimer.disable();
+  doPause = true;
+}
+
+void display_stop(){ 
+  LOGI(DISP_T, "Display stopped...");
+  doAction = false;
+}
+
+void display_resume(){ 
+  LOGI(DISP_T, "Display resuming...");
+  ptimer.enable();
+  doPause = false;
+  doAction = true;
+}
+
+bool display_isPaused() {
+  return doPause;
+}

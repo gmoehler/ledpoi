@@ -30,6 +30,7 @@ const char *commandNames [] = {
 
 const char *internalCommandNames [] = {
     "POISTATUS",
+    "SELFTEST",
     "BUT0_CLICK",
     "BUT0_LONGCLICK",
     "BUT0_RELEASE",
@@ -38,8 +39,6 @@ const char *internalCommandNames [] = {
 const char* commandNameNoCommand = "NO_COMMAND      ";
 const char* commandNameSetPixel  = "SET_PIXEL       ";
 const char* commandNameUnknownCmd  = "UNKNOWN_COMMAND ";
-
-
 
 PoiCommand::PoiCommand()
     :_type(NO_COMMAND){}

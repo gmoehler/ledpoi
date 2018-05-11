@@ -11,12 +11,14 @@
 #include "player/DisplayIpAction.h"
 #include "player/AnimationAction.h"
 
-#include "display/displayTask.h"
 #include "memory/memoryTask.h" // for scene loading
 
 extern xQueueHandle playerQueue;
+extern xQueueHandle displayQueue;
 
 void player_setup(uint8_t queueSize);
 void player_start(uint8_t prio);
+void player_stop();     // skip all commands until player is resumed
+void player_resume();   // resume player
 
 #endif

@@ -14,6 +14,7 @@
 #include "memory/memoryTask.h"
 #include "player/playerTask.h"
 #include "display/displayTask.h"
+#include "dispatch/PoiMonitor.h"
 
 extern xQueueHandle programQueue;
 

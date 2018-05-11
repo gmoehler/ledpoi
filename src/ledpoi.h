@@ -46,6 +46,10 @@
 // this is due to max NVS length of 1984 bytes
 #define N_PROG_STEPS 330
 
+// serial baud rate
+//#define UART_BAUD 115200
+#define UART_BAUD 921600
+
 #define WS2812_PIN 23 
 
 enum Color {       WHITE,   // 0

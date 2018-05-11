@@ -3,6 +3,7 @@
 
 #include "PoiCommand.h"
 #include "PoiMonitor.h"
+#include "selftest/selftestTask.h"
 
 #define NO_CONNECTION_IPINCR 254
 

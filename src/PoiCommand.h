@@ -32,8 +32,9 @@ enum PoiCommandType {
     LOOP_END=216,
     END_PREDEF_COMMANDS,
 
-    START_INTERNAL_COMMANDS=230,//  internal commands/events follow
+    START_INTERNAL_COMMANDS=230,// internal commands/events follow
     POISTATUS,				    // queue status
+    SELFTEST,                   // start self test
 	BUTTON0_CLICK,              // event for button 0 was clicked
     BUTTON0_LONGCLICK,          // event for button 0 was clicked a long time
     BUTTON0_RELEASE,            // event for button 0 was pressed very long and released
@@ -41,7 +42,7 @@ enum PoiCommandType {
     PLAYER_INACTIVE,            // status event for end of player action
 	END_INTERNAL_COMMANDS,
     
-    NO_COMMAND=255          // default
+    NO_COMMAND=255              // default
 };
 
 extern const char *commandNames [];

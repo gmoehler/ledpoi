@@ -94,7 +94,7 @@ Direct commands are carried out instantly cleaning the current program and play 
 |**Control**|
 |*|startProg |206|          |||||start program immediately (interrupting all running programs/play actions)|A|
 |*|stopProc  |207|          |||||stop processing immediately and clear queues|A|
-| |pauseProc |208|          |||||pauses/resume processing immediately|A|
+|*|pauseProc |208|          |||||pauses/resume processing immediately|A|
 |*|jump2Sync |209|          |||||jump to snyc point immediately(interrupting all running programs/play actions)|A|
 | |reset     |217|          |||||reset internal states (e.g. program_head, scene_head)|A|
 |**Wifi**  |
@@ -109,6 +109,7 @@ Direct commands are carried out instantly cleaning the current program and play 
 | |          |_217...230_|   |||||_reserved address space_||
 |**Internal** |
 |*|poistatus |231|          |||||print queue status to log|A|
+|*|selftest  |232|          |||||run poi self-test|A|
 | |          |_232...254_|   |||||_reserved address space for internal commands_||
 |**Other** |
 |*|          |255|          |||||keep-alive signal||

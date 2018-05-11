@@ -1,14 +1,17 @@
 #include "programTask.h"
 
+// program task will run start a program exec task to run the program
+
 xQueueHandle programQueue = NULL;
 PoiProgramHandler handler;
 uint8_t prioProgramExecTask;
 TaskHandle_t programExecTaskHandle = NULL;
+PoiMonitor monitor;
 
 // program state 
 bool programActive = false;
 
-// the task that actually runs the program thru the handlet
+// the task that actually runs the program thru the handler
 // arg: program line to start program from
 void programExecTask(void* arg){
   programActive = true;
@@ -21,7 +24,8 @@ void programExecTask(void* arg){
   }
   
   // first next() does not advance prg
-  while(handler.next()){
+  // stop program when programActive is set to false
+  while(programActive && handler.next()){
 		PoiCommand cmd = handler.getCurrentCommand();
 		RawPoiCommand rawCmd = cmd.getRawPoiCommand();
 	    LOGD(PROG_T,  "Sending cmd to player: %s", cmd.toString().c_str());
@@ -29,24 +33,44 @@ void programExecTask(void* arg){
            LOGE(PROG_T, "Could not add command to playerQueue.");
         }
   }
-  LOGI(PROG_T, "End of program...");
-  programActive = false;
+  if (programActive) {
+    LOGI(PROG_T, "End of program.");
+  } 
+  else {
+    LOGI(PROG_T, "Program stopped.");
+  }
+
   vTaskDelete(NULL);
+  programActive = false;
 }
 
 void stopProgramExecTask(){
-  if (programActive && programExecTaskHandle != NULL){
+  if (programActive){
     LOGI(PROG_T, "Stopping program...");
-    vTaskDelete(programExecTaskHandle);
+    programActive = false;
   }
   else {
     LOGI(PROG_T, "No program is active that could be finished.");
   }
-  programActive = false;
+  monitor.logStatus();
+
+  LOGD(PROG_T, "Stopping display");
+  display_stop();
   
-  LOGD(PROG_T, "Emptying player and display queue");
+  LOGD(PROG_T, "Stopping player");
+  player_stop();
+  
+  LOGD(PROG_T, "Emptying player queue");
   xQueueReset(playerQueue);
+
+  LOGD(PROG_T, "Emptying display queue");
   xQueueReset(displayQueue);
+
+  delay(100); // just a bit to allow stopping player
+  LOGD(PROG_T, "Resuming display and player");
+  monitor.logStatus();
+  display_resume();
+  player_resume();
 }
 
 // task that schedules the program
@@ -72,11 +96,21 @@ void programTask(void* arg)
         	stopProgramExecTask();
         }
         LOGI(PROG_T, "Starting program...");
+        display_resume();
         xTaskCreate(programExecTask, "programExecTask", 4096, NULL, prioProgramExecTask, &programExecTaskHandle);
         break;
 
         case STOP_PROC:
         stopProgramExecTask();
+        break;
+
+        case PAUSE_PROC:
+        if (display_isPaused()) {
+          display_resume();
+        }
+        else {
+          display_pause();
+        }
         break;
 
         case JUMP2SYNC:

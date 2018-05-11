@@ -22,8 +22,9 @@ void logging_setup(){
     esp_log_level_set(WIFI_T,  ESP_LOG_DEBUG);       // wifi task
     esp_log_level_set(UART_T,  ESP_LOG_DEBUG);       // uart task
     esp_log_level_set(PROG_T,  ESP_LOG_DEBUG);       // program task
-    esp_log_level_set(PLAY_T,  DEFAULT_LOG_LEVEL);   // play task
+    esp_log_level_set(PLAY_T,  ESP_LOG_DEBUG);   // play task
     esp_log_level_set(MEM_T,   DEFAULT_LOG_LEVEL);   // memory task
+    esp_log_level_set(SELF_T,  DEFAULT_LOG_LEVEL);   // selftest task
     esp_log_level_set(EXPL_T,  DEFAULT_LOG_LEVEL);   // example task
 
     esp_log_level_set(PLAYF_A, ESP_LOG_INFO);        // play frames action

@@ -64,8 +64,8 @@ void _loadProgFromFlash(){
         programCache.parseProgram(numProgLines);
         loadingSuccess = true;
 
-        LOGD(MEM_T, "Program loaded from flash.");
-        LOGD(MEM_T, "Program read (%d lines, %d labels, %d sync points):", 
+        LOGI(MEM_T, "Program loaded from flash.");
+        LOGI(MEM_T, "Program read (%d lines, %d labels, %d sync points):", 
           programCache.getNumProgLines(),  
           programCache.getNumLabels(),
           programCache.getNumSyncPoints() );

@@ -5,9 +5,9 @@ TaskHandle_t selftestTaskHandle = NULL;
 void sendToDispatch( RawPoiCommand rawCmd ) {
 
   PoiCommand cmd(rawCmd);
-  LOGD(EXPL_T, "Sending to dispatch:  %s", cmd.toString().c_str());
+  LOGD(SELF_T, "Sending to dispatch:  %s", cmd.toString().c_str());
   if (xQueueSendToBack(dispatchQueue, &(rawCmd),  portMAX_DELAY) != pdTRUE){
-    LOGE(EXPL_T, "Could not add  command to dispatch queue.");
+    LOGE(SELF_T, "Could not add  command to dispatch queue.");
   }
 }
 
@@ -64,19 +64,19 @@ void startProgram() {
 
 static void selftestTask(void* arg){
 
-	LOGI(EXPL_T, "Sending image...");
+	LOGI(SELF_T, "Sending image...");
 	sendImage();
-	LOGI(EXPL_T, "Sending program...");
+	LOGI(SELF_T, "Sending program...");
 	sendProgram();
-	LOGI(EXPL_T, "Starting program...");
+	LOGI(SELF_T, "Starting program...");
 	startProgram();
-	LOGI(EXPL_T, "Program started...");
+	LOGI(SELF_T, "Program started...");
 
   // end task
   vTaskDelete( selftestTaskHandle );
 }
 
 void selftest_start(uint8_t prio){
-  LOGI(EXPL_T, "Starting selftest task");
+  LOGI(SELF_T, "Starting selftest task");
   xTaskCreate(selftestTask, "selftestTask", 4096, NULL, prio, &selftestTaskHandle);
 }

@@ -4,7 +4,7 @@ int _debounceTicks = 50;      // number of millisec that have to pass by before 
 int _longTicks = 600;         // number of millisec that have to pass by before a long button press is detected.
 int _holdDownTicks = 2000;    // number of millisec after which we send a release
 
-
+// called at any edge
 void IRAM_ATTR buttonIsrHandler(void* arg)
 {
   static uint32_t lastPressedTime = 0;
@@ -57,6 +57,7 @@ void button_setup(){
     gpio_config(&io_conf);
 
     //change gpio intrrupt type for one pin
+    //send interrupt for any edge
     gpio_set_intr_type(GPIO_INPUT_IO_0, GPIO_INTR_ANYEDGE);
 
     //install gpio isr service

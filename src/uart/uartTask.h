@@ -4,7 +4,8 @@
 #include "driver/uart.h"
 #include "ledpoi.h"
 #include "PoiCommand.h"
-#include "dispatch/dispatchTask.h"
+
+extern xQueueHandle dispatchQueue;
 
 void uart_setup();
 void uart_start(uint8_t prio);
