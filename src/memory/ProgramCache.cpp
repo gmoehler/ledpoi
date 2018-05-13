@@ -114,7 +114,7 @@ void ProgramCache::printProgram(){
     }
     printf("\n"); */
     PoiCommand cmd = getPoiCommand(i);
-		LOGD(PCACHE, "%d: %s", i, cmd.toString().c_str());
+		LOGI(PCACHE, "%d: %s", i, cmd.toString().c_str());
 	}
 }
 
