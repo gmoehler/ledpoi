@@ -1,7 +1,7 @@
 #include "playerTask.h"
 
 xQueueHandle playerQueue = NULL;
-bool playerActive = false;
+bool skipActions = false;
 
 NoAction noAction;
 PlayFramesAction playFramesAction; 
@@ -60,7 +60,7 @@ void doAction(PoiCommand cmd) {
   paction->init(cmd, &frame, options);
   paction->printInfo("Starting action: ");
 
-  while (playerActive && paction->isActive()){
+  while (!skipActions && paction->isActive()){
     paction->printState();
     sendFrameToDisplayQueue(&frame, portMAX_DELAY);
     paction->next();
@@ -76,7 +76,7 @@ void playerTask(void* arg)
     // grab next command
     if(xQueueReceive(playerQueue, &( rawCmd ), portMAX_DELAY)) {
       PoiCommand cmd(rawCmd);
-      if (!playerActive) {
+      if (skipActions) {
         LOGD(PLAY_T, "Skipping cmd: %s", cmd.toString().c_str());
       }
       else {
@@ -102,16 +102,16 @@ void player_setup(uint8_t queueSize){
 }
 
 void player_start(uint8_t prio){ 
-  playerActive = true;
+  skipActions = false;
   xTaskCreate(playerTask, "playerTask", 4096, NULL, prio, NULL);
 }
 
-void player_stop(){ 
+void player_skipActions(){ 
   LOGI(PLAY_T, "Stopping player...");
-  playerActive = false;
+  skipActions = true;
 }
 
 void player_resume(){ 
   LOGI(PLAY_T, "Resuming player...");
-  playerActive = true;
+  skipActions = false;
 }

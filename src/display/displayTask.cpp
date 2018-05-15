@@ -4,7 +4,7 @@ xQueueHandle displayQueue = NULL;
 PoiTimer ptimer;
 uint16_t currentDelay=1000;
 bool doPause = false;
-bool doAction = true;
+bool skipFrames = false;
 
 volatile SemaphoreHandle_t displayTimerSemaphore;
 //portMUX_TYPE timerMux = portMUX_INITIALIZER_UNLOCKED;
@@ -43,7 +43,7 @@ static void displayTask(void* arg)
       LOGV(DISP_T, "After semaphore - before queue - delay: %d", currentDelay);
       // grab next frame
       if(xQueueReceive(displayQueue, &( rframe ), portMAX_DELAY)) {
-        if (!doAction) {
+        if (skipFrames) {
           LOGD(DISP_T, "Skipping display frame...");
         }
         else {
@@ -88,16 +88,16 @@ void display_pause(){
   doPause = true;
 }
 
-void display_stop(){ 
+void display_skipFrames(){ 
   LOGI(DISP_T, "Display stopped...");
-  doAction = false;
+  skipFrames = true;
 }
 
 void display_resume(){ 
   LOGI(DISP_T, "Display resuming...");
   ptimer.enable();
   doPause = false;
-  doAction = true;
+  skipFrames = false;
 }
 
 bool display_isPaused() {

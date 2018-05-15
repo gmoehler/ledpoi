@@ -18,7 +18,7 @@ extern xQueueHandle displayQueue;
 
 void player_setup(uint8_t queueSize);
 void player_start(uint8_t prio);
-void player_stop();     // skip all commands until player is resumed
+void player_skipActions();     // skip all commands until player is resumed
 void player_resume();   // resume player
 
 #endif
