@@ -24,7 +24,7 @@ void logging_setup(){
     esp_log_level_set(PROG_T,  ESP_LOG_DEBUG);       // program task
     esp_log_level_set(PLAY_T,  ESP_LOG_DEBUG);   // play task
     esp_log_level_set(MEM_T,   DEFAULT_LOG_LEVEL);   // memory task
-    esp_log_level_set(SELF_T,  ESP_LOG_DEBUG);   // selftest task
+    esp_log_level_set(SELF_T,  ESP_LOG_DEBUG);    // selftest task
     esp_log_level_set(BUT_T,  DEFAULT_LOG_LEVEL);    // button task
     esp_log_level_set(EXPL_T,  DEFAULT_LOG_LEVEL);   // example task
 

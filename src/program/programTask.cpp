@@ -11,6 +11,16 @@ PoiMonitor monitor;
 // program state 
 bool programActive = false;
 
+void _sendRawCommandToDispatch(RawPoiCommand rawCmd) {
+
+    PoiCommand cmd = PoiCommand(rawCmd);
+	LOGD(INTS,  "Sending cmd to dispatch: %s", cmd.toString().c_str());
+    
+      if (xQueueSendToBack(dispatchQueue, &(rawCmd),  portMAX_DELAY) != pdTRUE){
+        LOGE(INTS, "Could not add cmd to dispatchQueue.");
+      }
+}
+
 // the task that actually runs the program thru the handler
 // arg: program line to start program from
 void programExecTask(void* arg){
@@ -28,10 +38,10 @@ void programExecTask(void* arg){
   while(programActive && handler.next()){
 		PoiCommand cmd = handler.getCurrentCommand();
 		RawPoiCommand rawCmd = cmd.getRawPoiCommand();
-	    LOGD(PROG_T,  "Sending cmd to player: %s", cmd.toString().c_str());
-         if (xQueueSendToBack(playerQueue, &(rawCmd),  portMAX_DELAY) != pdTRUE){
-           LOGE(PROG_T, "Could not add command to playerQueue.");
-        }
+	  LOGD(PROG_T,  "Sending cmd to player: %s", cmd.toString().c_str());
+    if (xQueueSendToBack(playerQueue, &(rawCmd),  portMAX_DELAY) != pdTRUE){
+      LOGE(PROG_T, "Could not add command to playerQueue.");
+    }
   }
   if (programActive) {
     LOGI(PROG_T, "End of program.");
@@ -71,6 +81,9 @@ void stopProgramExecTask(){
   monitor.logStatus();
   display_resume();
   player_resume();
+
+  _sendRawCommandToDispatch( {SHOW_RGB, 0, 0, 0, 0, 0} ); // black
+  _sendRawCommandToDispatch( {ANIMATE, PALE_WHITE, 1, 15, 0, 50} ); 
 }
 
 // task that schedules the program

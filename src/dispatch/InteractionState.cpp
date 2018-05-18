@@ -17,11 +17,6 @@ void InteractionState::_triggerStateTransition(PoiCommand cmd) {
 
             // stop processing
 			_sendRawCommand( {STOP_PROC, 0, 0, 0, 0, 0} ); 
-            // TODO base next actions on events
-            // otherwise animation below is swallowed by stop proc
-            delay(1000); 
-            _sendRawCommand( {SHOW_RGB, 0, 0, 0, 0, 0} ); // black
-            _sendRawCommand( {ANIMATE, PALE_WHITE, 1, 15, 0, 50} ); 
 
             // start of ip conf
             //_sendRawCommand( {DISPLAY_IP, _ipIncr, 1, 0, 0, 0} ); // only pale white background
