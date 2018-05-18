@@ -54,11 +54,11 @@ void stopProgramExecTask(){
   }
   monitor.logStatus();
 
-  LOGD(PROG_T, "Stopping display");
-  display_stop();
+  LOGD(PROG_T, "Skipping all remaining display frames");
+  display_skipFrames();
   
-  LOGD(PROG_T, "Stopping player");
-  player_stop();
+  LOGD(PROG_T, "Skipping all remaining player actions");
+  player_skipActions();
   
   LOGD(PROG_T, "Emptying player queue");
   xQueueReset(playerQueue);

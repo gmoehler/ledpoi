@@ -1,10 +1,11 @@
 #include "displayTask.h"
 
 xQueueHandle displayQueue = NULL;
-PoiTimer ptimer;
+PoiTimer ptimer(TIMER3, true);
 uint16_t currentDelay=1000;
 bool doPause = false;
 bool skipFrames = false;
+bool selftestMode = false;
 
 volatile SemaphoreHandle_t displayTimerSemaphore;
 //portMUX_TYPE timerMux = portMUX_INITIALIZER_UNLOCKED;
@@ -59,6 +60,10 @@ static void displayTask(void* arg)
             pixelFrameToString(rframe, 1, false).c_str(),
             pixelFrameToString(rframe, 2, false).c_str());
           ws2812_setColors(N_PIXELS, rframe.pixel);
+          if (selftestMode) {
+            LOGI(DISP_T, "Verifying display frame %d...", rframe.idx);
+            validateSelftest(rframe);
+          }
         }
       }
     }
@@ -77,7 +82,7 @@ void display_setup(uint8_t queueSize){
 
 void display_start(uint8_t prio){ 
   doPause = false;
-  doAction = true;
+  skipFrames = false;
   xTaskCreate(displayTask, "displayTask", 4096, NULL, prio, NULL);
   ptimer.setInterval(currentDelay);
 }
@@ -102,4 +107,14 @@ void display_resume(){
 
 bool display_isPaused() {
   return doPause;
+}
+
+void setSelftestMode(bool active) {
+  if (active) {
+     LOGI(DISP_T, "Display in selftest mode...");
+  }
+  else {
+    LOGI(DISP_T, "Display leaving selftest mode...");
+  }
+  selftestMode = active;
 }

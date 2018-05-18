@@ -1,31 +1,32 @@
 #include "button.h"
 
 int _debounceTicks = 50;      // number of millisec that have to pass by before a click is assumed as safe.
-int _longTicks = 600;         // number of millisec that have to pass by before a long button press is detected.
+int _longTicks = 600;             // number of millisec that have to pass by before a long button press is detected.
 int _holdDownTicks = 2000;    // number of millisec after which we send a release
+
+volatile uint32_t _lastPressedTime = 0;
+volatile SemaphoreHandle_t _longPressTimerSemaphore;
+
+// PoiTimer longTimer(TIMER2, false);    // timer waiting for long click
 
 // called at any edge
 void IRAM_ATTR buttonIsrHandler(void* arg)
 {
-  static uint32_t lastPressedTime = 0;
- 
-  gpio_num_t gpioNum = (gpio_num_t) reinterpret_cast<int>(arg);
-  int level = gpio_get_level(gpioNum);
+  
+  int level = gpio_get_level(BUTTON_ID);
   uint32_t now = xTaskGetTickCount() * portTICK_PERIOD_MS;
-  int pressDuration = now - lastPressedTime;
+  int pressDuration = now - _lastPressedTime;
 
   PoiCommand cmd;
  
   // determine type of click when button is released
-  if (level == 1 && lastPressedTime > 0){
+  if (level == 1 && _lastPressedTime > 0){
 
     if (pressDuration >= _debounceTicks
       && pressDuration < _longTicks) {
       cmd.setType(BUTTON0_CLICK);
     }
-    else if (pressDuration >= _holdDownTicks) {
-      cmd.setType(BUTTON0_RELEASE);
-    }
+    // should usually be caught by onLongPressTimer
     else if (pressDuration >= _longTicks) {
       cmd.setType(BUTTON0_LONGCLICK);
     }
@@ -33,18 +34,50 @@ void IRAM_ATTR buttonIsrHandler(void* arg)
 
   // remember time when button is pressed down
   else if (level == 0){
-    lastPressedTime = now;
+    _lastPressedTime = now;
+    // start time for long press detection
+    xSemaphoreGiveFromISR(_longPressTimerSemaphore, NULL);
+    //longTimer.setInterval(_longTicks);
   }
 
   if (!cmd.isEmpty()){
     // clear press memory
-   lastPressedTime = 0;
-   // send out event
-   xQueueSendFromISR(dispatchQueue, &cmd, NULL);
+    _lastPressedTime = 0;
+    // send out event
+    xQueueSendFromISR(dispatchQueue, &cmd, NULL);
   }
 }
 
-void button_setup(){
+static void buttonLongPressedTask(void* arg) {
+
+  for(;;) {
+    // wait for button being pressed
+    if (xSemaphoreTake(_longPressTimerSemaphore, portMAX_DELAY)) {
+  
+      // wait long click time to see what happened
+      delay(_longTicks);
+
+      // now look whether we are still pressing the button
+      int level = gpio_get_level(BUTTON_ID);
+      uint32_t now = xTaskGetTickCount() * portTICK_PERIOD_MS;
+      int pressDuration = now - _lastPressedTime;
+      
+      // still pressed: check long press
+      if (level == 0 && _lastPressedTime > 0 &&
+        pressDuration >= _longTicks) {
+        RawPoiCommand rawCmd({BUTTON0_LONGCLICK, 0, 0, 0, 0, 0});
+        // clear press memory
+        _lastPressedTime = 0;
+        // send out event
+        if (xQueueSendToBack(dispatchQueue, &(rawCmd), portMAX_DELAY) != pdTRUE){
+          LOGE(BUT_T, "Could not add  command to dispatch queue.");
+        }
+      }
+    }
+  }
+}
+
+void button_setup() {
     gpio_config_t io_conf;
     //interrupt of rising edge
     io_conf.intr_type = GPIO_INTR_POSEDGE;
@@ -58,10 +91,17 @@ void button_setup(){
 
     //change gpio intrrupt type for one pin
     //send interrupt for any edge
-    gpio_set_intr_type(GPIO_INPUT_IO_0, GPIO_INTR_ANYEDGE);
+    gpio_set_intr_type(BUTTON_ID, GPIO_INTR_ANYEDGE);
 
     //install gpio isr service
     gpio_install_isr_service(ESP_INTR_FLAG_DEFAULT);
     //hook isr handler for specific gpio pin
-    gpio_isr_handler_add(GPIO_INPUT_IO_0, buttonIsrHandler, (void*) GPIO_INPUT_IO_0);
+    gpio_isr_handler_add(BUTTON_ID, buttonIsrHandler, (void*) GPIO_INPUT_IO_0);
+    
+    _longPressTimerSemaphore = xSemaphoreCreateBinary();
+    //longTimer.init(onLongPressTimer);
+}
+
+void button_start(uint8_t prio){ 
+  xTaskCreate(buttonLongPressedTask, "buttonLongPressedTask", 4096, NULL, prio, NULL);
 }

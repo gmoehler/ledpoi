@@ -14,14 +14,20 @@ void InteractionState::_triggerStateTransition(PoiCommand cmd) {
 	switch(type) {
 		case BUTTON0_LONGCLICK:
 		if (_state == NO_INTERACTION) {
-			// start of ip conf
+
             // stop processing
 			_sendRawCommand( {STOP_PROC, 0, 0, 0, 0, 0} ); 
-            delay(1000); // TODO base next actions on events
+            // TODO base next actions on events
+            // otherwise animation below is swallowed by stop proc
+            delay(1000); 
             _sendRawCommand( {SHOW_RGB, 0, 0, 0, 0, 0} ); // black
             _sendRawCommand( {ANIMATE, PALE_WHITE, 1, 15, 0, 50} ); 
+
+            // start of ip conf
             //_sendRawCommand( {DISPLAY_IP, _ipIncr, 1, 0, 0, 0} ); // only pale white background
 			//nextState = IP_CONFIG;
+
+            // skip ip conf for now
             nextState = WAIT_FOR_PROGSTART;
 		}
 		else if (_state == IP_CONFIG) {

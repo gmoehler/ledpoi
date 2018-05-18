@@ -2,27 +2,16 @@
 
 // PIO Unified Debugger
 //
-// http://docs.platformio.org/page/plus/debugging.html
-// http://docs.platformio.org/page/section_env_debug.html#projectconf-debug-tool
+// Documentation: http://docs.platformio.org/page/plus/debugging.html
+// Configuration: http://docs.platformio.org/page/projectconf/section_env_debug.html
 
 {
     "version": "0.2.0",
     "configurations": [
         {
-            "type": "gdb",
-            "request": "launch",
-            "cwd": "${workspaceRoot}",
-            "name": "PlatformIO Debugger",
-            "target": "c:/Users/Gregor/git/ledpoi/.pioenvs/esp32dev/firmware.elf",
-            "gdbpath": "C:/Users/Gregor/.platformio/penv/Scripts/piodebuggdb",
-            "autorun": [ "source .pioinit" ],
-            "preLaunchTask": "PlatformIO: Pre-Debug",
-            "internalConsoleOptions": "openOnSessionStart"
-        },
-        {
             "type": "platformio-debug",
             "request": "launch",
-            "name": "PlatformIO Debugger (Dev)",
+            "name": "PlatformIO Debugger",
             "executable": "c:/Users/Gregor/git/ledpoi/.pioenvs/esp32dev/firmware.elf",
             "toolchainBinDir": "C:/Users/Gregor/.platformio/packages/toolchain-xtensa32/bin",
             "preLaunchTask": "PlatformIO: Pre-Debug",
@@ -31,7 +20,7 @@
         {
             "type": "platformio-debug",
             "request": "launch",
-            "name": "PlatformIO Debugger (Dev) (Quick)",
+            "name": "PlatformIO Debugger (Skip Pre-Debug)",
             "executable": "c:/Users/Gregor/git/ledpoi/.pioenvs/esp32dev/firmware.elf",
             "toolchainBinDir": "C:/Users/Gregor/.platformio/packages/toolchain-xtensa32/bin",
             "internalConsoleOptions": "openOnSessionStart"

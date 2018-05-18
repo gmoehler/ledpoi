@@ -74,6 +74,7 @@ enum Color {       WHITE,   // 0
 #define PLAY_T  "PLAT"   // player task
 #define PROG_T  "PRGT"   // program task
 #define SELF_T  "SELT"   // selftest task
+#define BUT_T   "BUTT"   // button task
 #define EXPL_T  "EXPT"   // example task
 
 #define NOACT_A "NOAA"   // void ("no") action
