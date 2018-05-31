@@ -34,7 +34,7 @@ AbstractAction* getAction(PoiCommandType type){
   }
 }
 
-bool doControlCommand(PoiCommand cmd){
+void doControlCommand(PoiCommand cmd){
   if (cmd.getType() == DIM) {
       options.dimFactor = static_cast<double>(cmd.getField(1)) / 255;
   }

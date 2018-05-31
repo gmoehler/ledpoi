@@ -8,7 +8,7 @@
 
 #define BUF_SIZE (4096)
 
-static char buffer[80];
+// static char buffer[80];
 
 void uartSendCommand(PoiCommand cmd){
 
@@ -24,7 +24,7 @@ void uartTask(void* arg)
 
     while (1) {
       // Read data from the UART
-      int len = uart_read_bytes(EX_UART_NUM, &b, 1, (portTickType)portMAX_DELAY);
+      uart_read_bytes(EX_UART_NUM, &b, 1, (portTickType)portMAX_DELAY);
       // echo it back to UART
       //uart_write_bytes(EX_UART_NUM, (const char*) &b, 1);
 

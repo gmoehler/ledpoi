@@ -6,8 +6,6 @@ Example exampleToRun = DISPLAY_EXAMPLE;
 const uint8_t DEMO_BRIGHTNESS = 32; // Limits brightness
 
 void sendCommandsTo(xQueueHandle queue, RawPoiCommand rawCmd[], uint8_t numCmds ) {
-  
-  uint16_t timeout = 100;
 
   for (int i=0; i<numCmds; i++){
     PoiCommand cmd(rawCmd[i]);
@@ -19,8 +17,6 @@ void sendCommandsTo(xQueueHandle queue, RawPoiCommand rawCmd[], uint8_t numCmds 
 }
 
 void sendCommandTo(xQueueHandle queue, RawPoiCommand rawCmd ) {
-  
-  uint16_t timeout = 100;
 
   PoiCommand cmd(rawCmd);
   LOGD(EXPL_T, "Sending cmd:   %s", cmd.toString().c_str());

@@ -57,7 +57,6 @@ void PoiFlashMemory::_listPartitions(){
 
   LOGI(FLASH, "Available data partitions on flash memory:");
   esp_partition_iterator_t it = esp_partition_find(ESP_PARTITION_TYPE_DATA, ESP_PARTITION_SUBTYPE_ANY, NULL);
-    const esp_partition_t* prev = NULL;
     for (; it != NULL; it = esp_partition_next(it)) {
         const esp_partition_t *p = esp_partition_get(it);
         if (p == NULL) {
@@ -437,8 +436,16 @@ bool PoiFlashMemory::_eraseNvsFlashPartition(){
   const esp_partition_t* nvs_partition = esp_partition_find_first(
           ESP_PARTITION_TYPE_DATA, ESP_PARTITION_SUBTYPE_DATA_NVS, NULL);
   assert(nvs_partition && "partition table must have an NVS partition");
-  ESP_ERROR_CHECK( esp_partition_erase_range(nvs_partition, 0, nvs_partition->size) );
+  esp_err_t err =  esp_partition_erase_range(nvs_partition, 0, nvs_partition->size);
+  if (err != ESP_OK){
+    LOGE(FLASH, "Error. Cannot erase ncs flash partition (Errorcode: %d).", err);
+    return false;
+  }
   // Retry nvs_flash_init
-  esp_err_t err = nvs_flash_init();
-  ESP_ERROR_CHECK( err );
+  err = nvs_flash_init();
+  if (err != ESP_OK){
+    LOGE(FLASH, "Error. Cannot erase ncs flash partition (Errorcode: %d).", err);
+    return false;
+  }
+  return true;
 }

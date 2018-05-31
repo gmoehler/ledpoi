@@ -11,7 +11,7 @@ xQueueHandle memoryQueue = NULL;
 void _setPixel(PoiCommand cmd) {
   uint8_t pixel_idx = cmd.getField(0);
   uint8_t frame_idx = cmd.getField(1);
-  uint8_t scene     = cmd.getField(2);        
+  // uint8_t scene     = cmd.getField(2);        
   uint8_t r = cmd.getField(3);
   uint8_t g = cmd.getField(4);
   uint8_t b = cmd.getField(5);
@@ -87,7 +87,7 @@ void _loadProgFromFlash(){
 void memoryTask(void* arg)
 {
   RawPoiCommand rawCmd;
-  uint8_t scene = 0;
+  // uint8_t scene = 0;
   bool duringPrograming = false;
 
   for(;;) {

@@ -54,7 +54,6 @@ static void displayTask(void* arg)
             ptimer.setInterval(rframe.delay);
             currentDelay = rframe.delay;
           }
-          int idx=0;
           LOGD(DISP_T, "Received: %s %s %s ...", 
             pixelFrameToString(rframe, 0, true).c_str(),
             pixelFrameToString(rframe, 1, false).c_str(),

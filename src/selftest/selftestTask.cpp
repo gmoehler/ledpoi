@@ -8,7 +8,7 @@ uint16_t expectedNumFrames = 0;
 
 bool sendToDispatch(RawPoiCommand rawCommand){
 	PoiCommand cmd(rawCommand);
-	sendToDispatch(cmd, SELF_T);
+	return sendToDispatch(cmd, SELF_T);
 }
 
 // generate a color for a pixel
