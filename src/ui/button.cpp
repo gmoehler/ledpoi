@@ -65,13 +65,10 @@ static void buttonLongPressedTask(void* arg) {
       // still pressed: check long press
       if (level == 0 && _lastPressedTime > 0 &&
         pressDuration >= _longTicks) {
-        RawPoiCommand rawCmd({BUTTON0_LONGCLICK, 0, 0, 0, 0, 0});
         // clear press memory
         _lastPressedTime = 0;
         // send out event
-        if (xQueueSendToBack(dispatchQueue, &(rawCmd), portMAX_DELAY) != pdTRUE){
-          LOGE(BUT_T, "Could not add  command to dispatch queue.");
-        }
+        sendRawToDispatch({BUTTON0_LONGCLICK, 0, 0, 0, 0, 0}, BUT_T);
       }
     }
   }

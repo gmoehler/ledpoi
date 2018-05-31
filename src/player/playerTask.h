@@ -2,6 +2,7 @@
 #define PLAYER_TASK
 
 #include "ledpoi.h"
+#include "ledpoi_utils.h"
 #include "PoiCommand.h"
 
 #include "player/AbstractAction.h"
@@ -13,8 +14,7 @@
 
 #include "memory/memoryTask.h" // for scene loading
 
-extern xQueueHandle playerQueue;
-extern xQueueHandle displayQueue;
+extern xQueueHandle playerQueue; // for reading only
 
 void player_setup(uint8_t queueSize);
 void player_start(uint8_t prio);

@@ -31,4 +31,13 @@ void esp_log_write(esp_log_level_t level, const char* tag, const char* format, .
 
 uint32_t esp_log_timestamp();
 
+#define xQueueHandle int
+#define pdTRUE true
+#define portMAX_DELAY 1
+#define portTICK_PERIOD_MS 1
+
+bool xQueueSendToBack( xQueueHandle, void * , int );
+void xQueueReset(xQueueHandle);
+uint8_t uxQueueMessagesWaiting(xQueueHandle);
+
 #endif

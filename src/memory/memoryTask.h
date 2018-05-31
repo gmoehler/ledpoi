@@ -13,7 +13,6 @@
 #include "ProgramCache.h"
 #include "PoiFlashMemory.h"
 
-extern xQueueHandle memoryQueue;
 extern ImageCache imageCache;
 extern ProgramCache programCache;
 

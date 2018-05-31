@@ -81,12 +81,12 @@ void AnimationHandler::next(){
     }
 
     if (_active){
-       // be cyclic except in last loop and on first step on last loop
+       // be cyclic except in last loop and on first step
         bool cyclic = !_isLastLoop() || _currentStep == 0;
         _imageCache.shiftRegister(0, _registerLength, cyclic);
       }
     else {
-    _imageCache.clearRegister(0);
+      _imageCache.clearRegister(0);
     }
   }
   break;  

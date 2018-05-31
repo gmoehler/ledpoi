@@ -11,12 +11,11 @@
 #include "PoiCommand.h"
 
 #include "program/PoiProgramHandler.h"
-#include "memory/memoryTask.h"
-#include "player/playerTask.h"
-#include "display/displayTask.h"
+#include "player/playerTask.h"       // for cleaning methods
+#include "display/displayTask.h"     // for cleaning methods
 #include "dispatch/PoiMonitor.h"
 
-extern xQueueHandle programQueue;
+extern xQueueHandle programQueue;    // for reading only
 
 void program_setup(uint8_t queueSize); // setup program task
 void program_start(uint8_t prio, uint8_t prioPrgExecTask);      // start program task and timer

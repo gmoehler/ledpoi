@@ -6,13 +6,9 @@ rgbVal red = makeRGBVal(254, 0, 0);
 rgbVal green = makeRGBVal(0, 254, 0);
 uint16_t expectedNumFrames = 0;
 
-void sendToDispatch( RawPoiCommand rawCmd ) {
-
-  PoiCommand cmd(rawCmd);
-  LOGD(SELF_T, "Sending to dispatch:  %s", cmd.toString().c_str());
-  if (xQueueSendToBack(dispatchQueue, &(rawCmd),  portMAX_DELAY) != pdTRUE){
-    LOGE(SELF_T, "Could not add  command to dispatch queue.");
-  }
+bool sendToDispatch(RawPoiCommand rawCommand){
+	PoiCommand cmd(rawCommand);
+	sendToDispatch(cmd, SELF_T);
 }
 
 // generate a color for a pixel

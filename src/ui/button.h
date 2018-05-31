@@ -2,8 +2,10 @@
 #define BUTTON_H
 
 #include "ledpoi.h"
+#include "ledpoi_utils.h"
 #include "PoiCommand.h"
-#include "dispatch/dispatchTask.h"
+
+extern xQueueHandle dispatchQueue; // for interrupt send
 
 #define GPIO_INPUT_IO_0       GPIO_NUM_0
 #define GPIO_INPUT_PIN_SEL    (1<<GPIO_INPUT_IO_0)

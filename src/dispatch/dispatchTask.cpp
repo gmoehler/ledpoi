@@ -9,8 +9,6 @@ InteractionState uiState;
 void dispatchCommand(PoiCommand cmd){
 
   PoiCommandType type = cmd.getType();
-  RawPoiCommand rawCmd = cmd.getRawPoiCommand();
-  xQueueHandle *targetQueue;
 
   // choose correct queue based on cmd type
   if (cmd.isMemoryControlCommand()) {
@@ -23,53 +21,33 @@ void dispatchCommand(PoiCommand cmd){
         programTransmitting = false;
       }
 
-      if (type == SET_PIXEL) {
-        // less verbose for pixels
-        LOGV(DSPCH_T,  "Sending cmd to memory: %s", cmd.toString().c_str());
-      } else {
-        LOGD(DSPCH_T,  "Sending cmd to memory: %s", cmd.toString().c_str());
-      }
-
-      if (xQueueSendToBack(memoryQueue, &(rawCmd),  portMAX_DELAY) != pdTRUE){
-        LOGE(DSPCH_T, "Could not add command to memoryQueue.");
-      }
+      // less verbose for pixels
+      sendToQueue(MEMORY_QUEUE, cmd, DSPCH_T, (type != SET_PIXEL));
   }
   
   else if (cmd.isProgramControlCommand()) {
-      if (programTransmitting) {
+    if (programTransmitting) {
         LOGW(DSPCH_T,  "Program control command received while program transmission active.");
-      }
-      LOGD(DSPCH_T,  "Sending cmd to program: %s", cmd.toString().c_str());
-      if (xQueueSendToBack(programQueue, &(rawCmd),  portMAX_DELAY) != pdTRUE){
-        LOGE(DSPCH_T, "Could not add program to programQueue.");
-      }
+    }
+    sendToQueue(PROGRAM_QUEUE, cmd, DSPCH_T);
   }
   
   else if (cmd.isWifiControlCommand()) {
-  	LOGD(DSPCH_T,  "Sending cmd to wifi: %s", cmd.toString().c_str());
-      if (xQueueSendToBack(wifiControlQueue, &(rawCmd),  portMAX_DELAY) != pdTRUE){
-        LOGE(DSPCH_T, "Could not add cmd to wifiControlQueue.");
-      }
+  	sendToQueue(WIFI_CONTROL_QUEUE, cmd, DSPCH_T);
   }
   
   else if (programTransmitting && cmd.isProgramStatement()) {
       // everything is a program line and goes to the memory
-      LOGD(DSPCH_T,  "Sending cmd to memory: %s", cmd.toString().c_str());
-      if (xQueueSendToBack(memoryQueue, &(rawCmd),  portMAX_DELAY) != pdTRUE){
-        LOGE(DSPCH_T, "Could not add program line to memoryQueue.");
-      }
+      sendToQueue(MEMORY_QUEUE, cmd, DSPCH_T);
    } 
    
    else if (!programTransmitting && cmd.isPlayableCommand()) {
-      LOGD(DSPCH_T,  "Sending cmd to player: %s", cmd.toString().c_str());
-      if (xQueueSendToBack(playerQueue, &(rawCmd),  portMAX_DELAY) != pdTRUE){
-        LOGE(DSPCH_T, "Could not add command to playerQueue.");
-      }
+      sendToQueue(PLAYER_QUEUE, cmd, DSPCH_T);
     }
     
-    else {
+  else {
    	LOGE(MEM_T, "Cannot dispatch command: %s", cmd.toString().c_str());
-    }
+  }
 }
 
 void dispatchTask(void* arg) {

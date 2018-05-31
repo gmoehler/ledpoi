@@ -18,17 +18,6 @@ bool withinProgram = false;
 // queue to receive wifi control commands
 xQueueHandle wifiControlQueue = NULL;
 
-void wifiSendCommand(PoiCommand cmd){
-
-  PoiCommandType type = cmd.getType();
-  RawPoiCommand rawCmd = cmd.getRawPoiCommand();
-
-  // send command to central dispatch queue
-  if (xQueueSendToBack(dispatchQueue, &(rawCmd),  portMAX_DELAY) != pdTRUE){
-    LOGE(WIFI_T, "Could not add command to dispatchQueue: %s", cmd.toString().c_str());
-  }
-}
-
 void connect() {
 	IPAddress myIP (baseIp[0], baseIp[1], baseIp[2], baseIp[3] + ipIncr);
   LOGD(WIFI_T, "Connecting to %s...", myIP.toString().c_str());
@@ -88,7 +77,7 @@ void wifiTask(void* arg) {
         if (i==N_CMD_FIELDS){
           PoiCommand cmd(rawCmd);
           if (cmd.getType() != NO_COMMAND){
-            wifiSendCommand(cmd);
+            sendToDispatch(cmd, WIFI_T);
           }
        }
       }

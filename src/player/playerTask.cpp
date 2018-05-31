@@ -34,12 +34,6 @@ AbstractAction* getAction(PoiCommandType type){
   }
 }
 
-void sendFrameToDisplayQueue(PixelFrame* pFrame, uint32_t timeout) {
-  if (xQueueSendToBack(displayQueue, pFrame, timeout/portTICK_PERIOD_MS) != pdTRUE){
-    LOGE(PLAY_T, "Could not add frame %d to queue.", pFrame->idx);
-  }
-}
-
 bool doControlCommand(PoiCommand cmd){
   if (cmd.getType() == DIM) {
       options.dimFactor = static_cast<double>(cmd.getField(1)) / 255;
@@ -62,7 +56,7 @@ void doAction(PoiCommand cmd) {
 
   while (!skipActions && paction->isActive()){
     paction->printState();
-    sendFrameToDisplayQueue(&frame, portMAX_DELAY);
+    sendFrameToDisplay(&frame, portMAX_DELAY);
     paction->next();
   }
   paction->printInfo("Finished action: ");

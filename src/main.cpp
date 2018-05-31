@@ -9,7 +9,6 @@
 #include "wifi/wifiTask.h"
 #include "uart/uartTask.h"
 #include "ui/button.h"
-#include "example/exampleTask.h"
 #include "selftest/selftestTask.h"
 
 // unless defined differently below this is the default log level
@@ -67,18 +66,18 @@ void setup() {
 
   // send wifi start command to central dispatch queue after everything is set up
   /* 
-  RawPoiCommand rawCmdStartWifi = {CONNECT, 0, 0, 0, 0, 0}; 
-  PoiCommand cmdStartWifi (rawCmdStartWifi);
-  if (xQueueSendToBack(dispatchQueue, &(rawCmdStartWifi),  portMAX_DELAY) != pdTRUE){
-    LOGE(WIFI_T, "Main: Could not add command to dispatchQueue: %s", cmdStartWifi.toString().c_str());
-  }
+  PoiCommand cmdStartWifi ({CONNECT, 0, 0, 0, 0, 0});
+  sendToDispatch(rawCmdStartWifi, WIFI_T);
   */
 
 	// start selftest
   // selftest_start(5);
    
   // fill queues with example values
-  example_start(WORM_EXAMPLE, 5); 
+  PoiCommand cmdWorm ( {ANIMATE, RAINBOW, 1, 5, 0, 100} ); 
+  sendToDispatch(cmdWorm, WIFI_T);
+  PoiCommand cmdBlack ( {SHOW_RGB, 0, 0, 0, 0, 0} ); // black
+  sendToDispatch(cmdBlack, WIFI_T);
 }
 
 // everything works with tasks, we dont need the loop...

@@ -7,8 +7,6 @@
 
 #define NO_CONNECTION_IPINCR 254
 
-extern xQueueHandle dispatchQueue;
-
 enum PoiState {
     NO_INTERACTION,
     IP_CONFIG,
@@ -28,7 +26,6 @@ private:
     PoiMonitor _monitor;
 
     void _triggerStateTransition(PoiCommand cmd);
-    void _sendRawCommand(RawPoiCommand cmd);
     void _incrementIp();
 };
 

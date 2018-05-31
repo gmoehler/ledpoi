@@ -16,10 +16,10 @@ void InteractionState::_triggerStateTransition(PoiCommand cmd) {
 		if (_state == NO_INTERACTION) {
 
             // stop processing
-			_sendRawCommand( {STOP_PROC, 0, 0, 0, 0, 0} ); 
+			sendRawToDispatch( {STOP_PROC, 0, 0, 0, 0, 0}, INTS); 
 
             // start of ip conf
-            //_sendRawCommand( {DISPLAY_IP, _ipIncr, 1, 0, 0, 0} ); // only pale white background
+            //sendRawToDispatch( {DISPLAY_IP, _ipIncr, 1, 0, 0, 0}, INTS ); // only pale white background
 			//nextState = IP_CONFIG;
 
             // skip ip conf for now
@@ -28,12 +28,12 @@ void InteractionState::_triggerStateTransition(PoiCommand cmd) {
 		else if (_state == IP_CONFIG) {
 			// end of ip conf
 			 if (_ipIncr == NO_CONNECTION_IPINCR) {
-                _sendRawCommand( {DISCONNECT, 0, 0, 0, 0, 0} );
+                sendRawToDispatch( {DISCONNECT, 0, 0, 0, 0, 0}, INTS );
             }
             else {
-                _sendRawCommand( {CONNECT, _ipIncr, 0, 0, 0, 0} );
+                sendRawToDispatch( {CONNECT, _ipIncr, 0, 0, 0, 0}, INTS );
             }
-            _sendRawCommand( {ANIMATE, PALE_WHITE, 1, 15, 0, 50} ); 
+            sendRawToDispatch( {ANIMATE, PALE_WHITE, 1, 15, 0, 50}, INTS ); 
 			nextState = WAIT_FOR_PROGSTART;
 		}
 		else {
@@ -44,11 +44,11 @@ void InteractionState::_triggerStateTransition(PoiCommand cmd) {
 		case BUTTON0_CLICK:
         if (_state == IP_CONFIG) {
     	    _incrementIp();
-   	        _sendRawCommand( {DISPLAY_IP, _ipIncr, 1, 0, 0, 0} );
+   	        sendRawToDispatch( {DISPLAY_IP, _ipIncr, 1, 0, 0, 0}, INTS );
      	   // state does not change
         }
         else if (_state == WAIT_FOR_PROGSTART) {
-        	_sendRawCommand( {START_PROG, 0, 0, 0, 0, 0} );
+        	sendRawToDispatch( {START_PROG, 0, 0, 0, 0, 0}, INTS );
             nextState = NO_INTERACTION;
         }
         break;
@@ -96,16 +96,6 @@ bool InteractionState::commandFilter(PoiCommand cmd) {
     _triggerStateTransition(cmd);
 		
     return ! cmd.isInternalCommand();
-}
-
-void InteractionState::_sendRawCommand(RawPoiCommand rawCmd) {
-
-    PoiCommand cmd = PoiCommand(rawCmd);
-	LOGD(INTS,  "Sending cmd to dispatch: %s", cmd.toString().c_str());
-    
-      if (xQueueSendToBack(dispatchQueue, &(rawCmd),  portMAX_DELAY) != pdTRUE){
-        LOGE(INTS, "Could not add cmd to dispatchQueue.");
-      }
 }
 
 String InteractionState::toString(){

@@ -1,5 +1,5 @@
-#ifndef WS2812_DRIVER_H
-#define WS2812_DRIVER_H
+#ifndef MOCK_WS2812_DRIVER_H
+#define MOCK_WS2812_DRIVER_H
 
 #include <stdint.h>
 
@@ -18,4 +18,5 @@ inline rgbVal makeRGBVal(uint8_t r, uint8_t g, uint8_t b)
   v.b = b;
   return v;
 }
+
 #endif

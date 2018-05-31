@@ -13,19 +13,7 @@ static char buffer[80];
 void uartSendCommand(PoiCommand cmd){
 
   PoiCommandType type = cmd.getType();
-  RawPoiCommand rawCmd = cmd.getRawPoiCommand();
-
-  if (type == SET_PIXEL) {
-    LOGV(UART_T, "Sending cmd: %s", cmd.toString().c_str());
-  }
-  else {
-    LOGV(UART_T, "Sending cmd: %s", cmd.toString().c_str());
-  }
-
-  // send command to central dispatch queue
-  if (xQueueSendToBack(dispatchQueue, &(rawCmd),  portMAX_DELAY) != pdTRUE){
-    LOGE(UART_T, "Could not add command to dispatchQueue: %s", cmd.toString().c_str());
-  }
+  sendToDispatch(cmd, UART_T, (type != SET_PIXEL));
 }
 
 void uartTask(void* arg)

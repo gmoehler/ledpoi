@@ -12,7 +12,7 @@
 #include "PoiTimer.h"
 #include "selftest/selftestTask.h"
 
-extern xQueueHandle displayQueue;
+extern xQueueHandle displayQueue; // for reading only
 
 String pixelFrameToString(PixelFrame frame, int idx, bool withHeader=true);
 
