@@ -17,7 +17,6 @@ EXDIR       := examples
 EXINCDIR    := examples
 BUILDDIR    := obj
 TARGETDIR   := bin
-RESDIR      := res
 SRCEXT      := cpp
 OBJEXT      := obj
 LIBDIR      := test/lib/$(PLATFORM)
@@ -80,14 +79,10 @@ EXOBJECTS   := $(patsubst $(SRCDIR)/%,$(BUILDDIR)/%,$(SOURCES:.$(SRCEXT)=.$(OBJE
 #$(info $$EXOBJECTS is [${EXOBJECTS}])
 
 #Defauilt Make
-all: $(TARGET) #$(EXAMPLE)
+all: directories $(TARGET) #$(EXAMPLE)
 
 #Remake
 remake: cleaner all
-
-#Copy Resources from Resources Directory to Target Directory
-resources: directories
-	@cp $(RESDIR)/* $(TARGETDIR)/
 
 #Make the Directories
 directories:
@@ -138,5 +133,5 @@ $(BUILDDIR)/%.$(OBJEXT): $(EXDIR)/%.$(SRCEXT)
 print-%  : ; @echo $* = $($*)
 
 #Non-File Targets
-.PHONY: all remake clean cleaner resources
+.PHONY: all remake clean cleaner directories
 

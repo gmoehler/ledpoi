@@ -24,46 +24,54 @@
 # Template #1: General project. Test it using existing `platformio.ini`.
 #
 
-language: python
-python:
-  - "2.7"
-
 branches:
   only:
-  - master
+- master
 
-sudo: false
-cache:
-  directories:
-    - "~/.platformio"
+matrix:
+  include:
+    ####################
+    # platformio build #
+    ####################
+    - language: python
+      python:
+        - "2.7"
 
-install:
-  - pip install -U platformio
+      sudo: false
+      cache:
+        directories:
+          - "~/.platformio"
 
-script:
-  - platformio run
+      install:
+        - pip install -U platformio
 
+      script:
+        - platformio run
 
-#
-# Template #2: The project is intended to by used as a library with examples
-#
+    ##############################################
+    # tests using plain Makefile and google test #
+    ##############################################
+    - language: c++
+      compiler:
+        - gcc
+      #addons:
+      #  apt:
+      #    packages:
+      #      - lcov
 
-# language: python
-# python:
-#     - "2.7"
-#
-# sudo: false
-# cache:
-#     directories:
-#         - "~/.platformio"
-#
-# env:
-#     - PLATFORMIO_CI_SRC=path/to/test/file.c
-#     - PLATFORMIO_CI_SRC=examples/file.ino
-#     - PLATFORMIO_CI_SRC=path/to/test/directory
-#
-# install:
-#     - pip install -U platformio
-#
-# script:
-#     - platformio ci --lib="." --board=ID_1 --board=ID_2 --board=ID_N
+      # install google test
+      before_install:
+        - sudo apt-get -qq update
+        - sudo apt-get install -y libgtest-dev cmake
+        - sudo wget https://github.com/google/googletest/archive/release-1.8.0.tar.gz
+        - sudo tar xf release-1.8.0.tar.gz
+        - cd googletest-release-1.8.0/googletest
+        - sudo cmake -DBUILD_SHARED_LIBS=ON .
+        - sudo make
+        - sudo cp -a include/gtest /usr/include
+        - sudo cp -a libgtest_main.so libgtest.so /usr/lib/
+        - cd "${TRAVIS_BUILD_DIR}"
+
+      script:
+        - make
+        - bin/dotest
