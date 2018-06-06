@@ -59,18 +59,23 @@ static void selftestTask(void* arg){
 		LOGE(SELF_T, "Selftest timeout (%d) reached at frame %d.", timeoutMs, numFramesChecked);
 		_selftestFailed = true;
 	}
-	
-	if (_selftestFailed) {
-		LOGE(SELF_T, "Selftest FAILED at frame %d (out of %d frames).", numFramesChecked, stHelper.getExpectedNumFrames());
-	}
-	else {
-		LOGI(SELF_T, "Selftest SUCCEEDED (%d frames validated).", numFramesChecked);
-	}
-	_selftestActive = false;
-	
+
 	// finish processing (mainly required for failed test)
 	sendRawToDispatch({STOP_PROC, 0, 0, 0, 0, 0}, SELF_T);
 	
+	// communicate test result
+	if (_selftestFailed) {
+		LOGE(SELF_T, "Selftest FAILED at frame %d (out of %d frames).", numFramesChecked, stHelper.getExpectedNumFrames());
+		delay(200);
+		sendRawToDispatch( {ANIMATE, RED, 1, 30, 0, 50}, INTS ); 
+	}
+	else {
+		LOGI(SELF_T, "Selftest SUCCEEDED (%d frames validated).", numFramesChecked);
+		delay(200);
+		sendRawToDispatch( {ANIMATE, GREEN, 1, 30, 0, 50}, INTS );
+	}
+
+	_selftestActive = false;
 	vTaskDelete( selftestTaskHandle );
 }
 
