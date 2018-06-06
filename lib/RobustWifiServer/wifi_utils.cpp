@@ -58,6 +58,8 @@ String serverStateToString(ServerState state){
       return String("CLIENT_CONNECTED");
     case DATA_AVAILABLE:
       return String("DATA_AVAILABLE");
+    default:
+      return String("UNKNOWN_STATE");
   } 
   return String("UNKNOWN_STATE");
 }
