@@ -8,7 +8,6 @@ uint8_t baseIp[] = {
 
 IPAddress gateway(192, 168, 1, 1);
 IPAddress subnet(255, 255, 255, 0);
-uint8_t ipIncr = 0;
 
 uint16_t port = 1110;
 
@@ -19,19 +18,17 @@ bool withinProgram = false;
 xQueueHandle wifiControlQueue = NULL;
 
 void connect() {
-	IPAddress myIP (baseIp[0], baseIp[1], baseIp[2], baseIp[3] + ipIncr);
+	IPAddress myIP (baseIp[0], baseIp[1], baseIp[2], baseIp[3] + getIpIncrement());
   LOGD(WIFI_T, "Connecting to %s...", myIP.toString().c_str());
 	wifiServer.connect(myIP);
 };
 
 void realizeControlCommand(PoiCommand cmd){
 	PoiCommandType type = cmd.getType();
-	uint8_t field1 = cmd.getField(1);
 
     switch(type){
 
       case CONNECT:
-        ipIncr  = field1;
         connect();
       break;
       
@@ -104,7 +101,7 @@ void wifiTask(void* arg) {
 
 void wifi_setup(uint8_t queueSize){
   wifiControlQueue = xQueueCreate(queueSize, sizeof( RawPoiCommand ));
-  IPAddress myIP (baseIp[0], baseIp[1], baseIp[2], baseIp[3] + ipIncr);
+  IPAddress myIP (baseIp[0], baseIp[1], baseIp[2], baseIp[3] + getIpIncrement());
   wifiServer.init(myIP, gateway, subnet, port, ssid, password);
 }
 

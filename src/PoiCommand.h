@@ -26,7 +26,7 @@ enum PoiCommandType {
     CONNECT = 210,
     DISCONNECT,
     CLIENT_DISCON,
-    USE_SSID,
+    SET_IP,
     LOOP_START,
     SYNC_POINT,
     LOOP_END=216,
@@ -37,9 +37,8 @@ enum PoiCommandType {
     SELFTEST,                   // start self test
 	BUTTON0_CLICK,              // event for button 0 was clicked
     BUTTON0_LONGCLICK,          // event for button 0 was clicked a long time
-    BUTTON0_RELEASE,            // event for button 0 was pressed very long and released
-    PLAYER_ACTIVE,              // status event for start of player action
-    PLAYER_INACTIVE,            // status event for end of player action
+    PLAYER_ACTIVE,              // status event for start of player action (unused)
+    PLAYER_INACTIVE,            // status event for end of player action (unused)
 	END_INTERNAL_COMMANDS,
     
     NO_COMMAND=255              // default

@@ -6,6 +6,8 @@
 #include "PoiCommand.h"
 #include "RobustWiFiServer.h"
 
+#include "memory/memoryTask.h" // for ip increment loading
+
 extern xQueueHandle wifiControlQueue;
 
 void wifi_setup(uint8_t queueSize);

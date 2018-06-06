@@ -21,5 +21,7 @@ void memory_start(uint8_t prio);
 
 // required to do synchronous scene loading from the player task
 void loadSceneFromFlash(uint8_t scene);
+// required to get current ip increment
+uint8_t getIpIncrement();
 
 #endif

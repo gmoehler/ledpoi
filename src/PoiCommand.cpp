@@ -22,7 +22,7 @@ const char *commandNames [] = {
     "CONNECT",
     "DISCONNECT",
     "CLIENT_DISCON",
-    "USE_SSID",
+    "SET_IP",
     "LOOP_START",
     "SYNC_POINT",
     "LOOP_END"
@@ -183,8 +183,7 @@ bool PoiCommand::isWifiControlCommand() {
 	return 
             _type == CONNECT || 
             _type == DISCONNECT || 
-            _type == CLIENT_DISCON || 
-            _type == USE_SSID;
+            _type == CLIENT_DISCON;
 }
 
 bool PoiCommand::isMemoryControlCommand() {
@@ -196,7 +195,8 @@ bool PoiCommand::isMemoryControlCommand() {
             _type == HEAD_PROG || 
             _type == TAIL_PROG || 
             _type == SAVE_PROG || 
-            _type == INIT_FLASH;
+            _type == INIT_FLASH || 
+            _type == SET_IP;
 }
 
 bool PoiCommand::isInternalCommand() {

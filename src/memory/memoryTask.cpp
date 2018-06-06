@@ -5,6 +5,7 @@ ImageCache imageCache(N_PIXELS, N_FRAMES,
 ProgramCache programCache;
 PoiFlashMemory flashMemory;
 uint8_t currentScene = 0;
+uint8_t ipIncr = 0;
 
 xQueueHandle memoryQueue = NULL;
 
@@ -37,6 +38,21 @@ void loadSceneFromFlash(uint8_t scene){
   else{
     LOGE(MEM_T, "Error. Cannot load scene %d", scene);
   }
+}
+
+// load ip increment from flash into memory 
+void _loadIpIncrFromFlash(){
+  if (flashMemory.loadIpIncrement(&ipIncr)) {
+   LOGI(MEM_T,  "IP incr %d loaded from flash.", ipIncr);
+  }
+  else{
+    LOGE(MEM_T, "Error. Cannot load IP incr");
+  }
+}
+
+
+uint8_t getIpIncrement() {
+  return ipIncr;
 }
 
 // save program from memory to flash
@@ -112,6 +128,7 @@ void memoryTask(void* arg)
       else {
         // carry out control commands
         PoiCommandType type = cmd.getType();
+        uint8_t field;
         switch(type){
           case HEAD_SCENE:
           currentScene = cmd.getField(1);
@@ -158,7 +175,16 @@ void memoryTask(void* arg)
           LOGI(MEM_T, "Initializing flash...");
           imageCache.clearImageMap();
           flashMemory.initializeFlash(imageCache.getRawImageData());
-          break;           
+          break;     
+          
+          case SET_IP:
+          field = cmd.getField(1);
+          if (field != ipIncr) {
+            ipIncr = field;
+            flashMemory.saveIpIncrement(ipIncr);
+            LOGI(MEM_T, "Start writing IP increment %d to memory...", ipIncr);
+          }
+          break;
 
           default:
           LOGE(MEM_T, "Memory control command is not implemented: %s", cmd.toString().c_str());
@@ -173,6 +199,7 @@ void memory_setup(uint8_t queueSize){
   // setup memory & flash
   imageCache.clearImageMap();
   flashMemory.setup(imageCache.getRawImageData());
+  _loadIpIncrFromFlash();
   loadSceneFromFlash(0);
   _loadProgFromFlash();
   // setup queue

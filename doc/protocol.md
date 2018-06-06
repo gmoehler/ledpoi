@@ -98,10 +98,10 @@ Direct commands are carried out instantly cleaning the current program and play 
 |*|jump2Sync |209|          |||||jump to snyc point immediately(interrupting all running programs/play actions)|A|
 | |reset     |217|          |||||reset internal states (e.g. program_head, scene_head)|A|
 |**Wifi**|
-|*|connect   |210|id        |||||connect to ip with `initial IP` + `id` (0...8)|A|+|
+|*|connect   |210|          |||||connect to ip saved with `setIP` command|A|+|
 |*|disconnect|211|          |||||disconnect from wifi|A|+|
 |*|clientDiscon|212|        |||||disconnect poi from client (PC)|A|
-| |useSSID   |213|id        |||||connect to SSID with `id` as defined in the code|A|
+|*|setIP     |213|          |||||set and save a particular IP increment to the flash memory (0..8)|A|
 |**Prog control statements**|
 |*|loopStart |214|loopId    |||loopCt MSB|loopCt LSB|define start of loop with id and number of loops |P|
 |*|syncPoint |215|sequenceId|stopAtSync||||define sync point for jumpTo action, if stopAtSync is > 0 then the show stops at the sync point until sync is received|P|
@@ -110,7 +110,7 @@ Direct commands are carried out instantly cleaning the current program and play 
 |**Internal**|
 |*|poistatus |231|          |||||print queue status to log|A|
 |*|selftest  |232|          |||||run internal poi self-test|A|
-| |          |_232...254_|  |||||_reserved address space for internal commands_||
+| |          |_233...254_|  |||||_reserved address space for internal commands_||
 |**Other**|
 |*|          |255|          |||||keep-alive signal||
 

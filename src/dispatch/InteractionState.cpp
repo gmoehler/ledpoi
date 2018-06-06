@@ -52,11 +52,6 @@ void InteractionState::_triggerStateTransition(PoiCommand cmd) {
             nextState = NO_INTERACTION;
         }
         break;
-
-        
-        case BUTTON0_RELEASE:
-        // no action defined
-        break;
         
         case POISTATUS:
         _monitor.logStatus();
