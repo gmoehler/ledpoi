@@ -21,9 +21,9 @@ void logging_setup(){
     esp_log_level_set(WIFI_T,  ESP_LOG_DEBUG);       // wifi task
     esp_log_level_set(UART_T,  ESP_LOG_DEBUG);       // uart task
     esp_log_level_set(PROG_T,  ESP_LOG_DEBUG);       // program task
-    esp_log_level_set(PLAY_T,  ESP_LOG_DEBUG);   // play task
+    esp_log_level_set(PLAY_T,  ESP_LOG_DEBUG);       // play task
     esp_log_level_set(MEM_T,   DEFAULT_LOG_LEVEL);   // memory task
-    esp_log_level_set(SELF_T,  ESP_LOG_DEBUG);    // selftest task
+    esp_log_level_set(SELF_T,  ESP_LOG_DEBUG);       // selftest task
     esp_log_level_set(BUT_T,  DEFAULT_LOG_LEVEL);    // button task
     esp_log_level_set(EXPL_T,  DEFAULT_LOG_LEVEL);   // example task
 
@@ -39,6 +39,7 @@ void logging_setup(){
     esp_log_level_set(FLASH,   DEFAULT_LOG_LEVEL);   // flash memory
     esp_log_level_set(PROGH,   DEFAULT_LOG_LEVEL);   // program handler
     esp_log_level_set(INTS,    DEFAULT_LOG_LEVEL);   // interaction state
+    esp_log_level_set(SELF_H,    ESP_LOG_DEBUG);   // selftest helper
 }
 
 void setup() {

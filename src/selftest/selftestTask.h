@@ -4,9 +4,10 @@
 #include "ledpoi.h"
 #include "ledpoi_utils.h"
 #include "PoiCommand.h"
-#include "display/displayTask.h"
+#include "SelftestHelper.h"
 
 void selftest_start(uint8_t prio); 
-void validateSelftest(PixelFrame& rframe);    
+bool isSelftestActive();  
+void selftestValidateFrame(PixelFrame& rframe);
 
 #endif

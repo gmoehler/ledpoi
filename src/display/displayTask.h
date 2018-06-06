@@ -10,7 +10,7 @@
 #include "ledpoi.h"
 #include "ledpoi_utils.h"
 #include "PoiTimer.h"
-#include "selftest/selftestTask.h"
+#include "selftest/selftestTask.h" // to send frames for validation
 
 extern xQueueHandle displayQueue; // for reading only
 
@@ -22,6 +22,5 @@ void display_pause();				    // pause the display action
 void display_resume();			        // resume the display action
 bool display_isPaused();			    // is display in pause
 void display_skipFrames();              // skip all frames until display is resumed
-void setSelftestMode(bool active);      // allow verification of selftest results
 
 #endif

@@ -1,127 +1,77 @@
 #include "selftestTask.h"
 
 TaskHandle_t selftestTaskHandle = NULL;
-bool testResult = true;
-rgbVal red = makeRGBVal(254, 0, 0);
-rgbVal green = makeRGBVal(0, 254, 0);
-uint16_t expectedNumFrames = 0;
+SelftestHelper stHelper;
+bool _selftestActive = false;
+bool _selftestFailed = false;
+uint16_t numFramesChecked = 0;
 
-bool sendToDispatch(RawPoiCommand rawCommand){
-	PoiCommand cmd(rawCommand);
-	return sendToDispatch(cmd, SELF_T);
+volatile SemaphoreHandle_t _endofTestSemaphore;
+
+bool isSelftestActive() {
+	return _selftestActive;
 }
 
-// generate a color for a pixel
-rgbVal getTestPixelColor(uint8_t i) {
-	return makeRGBVal(i,0,254-i);
-}
-
-// generate an index for a pixel
-uint8_t getTestPixelIndex(uint8_t i) {
-	return i % N_PIXELS;
-}
-
-/// generate an image with max size
-void sendImage() {
-  sendToDispatch({HEAD_SCENE,  N_SCENES-1,  0,  0,  0,  0});
-	
-	for (uint8_t i=0; i<N_FRAMES; i++) {
-		rgbVal c = getTestPixelColor(i);
-		uint8_t idx = getTestPixelIndex(i);
-		sendToDispatch({idx,  i,  0,  c.r,  c.g,  c.b});
+void selftestValidateFrame(PixelFrame& rframe) {
+	if (!_selftestActive) {
+		LOGE(SELF_T, "Cannot validate frame when selftest is inactive" );
+		return;
 	}
-	
-	sendToDispatch({TAIL_SCENE,  0,  0,  0,  0,  0});
-	sendToDispatch({SAVE_SCENE,  0,  0,  0,  0,  0});
-}
-
-void sendProgram() {
-	
-	uint8_t d0 = 10;  // short delay
-	uint8_t d1 = 250; // long delay
-	sendToDispatch({HEAD_PROG,  0,  0,  0,  0,  0});
-	
-	// scene 0 first to wipe out mem
-	sendToDispatch({LOAD_SCENE,  0,  0,  0,  0,  0});
-	sendToDispatch({LOAD_SCENE,  N_SCENES-1,  0,  0,  0,  0});
-	
-	// twice red-green
-	sendToDispatch({LOOP_START,  42,  0,  0,  0,  2});
-	sendToDispatch({SHOW_RGB, 254,  0,  0,  0,  d1});
-	sendToDispatch({SHOW_RGB,  0, 254,  0,  0,  d1});
-	sendToDispatch({LOOP_END, 42,  0,  0,  0,  0});
-	
-	// twice complete image
-	sendToDispatch({PLAY_FRAMES,  0,  N_FRAMES-1,  2,  0,  d0});
-	
-	sendToDispatch({TAIL_PROG,  0,  0,  0,  0,  0});
-	sendToDispatch({SAVE_PROG,  0,  0,  0,  0,  0});
-	expectedNumFrames = 4 + N_FRAMES * 2;
-}
-
-void startProgram() {
-	sendToDispatch({START_PROG,  0,  0,  0,  0,  0});
-}
-
-bool isRgbEqual(rgbVal v1, rgbVal v2) {
-	return (v1.r == v2.r && v1.g == v2.g && v1.b == v2.b);
-}
-
-void validateSelftest(PixelFrame& rframe) {
-
-	LOGD(SELF_T, "Validating display frame %d", rframe.idx);
-	
-	// 4 SHOW_RGB commands
-	if (rframe.idx<4) {
-		rgbVal expectedColor = rframe.idx%2 == 0 ? 
-			red : green;
-
-		for (uint8_t i=0; i<N_PIXELS; i++) {
-				if (rframe.idx%2 == 0){
-					if (!isRgbEqual(rframe.pixel[i], expectedColor)) {
-						LOGD(SELF_T, "Wrong color (%d %d %d) at display frame %d",
-							rframe.pixel[i].r, rframe.pixel[i].g, rframe.pixel[i].b, rframe.idx);
-							testResult = false;
-					}
-				}
+	bool success = stHelper.validateFrame(rframe, numFramesChecked);
+	if (success) {
+		numFramesChecked++;
+		if (numFramesChecked >= stHelper.getExpectedNumFrames()) {
+			// last frame
+			_selftestActive = false;
 		}
 	}
-	// image frames
 	else {
-		uint8_t frameIdx = rframe.idx > N_FRAMES ? rframe.idx - N_FRAMES : rframe.idx;
-		rgbVal expectedColor = getTestPixelColor(frameIdx-4);
-		uint8_t i = getTestPixelIndex(frameIdx-4);
-		if (!isRgbEqual(rframe.pixel[i], expectedColor)) {
-			LOGD(SELF_T, "Wrong color (%d %d %d) at display frame %d",
-				rframe.pixel[i].r, rframe.pixel[i].g, rframe.pixel[i].b, rframe.idx);
-			testResult = false;
-		}
-		if (rframe.idx >= expectedNumFrames - 1) {
-				LOGI(SELF_T, "Self test finished. Result: %d.",testResult);
-				LOGI(SELF_T, "Disabling result verification...");
-				setSelftestMode(false);
-		}
+		_selftestFailed = true;
+		_selftestActive = false;
+ 	}
+ 	
+	if (!_selftestActive) {
+		// selftest finished
+		xSemaphoreGive( _endofTestSemaphore );
 	}
 }
 
 static void selftestTask(void* arg){
 
-	// reset result
-	testResult = true;
+	_selftestActive = true;
+	_selftestFailed = false;
+	numFramesChecked = 0;
+	_endofTestSemaphore = xSemaphoreCreateBinary();
 
 	LOGI(SELF_T, "Sending image...");
-	sendImage();
+	stHelper.sendImage();
 	LOGI(SELF_T, "Sending program...");
-	sendProgram();
-	LOGI(SELF_T, "Enabling result verification...");
-	setSelftestMode(true);
+	stHelper.sendProgram();
 	LOGI(SELF_T, "Starting program...");
-	startProgram();
+	stHelper.startProgram();
 	LOGI(SELF_T, "Program started...");
-	// LOGI(SELF_T, "Disabling result verification...");
-	// setSelftestMode(false);
-  // end task
-  vTaskDelete( selftestTaskHandle );
+
+	// wait for success, error or timeout (1.2 times the expected runtime)
+	uint32_t timeoutMs =  12 * stHelper.getExpectedRuntime() / 10;
+	const TickType_t xDelay = timeoutMs / portTICK_PERIOD_MS;
+	if (!xSemaphoreTake(_endofTestSemaphore, xDelay)) {
+		// timeout reached
+		LOGE(SELF_T, "Selftest timeout (%d) reached at frame %d.", timeoutMs, numFramesChecked);
+		_selftestFailed = true;
+	}
+	
+	if (_selftestFailed) {
+		LOGE(SELF_T, "Selftest FAILED at frame %d (out of %d frames).", numFramesChecked, stHelper.getExpectedNumFrames());
+	}
+	else {
+		LOGI(SELF_T, "Selftest SUCCEEDED (%d frames validated).", numFramesChecked);
+	}
+	_selftestActive = false;
+	
+	// finish processing (mainly required for failed test)
+	sendRawToDispatch({STOP_PROC, 0, 0, 0, 0, 0}, SELF_T);
+	
+	vTaskDelete( selftestTaskHandle );
 }
 
 void selftest_start(uint8_t prio){

@@ -89,5 +89,6 @@ enum Color {       WHITE,   // 0
 #define PROGH   "PGHU"   // program handler 
 #define PCACHE  "PCHU"   // program cache
 #define INTS    "INTS"   // interaction state
+#define SELF_H  "SELH"   // selftest helper
 
 #endif
