@@ -50,6 +50,7 @@ void PlayFramesAction::next(){
         // next loop starts
         _currentLoop++;
         _currentFrame = _startFrame;
+        printState();
       }
     }
     else {
@@ -69,6 +70,7 @@ void PlayFramesAction::next(){
         // next loop starts
         _currentLoop++;
         _currentFrame = _startFrame;
+        printState();
       }
     }
     else {

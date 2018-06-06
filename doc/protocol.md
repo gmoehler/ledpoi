@@ -103,14 +103,14 @@ Direct commands are carried out instantly cleaning the current program and play 
 |*|clientDiscon|212|          |||||disconnect poi from client (PC)|A|
 | |useSSID   |213|id        |||||connect to SSID with `id` as defined in the code|A|
 |**Prog control statements**  |
-|*|loopStart |214|loopId   |||loopCt MSB|loopCt LSB|define start of loop with id and number of loops |P|
+|*|loopStart |214|loopId    |||loopCt MSB|loopCt LSB|define start of loop with id and number of loops |P|
 |*|syncPoint |215|sequenceId|stopAtSync||||define sync point for jumpTo action, if stopAtSync is > 0 then the show stops at the sync point until sync is received|P|
-|*|loopEnd   |216|loopId   |||||end of loop|P|
-| |          |_217...230_|   |||||_reserved address space_||
+|*|loopEnd   |216|loopId     |||||end of loop|P|
+| |          |_217...230_| |||||_reserved address space_||
 |**Internal** |
 |*|poistatus |231|          |||||print queue status to log|A|
-|*|selftest  |232|          |||||run poi self-test|A|
-| |          |_232...254_|   |||||_reserved address space for internal commands_||
+|*|selftest  |232|          |||||run internal poi self-test|A|
+| |          |_232...254_|  |||||_reserved address space for internal commands_||
 |**Other** |
 |*|          |255|          |||||keep-alive signal||
 
