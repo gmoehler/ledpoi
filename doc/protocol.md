@@ -75,7 +75,7 @@ Direct commands are carried out instantly cleaning the current program and play 
 |---|---|---|---|---|---|---|---|---|---|---|
 |**Memory**|
 |*|setPixel  |idx(0...127)|frame|(scene)|r|g|b|pixel of a frame in a scene -- scene is not supported for now|A|+|
-| |          |_128...191_||||||_reserved address space_||+|
+| |          |_128...191_|  |||||_reserved address space_||+|
 |*|headScene |192|scene     |||||first pixels of active scene `id` in next cmd (overwriting current active scene)|A|+|
 |*|tailScene |193|          |||||last pixels of active scene `id` in prev cmd|A|+|
 |*|saveScene |194|          |||||save active scene to flash |A|
@@ -83,13 +83,13 @@ Direct commands are carried out instantly cleaning the current program and play 
 |*|tailProg  |196|          |||||prev. cmd was final statement of prog|A|
 |*|saveProg  |197|          |||||save prog to flash |A|
 |*|initFlash |198|          |||||init flash memory and image map in memory|A|
-|**Play**  |
+|**Play**|
 |*|loadScene |199|scene     |||||load scene `id` from flash to active scene|D/P|
 |*|showRgb   |200|r         |g|b|timeout MSB|timeout LSB|show a static rgb with timeout|D/P|
 |*|playFrames|201|frameStart|frameEnd|loops|delay/to MSB|delay/to LSB|Play frames of active scene with delay<br/> or single frame with timeout (when frameStart == frameEnd)|D/P|+|
 |*|animate   |202|color id  |nLoops|nPixels|delay/to MSB|delay/to LSB|play worm animation in color|D/P|
 |*|displayIP |203|ip        |with_static_bg|||| display ips from 0 to 10 - with static background if _with_static_bg_ is > 0 |D(/P)|+|
-|*|dim       |204|dimFactor         |||||dim current image by a factor of `dimFactor/254`. Will be reset at the beginning of the program|D/P|
+|*|dim       |204|dimFactor |||||dim current image by a factor of `dimFactor/254`. Will be reset at the beginning of the program|D/P|
 | |fade2Frame|205|(scene)   |frame||fadeTime MSB|fadeTime LSB|fade last Frame to a new frame -- scene is not supported for now|D/P|
 |**Control**|
 |*|startProg |206|          |||||start program immediately (interrupting all running programs/play actions)|A|
@@ -97,21 +97,21 @@ Direct commands are carried out instantly cleaning the current program and play 
 |*|pauseProc |208|          |||||pauses/resume processing immediately|A|
 |*|jump2Sync |209|          |||||jump to snyc point immediately(interrupting all running programs/play actions)|A|
 | |reset     |217|          |||||reset internal states (e.g. program_head, scene_head)|A|
-|**Wifi**  |
+|**Wifi**|
 |*|connect   |210|id        |||||connect to ip with `initial IP` + `id` (0...8)|A|+|
 |*|disconnect|211|          |||||disconnect from wifi|A|+|
-|*|clientDiscon|212|          |||||disconnect poi from client (PC)|A|
+|*|clientDiscon|212|        |||||disconnect poi from client (PC)|A|
 | |useSSID   |213|id        |||||connect to SSID with `id` as defined in the code|A|
-|**Prog control statements**  |
+|**Prog control statements**|
 |*|loopStart |214|loopId    |||loopCt MSB|loopCt LSB|define start of loop with id and number of loops |P|
 |*|syncPoint |215|sequenceId|stopAtSync||||define sync point for jumpTo action, if stopAtSync is > 0 then the show stops at the sync point until sync is received|P|
 |*|loopEnd   |216|loopId     |||||end of loop|P|
 | |          |_217...230_| |||||_reserved address space_||
-|**Internal** |
+|**Internal**|
 |*|poistatus |231|          |||||print queue status to log|A|
 |*|selftest  |232|          |||||run internal poi self-test|A|
 | |          |_232...254_|  |||||_reserved address space for internal commands_||
-|**Other** |
+|**Other**|
 |*|          |255|          |||||keep-alive signal||
 
 # Legacy commands
