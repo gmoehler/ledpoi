@@ -70,7 +70,7 @@ enum Color {       WHITE,   // 0
 #define DISP_T  "DIST"   // display task
 #define MEM_T   "MEMT"   // memory task
 #define WIFI_T  "WIFT"   // wifi task
-#define UART_T  "UART"   // wifi task
+#define UART_T  "UART"   // uart task
 #define PLAY_T  "PLAT"   // player task
 #define PROG_T  "PRGT"   // program task
 #define SELF_T  "SELT"   // selftest task

@@ -2,7 +2,9 @@
 #define WIFI_UTILS
 
 #ifndef WITHIN_UNITTEST
-  #include <WiFi.h>
+  #include <Arduino.h>
+  #include "esp_wifi.h"
+  #include "esp_event_loop.h"
 #else
   #include "../test/mock_Arduino.h"
   #include "../test/mock_wifi.h"
@@ -11,7 +13,7 @@
 // define default compile time 
 // #ifndef LOG_LOCAL_LEVEL
 #undef LOG_LOCAL_LEVEL
-#define LOG_LOCAL_LEVEL ESP_LOG_DEBUG
+#define LOG_LOCAL_LEVEL ESP_LOG_INFO
 // #endif
 
 #include "esp_log.h"
@@ -24,18 +26,34 @@
 #define LOGI( tag, format, ... )  if (LOG_LOCAL_LEVEL >= ESP_LOG_INFO)    { esp_log_write(ESP_LOG_INFO,    tag, LOG_FORMAT(I, format), esp_log_timestamp(), tag, ##__VA_ARGS__); }
 #define LOGD( tag, format, ... )  if (LOG_LOCAL_LEVEL >= ESP_LOG_DEBUG)   { esp_log_write(ESP_LOG_DEBUG,   tag, LOG_FORMAT(D, format), esp_log_timestamp(), tag, ##__VA_ARGS__); }
 #define LOGV( tag, format, ... )  if (LOG_LOCAL_LEVEL >= ESP_LOG_VERBOSE) { esp_log_write(ESP_LOG_VERBOSE, tag, LOG_FORMAT(V, format), esp_log_timestamp(), tag, ##__VA_ARGS__); }
+
+/* #define LOGE( tag, format, ... )  if (LOG_LOCAL_LEVEL >= ESP_LOG_ERROR)   { printf(format "\n",  ##__VA_ARGS__); }
+#define LOGW( tag, format, ... )  if (LOG_LOCAL_LEVEL >= ESP_LOG_WARN)    { printf(format "\n",  ##__VA_ARGS__); }
+#define LOGI( tag, format, ... )  if (LOG_LOCAL_LEVEL >= ESP_LOG_INFO)    { printf(format "\n",  ##__VA_ARGS__); }
+#define LOGD( tag, format, ... )  if (LOG_LOCAL_LEVEL >= ESP_LOG_DEBUG)   { printf(format "\n",  ##__VA_ARGS__); }
+#define LOGV( tag, format, ... )  if (LOG_LOCAL_LEVEL >= ESP_LOG_VERBOSE) { printf(format "\n",  ##__VA_ARGS__); } */
 #endif
 
 
 #define RWIFIS  "RWIF"   // logging tag
+#define WIFI_U  "WIFU"   // wifi utils
+
+// for SSID connection only
+enum WifiState {
+  WIFI_UNCONFIGURED,
+  WIFI_STARTED,
+  WIFI_CONNECTED
+} ;
+
+extern WifiState wifiState;
 
 enum ServerState {  
-  DISCONNECTED       = 0,
-  CONNECTED          = 1,
-  SERVER_LISTENING   = 2,
-  CLIENT_CONNECTED   = 3,
-  DATA_AVAILABLE     = 4,
-  ERR_SSID_NOT_AVAIL = 90,
+  UNCONFIGURED       = 0,
+  DISCONNECTED       = 1,
+  CONNECTED          = 2,
+  SERVER_LISTENING   = 3,
+  CLIENT_CONNECTED   = 4,
+  DATA_AVAILABLE     = 5,
   UNKNOWN            = 99
 };
 
@@ -58,15 +76,18 @@ class Transition
 public:
   ServerState from;
   ServerState to;
-  bool _invokeAction;
+  bool _actionInvoked;
   uint32_t _lastInvocationTime;
   Transition(ServerState f, ServerState t):
-    from(f), to(t), _invokeAction(true), _lastInvocationTime(0){};
+    from(f), to(t), _actionInvoked(false), _lastInvocationTime(0){
+      _lastInvocationTime = millis();
+    };
   bool operator==(Transition& rhs)const {
     return rhs.from == this->from && rhs.to == this->to;
   }
-  bool withAction(){ return from != to;}
-  void setInvokeAction(bool ia) {_invokeAction = ia;}
+  bool isEmptyTransition(){ return from == to;}
+  void setActionInvoked(bool ai) {_actionInvoked = ai;}
+  bool wasActionInvoked() {return _actionInvoked;}
   void setLastInvocationTime() {_lastInvocationTime = millis();}
   uint32_t getLastInvocationTime() { return _lastInvocationTime;}
   String  toString();
@@ -74,5 +95,10 @@ public:
 
 String serverStateToString(ServerState state);
 String wiFiStateToString();
-
+ServerState getNextServerStateUp(ServerState state);
+ServerState getNextServerStateDown(ServerState state);
+bool wifi_init();
+bool wifi_start_sta(String ssid, String password, 
+    IPAddress ip, IPAddress gateway, IPAddress subnet);
+void wifi_stop_sta();
 #endif

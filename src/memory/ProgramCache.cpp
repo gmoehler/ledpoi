@@ -6,7 +6,7 @@ ProgramCache::ProgramCache() :
 void ProgramCache::addCommand(PoiCommand cmd){
 
   if (_numProgLines >= N_PROG_STEPS){
-    printf("Error. Number of programming steps exceeds maximum (%d).", N_PROG_STEPS);
+    LOGE(PCACHE, "Error. Number of programming steps exceeds maximum (%d).", N_PROG_STEPS);
     // reset current program
     clearProgram();
 		return;

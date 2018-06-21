@@ -1,6 +1,6 @@
 #include "wifiTask.h"
 
-const String ssid     = "MY_SSID";
+const String ssid     = "MY_SSID7";
 const String password = "my_password";
 
 uint8_t baseIp[] = {
@@ -73,9 +73,13 @@ void wifiTask(void* arg) {
         // cmd complete
         if (i==N_CMD_FIELDS){
           PoiCommand cmd(rawCmd);
-          if (cmd.getType() != NO_COMMAND){
+          if (cmd.getType() == SET_PIXEL){  
+            sendToDispatch(cmd, WIFI_T, false);
+          }
+          else if (cmd.getType() != NO_COMMAND){
             sendToDispatch(cmd, WIFI_T);
           }
+
        }
       }
     }
@@ -93,9 +97,9 @@ void wifiTask(void* arg) {
       	LOGE(WIFI_T, "Error. Non-wifi control command sent to wifi task: %s", cmd.toString().c_str());
        }
       }	
-      delay(500);
-      
+      delay(100);
     } // else
+
   } // loop
 }
 

@@ -25,6 +25,8 @@
 
 #include "wifi_utils.h"
 
+#define TRANSITION_TIMEOUT 10000
+
 class RobustWiFiServer
 {
 public:
@@ -51,8 +53,11 @@ public:
 private:
   Transition _currentTransition; // current state transition
   ServerState _currentState; // current state
-  ServerState _targetState;  // ultimate target
+  ServerState _targetState;  // first target
+  ServerState _targetState2; // second target
   ServerCondition _condition;
+  bool _targetUpdated;
+  int _lastDataAvailableCount;
 
   IPAddress _ip; 
   IPAddress _gateway; 
@@ -65,9 +70,7 @@ private:
   WiFiClient _client;
   
   Transition _determineNextTransition();
-  Transition _determineNextConnectTransition();
-  Transition _determineNextDisconnectTransition();
-  Transition _getRevertTransition(Transition trans);
+  Transition _getStepBackTransition();
   
   void _invokeAction(Transition& trans);
   bool _wasTransitionSuccessful(Transition trans);

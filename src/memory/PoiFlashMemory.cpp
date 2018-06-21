@@ -30,6 +30,7 @@ void PoiFlashMemory::setup(uint8_t *initImageData){
 void PoiFlashMemory::initializeFlash(uint8_t *initImageData) {
 
   _eraseImagePartition();
+  // _eraseNvsFlashPartition();
 
   // a more thorough NVS partition cleaning is done by _eraseNvsFlashPartition() 
   // but it currently results in a cpu halt and, therefore, requires a hard reset:
