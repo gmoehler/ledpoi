@@ -222,10 +222,10 @@ bool RobustWiFiServer::_checkState(ServerState state, bool debug){
 }
 
 void RobustWiFiServer::_printInternalState(){
-	LOGD(RWIFIS, "WiFi state: %s", wiFiStateToString().c_str());
-  LOGD(RWIFIS, " Server: %s %s", 
+	LOGV(RWIFIS, "WiFi state: %s", wiFiStateToString().c_str());
+  LOGV(RWIFIS, " Server: %s %s", 
     _server ? "conn " : "nc ", _server.available() ? "avail" : "na");
-  LOGD(RWIFIS, " Client: %s %s", 
+  LOGV(RWIFIS, " Client: %s %s", 
     _client.connected() ? "conn " : "nc ", _client.available() ? "avail" : "na");
 }
 
