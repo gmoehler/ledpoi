@@ -129,25 +129,6 @@ bool wifi_start_sta(String ssid, String password,
   return true;
 }
 
-/* bool sta_disconnect(bool wifioff)
-{
-    bool ret;
-    wifi_config_t conf;
-    *conf.sta.ssid = 0;
-    *conf.sta.password = 0;
-
-    WiFi.getMode();
-    esp_wifi_start();
-    esp_wifi_set_config(WIFI_IF_STA, &conf);
-    ret = esp_wifi_disconnect() == ESP_OK;
-
-    if(wifioff) {
-        WiFi.enableSTA(false);
-    }
-
-    return ret;
-}*/
-
 void wifi_disconnect() {
 
   LOGI(WIFI_U, "Disconnecting Wifi...");
