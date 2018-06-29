@@ -37,8 +37,7 @@ enum PoiCommandType {
     SELFTEST,                   // start self test
 	BUTTON0_CLICK,              // event for button 0 was clicked
     BUTTON0_LONGCLICK,          // event for button 0 was clicked a long time
-    PLAYER_ACTIVE,              // status event for start of player action (unused)
-    PLAYER_INACTIVE,            // status event for end of player action (unused)
+    STOP_PROC_COMPLETED,        // status event sent when stop processing is done
 	END_INTERNAL_COMMANDS,
     
     NO_COMMAND=255              // default

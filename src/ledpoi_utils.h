@@ -37,7 +37,7 @@ enum QueueType {
 
 // some utils
 rgbVal makeRGBValue(uint8_t *rgb_array);
-rgbVal makeRGBValue(Color color, uint8_t brightness=255);
+rgbVal makeRGBValue(Color color, uint8_t brightness=254);
 rgbVal fadeColor(Color color, float factor);
 // utils and demo setup
 void fillFrame(PixelFrame* pFrame, uint8_t idx, uint16_t delay, uint8_t r, uint8_t g, uint8_t b);

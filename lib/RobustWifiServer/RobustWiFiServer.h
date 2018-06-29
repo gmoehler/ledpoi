@@ -26,17 +26,20 @@
 #include "wifi_utils.h"
 
 #define TRANSITION_TIMEOUT 10000
+// smaller timeout when listening for data available since we expect a keep alive signal each second
+#define TRANSITION_TIMEOUT_DATA_AVAILABLE 3000
 
 class RobustWiFiServer
 {
 public:
   RobustWiFiServer();
   void init(IPAddress ip, IPAddress gateway, IPAddress subnet, 
-    uint16_t serverPort, String ssid, String wifiPassword); // to be called in setup()
+    uint16_t serverPort, String ssid, String wifiPassword, 
+    uint8_t serverPortIncrOnError, uint8_t numPortVarOnError); // call once
 
   void connect();
   // connect to a different ip (only when being disconnected)
-  void connect(IPAddress ip);
+  void connect(IPAddress ip, uint16_t port);
   void disconnect();
   
   void clientDisconnect();
@@ -63,6 +66,9 @@ private:
   IPAddress _gateway; 
   IPAddress _subnet; 
   uint16_t _serverPort;
+  uint16_t _initialServerPort;
+  uint8_t _serverPortIncrOnError;
+  uint8_t _numPortVarOnError;
   String _ssid; 
   String _wifiPassword;
 

@@ -27,6 +27,9 @@
 // maximum number of pois that can be configured
 #define N_POIS 10
 
+// number of different port variations on error per client
+#define N_PORT_VARS_ON_ERROR 5
+
 // on flash image must fit into a multiple of SPI_FLASH_SEC_SIZE (4096)
 // in 2MB there are 256 sections available
 #define N_NUM_FLASH_SECTIONS_PER_IMAGE 10
@@ -60,6 +63,7 @@ enum Color {       WHITE,   // 0
                    YELLOW,  // 5
                    LILA,
                    CYAN,
+                   ORANGE,
                    RAINBOW,  // 8
                    PALE_WHITE
                    };

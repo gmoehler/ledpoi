@@ -33,7 +33,7 @@ const char *internalCommandNames [] = {
     "SELFTEST",
     "BUT0_CLICK",
     "BUT0_LONGCLICK",
-    "BUT0_RELEASE",
+    "STOP_PROC_COMPLETED"
 };
 
 const char* commandNameNoCommand = "NO_COMMAND      ";

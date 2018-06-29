@@ -9,18 +9,22 @@ uint8_t baseIp[] = {
 IPAddress gateway(192, 168, 1, 1);
 IPAddress subnet(255, 255, 255, 0);
 
-uint16_t port = 1110;
+uint16_t basePort = 1110;
+const int CONTROL_LED_PIN = 2;
 
 RobustWiFiServer wifiServer;
+TaskHandle_t controlLedBlinkTaskHandle = NULL;
 bool withinProgram = false;
+bool controlLedBlinkActive = false;
 
 // queue to receive wifi control commands
 xQueueHandle wifiControlQueue = NULL;
 
 void connect() {
-	IPAddress myIP (baseIp[0], baseIp[1], baseIp[2], baseIp[3] + getIpIncrement());
-  LOGD(WIFI_T, "Connecting to %s...", myIP.toString().c_str());
-	wifiServer.connect(myIP);
+  uint16_t ipIncr = getIpIncrement();
+	IPAddress myIP (baseIp[0], baseIp[1], baseIp[2], baseIp[3] + ipIncr);
+  LOGD(WIFI_T, "Connecting to %s:%d...", myIP.toString().c_str(), basePort + ipIncr);
+	wifiServer.connect(myIP, basePort + ipIncr);
 };
 
 void realizeControlCommand(PoiCommand cmd){
@@ -39,7 +43,7 @@ void realizeControlCommand(PoiCommand cmd){
       case CLIENT_DISCON:
         wifiServer.clientDisconnect();
       break;
-      
+
       default:
           LOGW(WIFI_T, "Wifi control command is not implemented: %s", cmd.toString().c_str());
       break;
@@ -47,14 +51,71 @@ void realizeControlCommand(PoiCommand cmd){
     }
 }
 
+void controlLedBlinkTask(void* arg) {
+  bool on = false;
+  while(controlLedBlinkActive) {
+
+    uint8_t level = on ? HIGH : LOW;
+    digitalWrite(CONTROL_LED_PIN, level);
+    on = !on;
+    delay(500);
+  }
+  vTaskDelete(NULL);
+}
+
+void setControlLedState(ServerState state) {
+
+  static ControlLedState prevControlLedState = CONTROL_LED_OFF;
+
+  switch(state) {
+    case UNCONFIGURED:
+      if (prevControlLedState != CONTROL_LED_OFF) { // state changed
+        controlLedBlinkActive = false;              // end blink task
+        prevControlLedState = CONTROL_LED_OFF;      // remember state
+        digitalWrite(CONTROL_LED_PIN, LOW);
+      }
+    break;
+
+    case CONNECTED:
+    case SERVER_LISTENING:
+      if (prevControlLedState != CONTROL_LED_BLINK) { // state changed
+        prevControlLedState = CONTROL_LED_BLINK;      // remember state
+        controlLedBlinkActive = true;                 // enable blinking
+        // start blink task
+        xTaskCreate(controlLedBlinkTask, "controlLedBlinkTask", 1024, NULL, 3, &controlLedBlinkTaskHandle);
+      }
+    break;
+
+    case CLIENT_CONNECTED:
+    case DATA_AVAILABLE:
+    if (prevControlLedState != CONTROL_LED_ON) {  // state chanted
+        controlLedBlinkActive = false;            // end blink task
+        prevControlLedState = CONTROL_LED_ON;     // remember state
+        digitalWrite(CONTROL_LED_PIN, HIGH);
+      }
+     break;
+
+    default:
+      // should not happen
+    break;
+  }
+}
+
 void wifiTask(void* arg) {
+
+  IPAddress myIP (baseIp[0], baseIp[1], baseIp[2], baseIp[3] + getIpIncrement());
+  wifiServer.init(myIP, gateway, subnet, basePort + getIpIncrement(), ssid, password, N_POIS, N_PORT_VARS_ON_ERROR);
+
   RawPoiCommand rawCmd;
   int i = 0;
 
   for(;;) {
     wifiServer.loop();
 
-    if (wifiServer.getState() == DATA_AVAILABLE) {
+    ServerState currentState = wifiServer.getState();
+    setControlLedState(currentState);
+
+    if (currentState == DATA_AVAILABLE) {
       char c = wifiServer.readData();       // read one byte
       uint8_t b = static_cast<uint8_t> (c);
       LOGV(WIFI_T, "%d ", b);               
@@ -79,8 +140,7 @@ void wifiTask(void* arg) {
           else if (cmd.getType() != NO_COMMAND){
             sendToDispatch(cmd, WIFI_T);
           }
-
-       }
+        }
       }
     }
     
@@ -94,19 +154,19 @@ void wifiTask(void* arg) {
           realizeControlCommand(cmd);
         }
         else {
-      	LOGE(WIFI_T, "Error. Non-wifi control command sent to wifi task: %s", cmd.toString().c_str());
-       }
+      	  LOGE(WIFI_T, "Error. Non-wifi control command sent to wifi task: %s", cmd.toString().c_str());
+        }
       }	
-      delay(100);
-    } // else
 
+    delay(200); // delay only when no data is available
+    } // else
   } // loop
 }
 
 void wifi_setup(uint8_t queueSize){
+  pinMode(CONTROL_LED_PIN, OUTPUT);
   wifiControlQueue = xQueueCreate(queueSize, sizeof( RawPoiCommand ));
-  IPAddress myIP (baseIp[0], baseIp[1], baseIp[2], baseIp[3] + getIpIncrement());
-  wifiServer.init(myIP, gateway, subnet, port, ssid, password);
+  
 }
 
 void wifi_start(uint8_t prio){ 

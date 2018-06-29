@@ -36,7 +36,7 @@ void logging_setup(){
     esp_log_level_set(ICACHE,  DEFAULT_LOG_LEVEL);   // image cache util  
     esp_log_level_set(PCACHE,  DEFAULT_LOG_LEVEL);   // program cache util 
     esp_log_level_set(RWIFIS,  DEFAULT_LOG_LEVEL);   // Robust wifi server
-    esp_log_level_set(WIFI_U,  DEFAULT_LOG_LEVEL);   // Robust wifi server
+    esp_log_level_set(WIFI_U,  DEFAULT_LOG_LEVEL);   // Robust wifi server utils
     esp_log_level_set(FLASH,   DEFAULT_LOG_LEVEL);   // flash memory
     esp_log_level_set(PROGH,   DEFAULT_LOG_LEVEL);   // program handler
     esp_log_level_set(INTS,    DEFAULT_LOG_LEVEL);   // interaction state
@@ -63,12 +63,12 @@ void setup() {
   program_start(6, 5);
   player_start(4);
   display_start(3); 
-  wifi_start(5);
+  wifi_start(8);
   uart_start(5);
 
   // send wifi start command to central dispatch queue after everything is set up
-  /* PoiCommand cmdStartWifi ({CONNECT, 0, 0, 0, 0, 0});
-  sendToDispatch(cmdStartWifi, WIFI_T); */
+  PoiCommand cmdStartWifi ({CONNECT, 0, 0, 0, 0, 0});
+  sendToDispatch(cmdStartWifi, WIFI_T); 
 
 
 	// start selftest

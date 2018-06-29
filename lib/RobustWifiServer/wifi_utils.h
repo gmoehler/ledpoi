@@ -13,7 +13,7 @@
 // define default compile time 
 // #ifndef LOG_LOCAL_LEVEL
 #undef LOG_LOCAL_LEVEL
-#define LOG_LOCAL_LEVEL ESP_LOG_INFO
+#define LOG_LOCAL_LEVEL ESP_LOG_DEBUG
 // #endif
 
 #include "esp_log.h"
@@ -40,8 +40,7 @@
 
 // for SSID connection only
 enum WifiState {
-  WIFI_UNCONFIGURED,
-  WIFI_STARTED,
+  WIFI_DISCONNECTED,
   WIFI_CONNECTED
 } ;
 
@@ -49,12 +48,10 @@ extern WifiState wifiState;
 
 enum ServerState {  
   UNCONFIGURED       = 0,
-  DISCONNECTED       = 1,
-  CONNECTED          = 2,
-  SERVER_LISTENING   = 3,
-  CLIENT_CONNECTED   = 4,
-  DATA_AVAILABLE     = 5,
-  UNKNOWN            = 99
+  CONNECTED          = 1,
+  SERVER_LISTENING   = 2,
+  CLIENT_CONNECTED   = 3,
+  DATA_AVAILABLE     = 4
 };
 
 enum ServerError {
@@ -100,5 +97,6 @@ ServerState getNextServerStateDown(ServerState state);
 bool wifi_init();
 bool wifi_start_sta(String ssid, String password, 
     IPAddress ip, IPAddress gateway, IPAddress subnet);
+void wifi_disconnect();
 void wifi_stop_sta();
 #endif

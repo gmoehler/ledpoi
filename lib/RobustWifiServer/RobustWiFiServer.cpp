@@ -9,38 +9,47 @@ RobustWiFiServer::RobustWiFiServer():
 {};
 
 void RobustWiFiServer::init(IPAddress ip, IPAddress gateway, IPAddress subnet, 
-  uint16_t serverPort, String ssid, String wifiPassword) {  
+  uint16_t serverPort, String ssid, String wifiPassword, 
+  uint8_t serverPortIncrOnError, uint8_t numPortVarOnError) {  
 
   _ip = ip;
   _gateway = gateway;
   _subnet = subnet;
   _serverPort = serverPort;
+  _initialServerPort = serverPort;
   _ssid = ssid;
   _wifiPassword = wifiPassword;
+  _serverPortIncrOnError = serverPortIncrOnError;
+  _numPortVarOnError = numPortVarOnError;
   _targetState = UNCONFIGURED; 
-  _targetState2 = UNKNOWN;
+  _targetState2 = UNCONFIGURED;
   _currentState = UNCONFIGURED;
   _lastDataAvailableCount = 0;
 
   wifi_init();
-  _server = WiFiServer(serverPort);
   }
 
 void RobustWiFiServer::connect(){
   LOGI(RWIFIS, "Connection request received...");
   _targetState = DATA_AVAILABLE;
+  _targetState2 = _targetState; // no second target
   _targetUpdated = true;
 }
 
-void RobustWiFiServer::connect(IPAddress ip){
-  if (ip == _ip) {
-    LOGI(RWIFIS, "Connection request with ip %s received...", ip.toString().c_str());
-    _targetState2 = DATA_AVAILABLE;
+void RobustWiFiServer::connect(IPAddress ip, uint16_t port){
+  if (ip == _ip && port == _serverPort) {
+    LOGI(RWIFIS, "Connection request with ip %s:%d received...", 
+      ip.toString().c_str(), port);
+    _targetState = DATA_AVAILABLE;
+    _targetState2 = _targetState; // no second target
   }
   else {
-    LOGI(RWIFIS, "Connection request with new ip %s received...", ip.toString().c_str());
+    LOGI(RWIFIS, "Connection request with new ip %s:%d received...", 
+      ip.toString().c_str(), port);
     _targetState = UNCONFIGURED;
 	  _ip = ip;
+    _serverPort = port;
+    _initialServerPort = port;
     _targetState2 = DATA_AVAILABLE;
   }
   _targetUpdated = true;
@@ -49,6 +58,7 @@ void RobustWiFiServer::connect(IPAddress ip){
 void RobustWiFiServer:: disconnect(){
   LOGI(RWIFIS, "Disconnect request received...");
   _targetState = UNCONFIGURED;
+  _targetState2 = _targetState; // no second target
   _targetUpdated = true;
 }
 
@@ -103,50 +113,44 @@ void RobustWiFiServer::_invokeAction(Transition& trans){
       // do nothing
     }
     // connecting actions...
-    else if (Transition(UNCONFIGURED, DISCONNECTED) == trans){
-      LOGI(RWIFIS, "Configuring to Wifi with SSID %s & ip %s...", _ssid.c_str(), _ip.toString().c_str());
+    else if (Transition(UNCONFIGURED, CONNECTED) == trans){
+      LOGI(RWIFIS, "-> Connecting to wifi with SSID %s & ip %s:%d...", 
+        _ssid.c_str(), _ip.toString().c_str(), _serverPort);
       wifi_start_sta(_ssid, _wifiPassword, _ip, _gateway, _subnet);
     }
-    else if (Transition(DISCONNECTED, CONNECTED) == trans){
-      LOGI(RWIFIS, "Connecting to access point...");
-      esp_wifi_connect();
-    }
     else if (Transition(CONNECTED, SERVER_LISTENING) == trans){
-      LOGI(RWIFIS, "Starting server...");
+      LOGI(RWIFIS, "-> Starting server...");
+      _server = WiFiServer(_serverPort);
       _server.begin();                      // bind and listen
     }
     else if (Transition(SERVER_LISTENING, CLIENT_CONNECTED) == trans){
-      LOGI(RWIFIS, "Listening for clients...");
+      LOGI(RWIFIS, "-> Listening for clients...");
       _client = _server.available();        // accept - also checked at checkState()
     }   
     else if (Transition(CLIENT_CONNECTED, DATA_AVAILABLE) == trans){
       // dont show message for keepAlive signal
       if (_lastDataAvailableCount != 1) {
-        LOGI(RWIFIS, "Waiting for data...");
+        LOGI(RWIFIS, "-> Waiting for data...");
       }
       // nothing to be done
     } 
 
     // disconnecting actions...
     else if (Transition(DATA_AVAILABLE, CLIENT_CONNECTED) == trans){
-      LOGD(RWIFIS, "Stop receiving data...");
+      LOGD(RWIFIS, "-> Stop receiving data...");
       // nothing to be done
     }    
     else if (Transition(CLIENT_CONNECTED, SERVER_LISTENING) == trans){
-      LOGI(RWIFIS, "Disconnect clients...");
+      LOGI(RWIFIS, "-> Disconnect clients...");
       _client.stop();
     }
     else if (Transition(SERVER_LISTENING, CONNECTED) == trans){
-      LOGI(RWIFIS, "Stopping server...");
+      LOGI(RWIFIS, "-> Stopping server...");
       _server.end();
     }
-    else if (Transition(CONNECTED, DISCONNECTED) == trans){
-      LOGI(RWIFIS, "Disconnecting Wifi...");
-      esp_wifi_disconnect();
-    }
-    else if (Transition(DISCONNECTED, UNCONFIGURED) == trans){
-      LOGI(RWIFIS, "Stopping Wifi...");
-      wifi_stop_sta();
+    else if (Transition(CONNECTED, UNCONFIGURED) == trans){
+      LOGI(RWIFIS, "-> Stopping Wifi...");
+      wifi_disconnect();
     }
     else {
       LOGE(RWIFIS, "ERROR. Unknown transition requested: %s", trans.toString().c_str());
@@ -174,11 +178,7 @@ bool RobustWiFiServer::_checkState(ServerState state, bool debug){
   switch(state){
     
     case UNCONFIGURED:
-    stateok = (wifiState == WIFI_UNCONFIGURED);
-    break;
-
-    case DISCONNECTED:
-    stateok = (wifiState == WIFI_STARTED);
+    stateok = (wifiState == WIFI_DISCONNECTED);
     break;
 
     case CONNECTED:
@@ -191,7 +191,7 @@ bool RobustWiFiServer::_checkState(ServerState state, bool debug){
     break;
 
     case CLIENT_CONNECTED:
-    if (!_client) {
+    if (!_client.connected()) {
       _client = _server.available();
     }
     stateok =  (wifiState == WIFI_CONNECTED) && _client.connected();
@@ -222,10 +222,10 @@ bool RobustWiFiServer::_checkState(ServerState state, bool debug){
 }
 
 void RobustWiFiServer::_printInternalState(){
-	LOGV(RWIFIS, "WiFi state: %s", wiFiStateToString().c_str());
-  LOGV(RWIFIS, " Server: %s %s", 
+	LOGD(RWIFIS, "WiFi state: %s", wiFiStateToString().c_str());
+  LOGD(RWIFIS, " Server: %s %s", 
     _server ? "conn " : "nc ", _server.available() ? "avail" : "na");
-  LOGV(RWIFIS, " Client: %s %s", 
+  LOGD(RWIFIS, " Client: %s %s", 
     _client.connected() ? "conn " : "nc ", _client.available() ? "avail" : "na");
 }
 
@@ -236,21 +236,25 @@ bool RobustWiFiServer::_timeoutReached(){
   }
 
   uint32_t now = millis();
+  if (_currentState == CLIENT_CONNECTED) {
+    return (now - _currentTransition.getLastInvocationTime() > TRANSITION_TIMEOUT_DATA_AVAILABLE);
+  }
   return (now - _currentTransition.getLastInvocationTime() > TRANSITION_TIMEOUT);
 }
 
 void RobustWiFiServer::loop(){
 
+  // new target 
   if (_targetUpdated) {
     LOGD(RWIFIS, "Target updated to: %s", serverStateToString(_targetState).c_str());
     _condition.resetError();
     _currentTransition = _determineNextTransition();
-    LOGD(RWIFIS, "NEW Transition: %s", _currentTransition.toString().c_str());
+    LOGD(RWIFIS, "NEW updated Transition: %s", _currentTransition.toString().c_str());
     _targetUpdated = false;
   }
 
   // check whether we are either in current state of 'to' state
-  if (!_checkState(_currentState, true)
+  else if (!_checkState(_currentState, true)
       && !_checkState(_currentTransition.to, true)){
 
     // we are neither in 'from' nor in 'to' state
@@ -280,7 +284,7 @@ void RobustWiFiServer::loop(){
       if (_currentState == DATA_AVAILABLE && _lastDataAvailableCount != 1) {
         LOGI(RWIFIS, "Data available: %d bytes.", _lastDataAvailableCount);
       }
-      if (_targetState2 == UNKNOWN) {
+      if (_targetState2 == _targetState) {
         // final target reached: create no-action transition
         LOGD(RWIFIS, "Final Target reached: %s", serverStateToString(_targetState).c_str());
         _currentTransition = Transition(_currentState,_currentState);
@@ -290,7 +294,6 @@ void RobustWiFiServer::loop(){
           serverStateToString(_targetState).c_str(),
           serverStateToString(_targetState2).c_str());
         _targetState = _targetState2;
-        _targetState2 = UNKNOWN;
         _currentTransition = _determineNextTransition();
       }
     }
@@ -310,6 +313,19 @@ void RobustWiFiServer::loop(){
     LOGI(RWIFIS, "Timeout reached. Will step back from %s to %s.", 
       serverStateToString(_currentTransition.from).c_str(),
       serverStateToString(_currentTransition.to).c_str());
+    // if we failed to connect we need to change the
+    if (_currentState == CONNECTED) {
+      // maximal number of different ports is 5, then return to initial port
+      // otherwise we are hard to catch by the clients
+      if (_condition.numberOfTimeouts > _numPortVarOnError) {
+        _serverPort = _initialServerPort;
+      }
+      else {
+        _serverPort+=_serverPortIncrOnError;
+      }
+      LOGI(RWIFIS, "Server port updated to %d.", _serverPort);
+    }
+
   }
 
   _invokeAction(_currentTransition);

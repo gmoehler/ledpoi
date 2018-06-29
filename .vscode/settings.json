@@ -12,6 +12,10 @@
         "utility": "cpp",
         "*.tcc": "cpp",
         "cstdio": "cpp",
-        "typeinfo": "cpp"
+        "typeinfo": "cpp",
+        "deque": "cpp",
+        "unordered_map": "cpp",
+        "unordered_set": "cpp",
+        "vector": "cpp"
     }
 }

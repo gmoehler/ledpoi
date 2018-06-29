@@ -9,21 +9,27 @@ void InteractionState::_triggerStateTransition(PoiCommand cmd) {
 	
 	PoiCommandType type = cmd.getType();
     PoiState nextState = _state;
+    bool isDisplayActive = false;
 
     // state changes based on click events and current state
 	switch(type) {
 		case BUTTON0_LONGCLICK:
 		if (_state == NO_INTERACTION) {
 
+            isDisplayActive = _monitor.isDisplayActive();
+
             // stop processing
 			sendRawToDispatch( {STOP_PROC, 0, 0, 0, 0, 0}, INTS); 
 
-            // start of ip conf
-            //sendRawToDispatch( {DISPLAY_IP, _ipIncr, 1, 0, 0, 0}, INTS ); // only pale white background
-			//nextState = IP_CONFIG;
-
-            // skip ip conf for now
-            nextState = WAIT_FOR_PROGSTART;
+            // ip config only when no display was active
+            // start of ip conf: done on STOP_PROC_COMPLETED signal
+            if (isDisplayActive) {
+			    nextState = NO_INTERACTION;
+            }
+            else {
+                nextState = IP_CONFIG;
+                _ipIncr = getIpIncrement(); // sync initially
+            }
 		}
 		else if (_state == IP_CONFIG) {
 			// end of ip conf
@@ -31,9 +37,10 @@ void InteractionState::_triggerStateTransition(PoiCommand cmd) {
                 sendRawToDispatch( {DISCONNECT, 0, 0, 0, 0, 0}, INTS );
             }
             else {
-                sendRawToDispatch( {CONNECT, _ipIncr, 0, 0, 0, 0}, INTS );
+                sendRawToDispatch( {SET_IP, _ipIncr, 0, 0, 0, 0}, INTS );
+                sendRawToDispatch( {CONNECT, 0, 0, 0, 0, 0}, INTS );
             }
-            sendRawToDispatch( {ANIMATE, PALE_WHITE, 1, 15, 0, 50}, INTS ); 
+            sendRawToDispatch( {ANIMATE, PALE_WHITE, 1, 10, 0, 50}, INTS ); 
 			nextState = WAIT_FOR_PROGSTART;
 		}
 		else {
@@ -61,8 +68,23 @@ void InteractionState::_triggerStateTransition(PoiCommand cmd) {
         selftest_start(5);
         break;
 
+        case STOP_PROC_COMPLETED:
+        sendRawToDispatch( {SHOW_RGB, 0, 0, 0, 0, 0}, PROG_T ); // black
+        if (_state == IP_CONFIG) {
+             sendRawToDispatch( {DISPLAY_IP, _ipIncr, 1, 0, 0, 0}, INTS );
+        }
+        else {
+            sendRawToDispatch( {ANIMATE, PALE_WHITE, 1, 15, 0, 50}, PROG_T );
+        } 
+        break;
+
+        case START_PROG:
+        // reset interaction state when program is started
+        nextState = NO_INTERACTION;
+        break;
 		
 		default:
+        // let pass most commands
 		break;
 	}
 
@@ -89,7 +111,6 @@ void InteractionState::_incrementIp() {
 bool InteractionState::commandFilter(PoiCommand cmd) {
 	
     _triggerStateTransition(cmd);
-		
     return ! cmd.isInternalCommand();
 }
 

@@ -7,7 +7,7 @@
 class PoiMonitor {
 public:
 	void logStatus();
-
+	bool isDisplayActive();
 };
 
 #endif

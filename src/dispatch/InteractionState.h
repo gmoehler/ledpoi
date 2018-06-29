@@ -3,7 +3,8 @@
 
 #include "PoiCommand.h"
 #include "PoiMonitor.h"
-#include "selftest/selftestTask.h"
+#include "selftest/selftestTask.h"  // to start self test
+#include "memory/memoryTask.h"      // for ip increment loading
 
 #define NO_CONNECTION_IPINCR 254
 

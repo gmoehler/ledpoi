@@ -68,8 +68,7 @@ void stopProgramExecTask(){
   display_resume();
   player_resume();
 
-  sendRawToDispatch( {SHOW_RGB, 0, 0, 0, 0, 0}, PROG_T ); // black
-  sendRawToDispatch( {ANIMATE, PALE_WHITE, 1, 15, 0, 50}, PROG_T ); 
+  sendRawToDispatch( {STOP_PROC_COMPLETED, 0, 0, 0, 0, 0}, PROG_T );
 }
 
 // task that schedules the program
