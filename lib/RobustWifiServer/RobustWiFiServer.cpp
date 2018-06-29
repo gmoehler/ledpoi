@@ -10,7 +10,7 @@ RobustWiFiServer::RobustWiFiServer():
 
 void RobustWiFiServer::init(IPAddress ip, IPAddress gateway, IPAddress subnet, 
   uint16_t serverPort, String ssid, String wifiPassword, 
-  uint8_t serverPortIncrOnError, uint8_t numPortVarOnError) {  
+  uint8_t serverPortVarsOnError, uint8_t numPortVarsOnError) {  
 
   _ip = ip;
   _gateway = gateway;
@@ -19,8 +19,8 @@ void RobustWiFiServer::init(IPAddress ip, IPAddress gateway, IPAddress subnet,
   _initialServerPort = serverPort;
   _ssid = ssid;
   _wifiPassword = wifiPassword;
-  _serverPortIncrOnError = serverPortIncrOnError;
-  _numPortVarOnError = numPortVarOnError;
+  _serverPortVarsOnError = _serverPortVarsOnError;
+  _numPortVarsOnError = numPortVarsOnError; 
   _targetState = UNCONFIGURED; 
   _targetState2 = UNCONFIGURED;
   _currentState = UNCONFIGURED;
@@ -317,11 +317,11 @@ void RobustWiFiServer::loop(){
     if (_currentState == CONNECTED) {
       // maximal number of different ports is 5, then return to initial port
       // otherwise we are hard to catch by the clients
-      if (_condition.numberOfTimeouts > _numPortVarOnError) {
+      if (_condition.numberOfTimeouts > _numPortVarsOnError) { 
         _serverPort = _initialServerPort;
       }
       else {
-        _serverPort+=_serverPortIncrOnError;
+        _serverPort+=_serverPortVarsOnError;
       }
       LOGI(RWIFIS, "Server port updated to %d.", _serverPort);
     }

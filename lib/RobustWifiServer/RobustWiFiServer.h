@@ -67,8 +67,8 @@ private:
   IPAddress _subnet; 
   uint16_t _serverPort;
   uint16_t _initialServerPort;
-  uint8_t _serverPortIncrOnError;
-  uint8_t _numPortVarOnError;
+  uint8_t _serverPortVarsOnError;
+  uint8_t _numPortVarsOnError;
   String _ssid; 
   String _wifiPassword;
 
