@@ -42,7 +42,7 @@ static esp_err_t event_handler(void *ctx, system_event_t *event)
           reason = &event->event_info.disconnected.reason;
           LOGD(WIFI_U, " Reason %u: %s\n", *reason, reason2str(*reason));
           wifi_stop_sta();
-          //  wifiState = WIFI_DISCONNECTED;
+          wifiState = WIFI_DISCONNECTED;
         break;
         default:
           LOGW(WIFI_U, "Unhandled wifi event with ID %d\n", event->event_id);
@@ -62,9 +62,18 @@ bool wifi_init() {
   LOGI(WIFI_U, "Init TCPIP...");
   tcpip_adapter_init();
 
-  
-  esp_wifi_set_storage(WIFI_STORAGE_FLASH);
+  wifi_init_config_t cfg = WIFI_INIT_CONFIG_DEFAULT();
+  err =  esp_wifi_init(&cfg);
+  if (err != ESP_OK) {
+    LOGE(WIFI_U, "Cannot init wifi. Error: %s", esp_err_to_name(err));
+    return false;
+  }
 
+  err =  esp_wifi_set_storage(WIFI_STORAGE_FLASH);
+  if (err != ESP_OK) {
+    LOGE(WIFI_U, "Cannot set wifi storage. Error: %s", esp_err_to_name(err));
+    return false;
+  }
 
   err = esp_wifi_set_mode(WIFI_MODE_STA);
   if (err != ESP_OK) {
@@ -88,7 +97,6 @@ bool wifi_start_sta(String ssid, String password,
     LOGE(WIFI_U, "Cannot init wifi. Error: %s", esp_err_to_name(err));
     return false;
   }
-
 
   tcpip_adapter_ip_info_t info;
   info.ip.addr = static_cast<uint32_t>(ip);

@@ -88,6 +88,10 @@ public:
   void setLastInvocationTime() {_lastInvocationTime = millis();}
   uint32_t getLastInvocationTime() { return _lastInvocationTime;}
   String  toString();
+  void reset() {
+    _actionInvoked = false;
+    _lastInvocationTime = millis();
+  }
 };
 
 String serverStateToString(ServerState state);

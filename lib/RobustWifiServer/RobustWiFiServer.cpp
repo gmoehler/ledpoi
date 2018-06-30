@@ -19,7 +19,7 @@ void RobustWiFiServer::init(IPAddress ip, IPAddress gateway, IPAddress subnet,
   _initialServerPort = serverPort;
   _ssid = ssid;
   _wifiPassword = wifiPassword;
-  _serverPortVarsOnError = _serverPortVarsOnError;
+  _serverPortVarsOnError = serverPortVarsOnError;
   _numPortVarsOnError = numPortVarsOnError; 
   _targetState = UNCONFIGURED; 
   _targetState2 = UNCONFIGURED;
@@ -97,6 +97,7 @@ Transition RobustWiFiServer::_determineNextTransition(){
 }
 
 Transition RobustWiFiServer::_getStepBackTransition(){
+
   // always step back from the "lowest" order state towards disconnect
   ServerState fromState = (_currentTransition.from < _currentTransition.to) ? 
     _currentTransition.from : _currentTransition.to;
@@ -222,7 +223,7 @@ bool RobustWiFiServer::_checkState(ServerState state, bool debug){
 }
 
 void RobustWiFiServer::_printInternalState(){
-	LOGV(RWIFIS, "WiFi state: %s", wiFiStateToString().c_str());
+	LOGD(RWIFIS, "WiFi state: %s", wiFiStateToString().c_str());
   LOGV(RWIFIS, " Server: %s %s", 
     _server ? "conn " : "nc ", _server.available() ? "avail" : "na");
   LOGV(RWIFIS, " Client: %s %s", 
@@ -230,14 +231,11 @@ void RobustWiFiServer::_printInternalState(){
 }
 
 bool RobustWiFiServer::_timeoutReached(){
-  // timeout does not make sense when we are not even configured
-  if (_currentState == UNCONFIGURED) {
-    return false;
-  }
-
   uint32_t now = millis();
-  if (_currentState == CLIENT_CONNECTED) {
-    return (now - _currentTransition.getLastInvocationTime() > TRANSITION_TIMEOUT_DATA_AVAILABLE);
+  // smaller timeout when listening for data available since we expect a keep alive signal each second
+  // also when listening for the router to appear
+  if (_currentState == CLIENT_CONNECTED || _currentState == UNCONFIGURED) {
+    return (now - _currentTransition.getLastInvocationTime() > TRANSITION_TIMEOUT_SMALL);
   }
   return (now - _currentTransition.getLastInvocationTime() > TRANSITION_TIMEOUT);
 }
@@ -307,25 +305,29 @@ void RobustWiFiServer::loop(){
   else if (!_currentTransition.isEmptyTransition() && _timeoutReached()){
     _condition.error = TRANSITION_TIMEOUT_REACHED;
     _condition.numberOfTimeouts++;
-    // we first revert transition to be on the safe side
-    // next iteration will automatically repeat action then
-    _currentTransition = _getStepBackTransition();
-    LOGI(RWIFIS, "Timeout reached. Will step back from %s to %s.", 
-      serverStateToString(_currentTransition.from).c_str(),
-      serverStateToString(_currentTransition.to).c_str());
-    // if we failed to connect we need to change the
+    
+    // if we are in the lowest state we can just repeat the last transition
+    if (_currentState == UNCONFIGURED) {
+      LOGI(RWIFIS, "Timeout reached. Will repeat action.");
+      _currentTransition.reset(); // reset to run action again
+    }
+    else {
+      // we first revert transition to be on the safe side
+      // next iteration will automatically repeat action then
+      _currentTransition = _getStepBackTransition();
+      LOGI(RWIFIS, "Timeout reached. Will step back from %s to %s.", 
+        serverStateToString(_currentTransition.from).c_str(),
+        serverStateToString(_currentTransition.to).c_str());
+    }
+    // if we failed to connect we need to change the port
     if (_currentState == CONNECTED) {
-      // maximal number of different ports is 5, then return to initial port
+      // maximal number of different ports is _numPortVarsOnError, 
+      // then return to initial port
       // otherwise we are hard to catch by the clients
-      if (_condition.numberOfTimeouts > _numPortVarsOnError) { 
-        _serverPort = _initialServerPort;
-      }
-      else {
-        _serverPort+=_serverPortVarsOnError;
-      }
+       _serverPort=_initialServerPort + 
+          (_condition.numberOfTimeouts % _numPortVarsOnError) * _serverPortVarsOnError;
       LOGI(RWIFIS, "Server port updated to %d.", _serverPort);
     }
-
   }
 
   _invokeAction(_currentTransition);
