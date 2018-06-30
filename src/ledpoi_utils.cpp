@@ -52,7 +52,7 @@ rgbVal makeRGBValue(Color color, uint8_t brightness){
 }
 
 rgbVal fadeColor(Color color, float factor){
-  uint8_t brightness = constrain(factor * 255, 0, 255);
+  uint8_t brightness = constrain(factor * 255, 0, 254);
   return makeRGBValue(color, brightness);
 }
 

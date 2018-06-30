@@ -87,7 +87,7 @@ TEST(playFramesAction_tests, testNextWithPixelFrame){
   EXPECT_EQ(playFramesAction.__getCurrentFrame(), 0);
   EXPECT_EQ(playFramesAction.__getCurrentLoop(), 0);
   rgbVal rgb0 = sframe.pixel[0];
-  EXPECT_EQ(rgb0.r, 255);
+  EXPECT_EQ(rgb0.r, 254);
   EXPECT_EQ(rgb0.g, 0);
   EXPECT_EQ(rgb0.b, 0);
  
@@ -97,7 +97,7 @@ TEST(playFramesAction_tests, testNextWithPixelFrame){
   rgb0 = sframe.pixel[0];
   EXPECT_EQ(rgb0.r, 0);
   EXPECT_EQ(rgb0.g, 0);
-  EXPECT_EQ(rgb0.b, 255);
+  EXPECT_EQ(rgb0.b, 254);
 
   playFramesAction.setDimFactor(0.1);
   
@@ -106,7 +106,7 @@ TEST(playFramesAction_tests, testNextWithPixelFrame){
   EXPECT_EQ(playFramesAction.__getCurrentLoop(), 0);
   rgb0 = sframe.pixel[0];
   EXPECT_EQ(rgb0.r, 0);
-  EXPECT_EQ(rgb0.g, 25); // 255/10
+  EXPECT_EQ(rgb0.g, 25); // 254/10
   EXPECT_EQ(rgb0.b, 0);
  
   playFramesAction.next();
@@ -141,7 +141,7 @@ TEST(playFramesAction_tests, testWithDimFactor){
   EXPECT_EQ(playFramesAction.__getCurrentFrame(), 0);
   EXPECT_EQ(playFramesAction.__getCurrentLoop(), 0);
   rgbVal rgb0 = sframe.pixel[0];
-  EXPECT_EQ(rgb0.r, 25); // 255/10
+  EXPECT_EQ(rgb0.r, 25); // 254/10
   EXPECT_EQ(rgb0.g, 0);
   EXPECT_EQ(rgb0.b, 0);
  
@@ -151,14 +151,14 @@ TEST(playFramesAction_tests, testWithDimFactor){
   rgb0 = sframe.pixel[0];
   EXPECT_EQ(rgb0.r, 0);
   EXPECT_EQ(rgb0.g, 0);
-  EXPECT_EQ(rgb0.b, 25); // 255/10
+  EXPECT_EQ(rgb0.b, 25); // 254/10
   
   playFramesAction.next();
   EXPECT_EQ(playFramesAction.__getCurrentFrame(), 2);
   EXPECT_EQ(playFramesAction.__getCurrentLoop(), 0);
   rgb0 = sframe.pixel[0];
   EXPECT_EQ(rgb0.r, 0);
-  EXPECT_EQ(rgb0.g, 25); // 255/10
+  EXPECT_EQ(rgb0.g, 25); // 254/10
   EXPECT_EQ(rgb0.b, 0);
  
   playFramesAction.next();

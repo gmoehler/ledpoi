@@ -34,7 +34,7 @@
 // in 2MB there are 256 sections available
 #define N_NUM_FLASH_SECTIONS_PER_IMAGE 10
 // this is int( N_NUM_IMAGE_SECTIONS*4096/(N_PIXELS*3) )
-// max is 255 because of uint8_t
+// max is 254 because of uint8_t and 255 being keep alive
 #define N_FRAMES 227
 #define N_PIXELS 60
 

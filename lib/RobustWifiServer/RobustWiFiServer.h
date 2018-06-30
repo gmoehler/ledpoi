@@ -26,7 +26,6 @@
 #include "wifi_utils.h"
 
 #define TRANSITION_TIMEOUT 10000
-// smaller timeout when listening for data available since we expect a keep alive signal each second
 #define TRANSITION_TIMEOUT_SMALL 3000
 
 class RobustWiFiServer
