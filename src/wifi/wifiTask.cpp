@@ -22,6 +22,10 @@ xQueueHandle wifiControlQueue = NULL;
 
 void connect() {
   uint16_t ipIncr = getIpIncrement();
+  if (ipIncr == NO_CONNECTION_IPINCR || ipIncr > N_POIS-1 ) {
+    LOGE(WIFI_T, "Cannot connect with ip increment of %d.", ipIncr);
+    return;
+  }
 	IPAddress myIP (baseIp[0], baseIp[1], baseIp[2], baseIp[3] + ipIncr);
   LOGD(WIFI_T, "Connecting to %s:%d...", myIP.toString().c_str(), basePort + ipIncr);
 	wifiServer.connect(myIP, basePort + ipIncr);
@@ -103,8 +107,7 @@ void setControlLedState(ServerState state) {
 
 void wifiTask(void* arg) {
 
-  IPAddress myIP (baseIp[0], baseIp[1], baseIp[2], baseIp[3] + getIpIncrement());
-  wifiServer.init(myIP, gateway, subnet, basePort + getIpIncrement(), ssid, password, N_POIS, N_PORT_VARS_ON_ERROR);
+  wifiServer.init(gateway, subnet, ssid, password, N_POIS, N_PORT_VARS_ON_ERROR);
 
   RawPoiCommand rawCmd;
   int i = 0;

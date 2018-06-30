@@ -8,15 +8,12 @@ RobustWiFiServer::RobustWiFiServer():
   _targetUpdated(false)
 {};
 
-void RobustWiFiServer::init(IPAddress ip, IPAddress gateway, IPAddress subnet, 
-  uint16_t serverPort, String ssid, String wifiPassword, 
+void RobustWiFiServer::init(IPAddress gateway, IPAddress subnet, 
+  String ssid, String wifiPassword, 
   uint8_t serverPortVarsOnError, uint8_t numPortVarsOnError) {  
 
-  _ip = ip;
   _gateway = gateway;
   _subnet = subnet;
-  _serverPort = serverPort;
-  _initialServerPort = serverPort;
   _ssid = ssid;
   _wifiPassword = wifiPassword;
   _serverPortVarsOnError = serverPortVarsOnError;
@@ -29,15 +26,8 @@ void RobustWiFiServer::init(IPAddress ip, IPAddress gateway, IPAddress subnet,
   wifi_init();
   }
 
-void RobustWiFiServer::connect(){
-  LOGI(RWIFIS, "Connection request received...");
-  _targetState = DATA_AVAILABLE;
-  _targetState2 = _targetState; // no second target
-  _targetUpdated = true;
-}
-
 void RobustWiFiServer::connect(IPAddress ip, uint16_t port){
-  if (ip == _ip && port == _serverPort) {
+  if (ip == _ip && port == _initialServerPort) {
     LOGI(RWIFIS, "Connection request with ip %s:%d received...", 
       ip.toString().c_str(), port);
     _targetState = DATA_AVAILABLE;

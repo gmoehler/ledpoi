@@ -6,8 +6,6 @@
 #include "selftest/selftestTask.h"  // to start self test
 #include "memory/memoryTask.h"      // for ip increment loading
 
-#define NO_CONNECTION_IPINCR 254
-
 enum PoiState {
     NO_INTERACTION,
     IP_CONFIG,

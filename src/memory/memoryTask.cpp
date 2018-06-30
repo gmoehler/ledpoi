@@ -43,7 +43,10 @@ void loadSceneFromFlash(uint8_t scene){
 // load ip increment from flash into memory 
 void _loadIpIncrFromFlash(){
   if (flashMemory.loadIpIncrement(&ipIncr)) {
-   LOGI(MEM_T,  "IP incr %d loaded from flash.", ipIncr);
+    LOGI(MEM_T,  "IP incr %d loaded from flash.", ipIncr);
+    if (ipIncr == NO_CONNECTION_IPINCR) {
+      LOGI(MEM_T,  "IP incr means no connection.");
+    }
   }
   else{
     LOGE(MEM_T, "Error. Cannot load IP incr");

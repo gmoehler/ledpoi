@@ -32,8 +32,8 @@ class RobustWiFiServer
 {
 public:
   RobustWiFiServer();
-  void init(IPAddress ip, IPAddress gateway, IPAddress subnet, 
-    uint16_t serverPort, String ssid, String wifiPassword, 
+  void init(IPAddress gateway, IPAddress subnet, 
+    String ssid, String wifiPassword, 
     uint8_t serverPortIncrOnError, uint8_t numPortVarOnError); // call once
 
   void connect();

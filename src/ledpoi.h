@@ -27,9 +27,6 @@
 // maximum number of pois that can be configured
 #define N_POIS 10
 
-// number of different port variations on error per client
-#define N_PORT_VARS_ON_ERROR 5
-
 // on flash image must fit into a multiple of SPI_FLASH_SEC_SIZE (4096)
 // in 2MB there are 256 sections available
 #define N_NUM_FLASH_SECTIONS_PER_IMAGE 10
@@ -53,7 +50,15 @@
 //#define UART_BAUD 115200
 #define UART_BAUD 921600
 
+// pin for led strip
 #define WS2812_PIN 23 
+
+// number of different port variations on error per client
+#define N_PORT_VARS_ON_ERROR 5
+
+// ip increment which means: not connected
+#define NO_CONNECTION_IPINCR 254
+
 
 enum Color {       WHITE,   // 0
                    BLACK,   // 1

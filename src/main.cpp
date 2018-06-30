@@ -67,8 +67,10 @@ void setup() {
   uart_start(5);
 
   // send wifi start command to central dispatch queue after everything is set up
-  PoiCommand cmdStartWifi ({CONNECT, 0, 0, 0, 0, 0});
-  sendToDispatch(cmdStartWifi, WIFI_T); 
+  if (getIpIncrement() != NO_CONNECTION_IPINCR) {
+    PoiCommand cmdStartWifi ({CONNECT, 0, 0, 0, 0, 0});
+    sendToDispatch(cmdStartWifi, WIFI_T); 
+  }
 
 
 	// start selftest

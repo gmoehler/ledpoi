@@ -34,6 +34,7 @@ void InteractionState::_triggerStateTransition(PoiCommand cmd) {
 		else if (_state == IP_CONFIG) {
 			// end of ip conf
 			 if (_ipIncr == NO_CONNECTION_IPINCR) {
+                sendRawToDispatch( {SET_IP, _ipIncr, 0, 0, 0, 0}, INTS );
                 sendRawToDispatch( {DISCONNECT, 0, 0, 0, 0, 0}, INTS );
             }
             else {
