@@ -17,7 +17,7 @@
 
 #include <utility>
 #ifndef WITHIN_UNITTEST
-  #include <WiFi.h>
+  #include "WiFiServer2.h"
 #else
   #include "../test/mock_Arduino.h"
   #include "../test/mock_wifi.h"
@@ -71,7 +71,7 @@ private:
   String _ssid; 
   String _wifiPassword;
 
-  WiFiServer _server;
+  WiFiServer2 _server;
   WiFiClient _client;
   
   Transition _determineNextTransition();
@@ -86,7 +86,7 @@ private:
 public:  
 #endif
   WiFiClient& _getClient(){return _client;}
-  WiFiServer& _getServer(){return _server;}
+  WiFiServer2& _getServer(){return _server;}
   
   void _printInternalState();
 };

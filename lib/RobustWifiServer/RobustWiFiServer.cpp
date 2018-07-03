@@ -111,7 +111,7 @@ void RobustWiFiServer::_invokeAction(Transition& trans){
     }
     else if (Transition(CONNECTED, SERVER_LISTENING) == trans){
       LOGI(RWIFIS, "-> Starting server...");
-      _server = WiFiServer(_serverPort);
+      _server = WiFiServer2(_serverPort);
       _server.begin();                      // bind and listen
     }
     else if (Transition(SERVER_LISTENING, CLIENT_CONNECTED) == trans){
