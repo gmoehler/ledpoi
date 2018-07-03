@@ -27,8 +27,8 @@ void connect() {
     return;
   }
 	IPAddress myIP (baseIp[0], baseIp[1], baseIp[2], baseIp[3] + ipIncr);
-  LOGD(WIFI_T, "Connecting to %s:%d...", myIP.toString().c_str(), basePort + ipIncr);
-	wifiServer.connect(myIP, basePort + ipIncr);
+  LOGD(WIFI_T, "Connecting to %s:%d...", myIP.toString().c_str(), basePort);
+	wifiServer.connect(myIP, basePort);
 };
 
 void realizeControlCommand(PoiCommand cmd){

@@ -310,14 +310,14 @@ void RobustWiFiServer::loop(){
         serverStateToString(_currentTransition.to).c_str());
     }
     // if we failed to connect we need to change the port
-    if (_currentState == CONNECTED) {
+    // if (_currentState == CONNECTED) {
       // maximal number of different ports is _numPortVarsOnError, 
       // then return to initial port
       // otherwise we are hard to catch by the clients
-       _serverPort=_initialServerPort + 
-          (_condition.numberOfTimeouts % _numPortVarsOnError) * _serverPortVarsOnError;
-      LOGI(RWIFIS, "Server port updated to %d.", _serverPort);
-    }
+      // _serverPort=_initialServerPort + 
+      //    (_condition.numberOfTimeouts % _numPortVarsOnError) * _serverPortVarsOnError;
+      // LOGI(RWIFIS, "Server port updated to %d.", _serverPort);
+    // }
   }
 
   _invokeAction(_currentTransition);
