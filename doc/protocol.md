@@ -89,7 +89,7 @@ Direct commands are carried out instantly cleaning the current program and play 
 |*|playFrames|201|frameStart|frameEnd|loops|delay/to MSB|delay/to LSB|Play frames of active scene with delay<br/> or single frame with timeout (when frameStart == frameEnd)|D/P|+|
 |*|animate   |202|color id  |nLoops|nPixels|delay/to MSB|delay/to LSB|play worm animation in color|D/P|
 |*|displayIP |203|ip        |with_static_bg|||| display ips from 0 to 10 - with static background if _with_static_bg_ is > 0 |D(/P)|+|
-|*|dim       |204|dimFactor |||||dim current image by a factor of `dimFactor/254`. Will be reset at the beginning of the program|D/P|
+|*|dim       |204|perc |||||dim current image by percentage of `perc`. Will be reset at the beginning of the program|D/P|
 | |fade2Frame|205|(scene)   |frame||fadeTime MSB|fadeTime LSB|fade last Frame to a new frame -- scene is not supported for now|D/P|
 |**Control**|
 |*|startProg |206|          |||||start program immediately (interrupting all running programs/play actions)|A|

@@ -36,7 +36,7 @@ AbstractAction* getAction(PoiCommandType type){
 
 void doControlCommand(PoiCommand cmd){
   if (cmd.getType() == DIM) {
-      options.dimFactor = static_cast<double>(cmd.getField(1)) / 255;
+      options.dimFactor = static_cast<double>(cmd.getField(1)) / 100;
   }
   else if (cmd.getType() == LOAD_SCENE) {
       uint8_t scene = cmd.getField(1);
