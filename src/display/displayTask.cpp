@@ -53,10 +53,13 @@ static void displayTask(void* arg)
             ptimer.setInterval(rframe.delay);
             currentDelay = rframe.delay;
           }
-          LOGD(DISP_T, "Received: %s %s %s ...", 
+          LOGD(DISP_T, "Received: %s %s %s %s %s %s ...", 
             pixelFrameToString(rframe, 0, true).c_str(),
             pixelFrameToString(rframe, 1, false).c_str(),
-            pixelFrameToString(rframe, 2, false).c_str());
+            pixelFrameToString(rframe, 2, false).c_str(),
+            pixelFrameToString(rframe, 3, false).c_str(),
+            pixelFrameToString(rframe, 4, false).c_str(),
+            pixelFrameToString(rframe, 5, false).c_str());
           ws2812_setColors(N_PIXELS, rframe.pixel);
           if (isSelftestActive()) {
             LOGD(DISP_T, "Verifying display frame %d...", rframe.idx);
