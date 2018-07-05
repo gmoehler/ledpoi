@@ -33,7 +33,9 @@ void dispatchCommand(PoiCommand cmd){
   }
   
   else if (cmd.isWifiControlCommand()) {
+#ifndef DISABLE_WIFI
   	sendToQueue(WIFI_CONTROL_QUEUE, cmd, DSPCH_T);
+#endif
   }
   
   else if (programTransmitting && cmd.isProgramStatement()) {

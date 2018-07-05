@@ -24,6 +24,10 @@
 #define LOGV( tag, format, ... )  if (LOG_LOCAL_LEVEL >= ESP_LOG_VERBOSE) { esp_log_write(ESP_LOG_VERBOSE, tag, LOG_FORMAT(V, format), esp_log_timestamp(), tag, ##__VA_ARGS__); }
 #endif
 
+// whether or not we should enable the wifi module
+// comment out this line if you want wifi
+#define DISABLE_WIFI
+
 // maximum number of pois that can be configured
 #define N_POIS 10
 

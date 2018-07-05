@@ -169,7 +169,6 @@ void wifiTask(void* arg) {
 void wifi_setup(uint8_t queueSize){
   pinMode(CONTROL_LED_PIN, OUTPUT);
   wifiControlQueue = xQueueCreate(queueSize, sizeof( RawPoiCommand ));
-  
 }
 
 void wifi_start(uint8_t prio){ 

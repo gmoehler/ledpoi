@@ -44,12 +44,14 @@ extern "C" {
   #include "driver/periph_ctrl.h"
   #include "freertos/semphr.h"
   #include "soc/rmt_struct.h"
+  #include <freertos/task.h>
 #elif defined(ESP_PLATFORM)
   #include <esp_intr.h>
   #include <driver/gpio.h>
   #include <driver/rmt.h>
   #include <freertos/FreeRTOS.h>
   #include <freertos/semphr.h>
+  #include <freertos/task.h>
   #include <soc/dport_reg.h>
   #include <soc/gpio_sig_map.h>
   #include <soc/rmt_struct.h>
@@ -64,6 +66,7 @@ extern "C" {
 #define DIVIDER             4 /* 8 still seems to work, but timings become marginal */
 #define MAX_PULSES         32 /* A channel has a 64 "pulse" buffer - we use half per pass */
 #define RMT_DURATION_NS  12.5 /* minimum time of a single RMT duration based on clock ns */
+portMUX_TYPE mmux = portMUX_INITIALIZER_UNLOCKED;
 
 typedef struct {
   uint32_t T0H;
@@ -188,6 +191,7 @@ void copyToRmtBlock_half()
 
 void ws2812_handleInterrupt(void *arg)
 {
+  //taskENTER_CRITICAL(&mmux);
   portBASE_TYPE taskAwoken = 0;
 
   if (RMT.int_st.ch0_tx_thr_event) {
@@ -198,7 +202,7 @@ void ws2812_handleInterrupt(void *arg)
     xSemaphoreGiveFromISR(ws2812_sem, &taskAwoken);
     RMT.int_clr.ch0_tx_end = 1;
   }
-
+  //taskEXIT_CRITICAL(&mmux);
   return;
 }
 
@@ -272,6 +276,7 @@ void ws2812_setColors(uint16_t length, rgbVal *array)
   ws2812_pos = 0;
   ws2812_half = 0;
 
+  //taskENTER_CRITICAL(&mmux);
   copyToRmtBlock_half();
 
   if (ws2812_pos < ws2812_len) {
@@ -281,6 +286,7 @@ void ws2812_setColors(uint16_t length, rgbVal *array)
     #endif
     copyToRmtBlock_half();
   }
+  //taskEXIT_CRITICAL(&mmux);
 
   ws2812_sem = xSemaphoreCreateBinary();
 

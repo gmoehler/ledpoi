@@ -16,12 +16,12 @@
 
 void logging_setup(){
 
-    esp_log_level_set(DSPCH_T, ESP_LOG_DEBUG);       // dispatch task
+    esp_log_level_set(DSPCH_T, DEFAULT_LOG_LEVEL);       // dispatch task
     esp_log_level_set(DISP_T,  DEFAULT_LOG_LEVEL);   // display task
-    esp_log_level_set(WIFI_T,  ESP_LOG_DEBUG);       // wifi task
-    esp_log_level_set(UART_T,  ESP_LOG_DEBUG);       // uart task
-    esp_log_level_set(PROG_T,  ESP_LOG_DEBUG);       // program task
-    esp_log_level_set(PLAY_T,  ESP_LOG_DEBUG);       // play task
+    esp_log_level_set(WIFI_T,  DEFAULT_LOG_LEVEL);       // wifi task
+    esp_log_level_set(UART_T,  DEFAULT_LOG_LEVEL);       // uart task
+    esp_log_level_set(PROG_T,  DEFAULT_LOG_LEVEL);   // program task
+    esp_log_level_set(PLAY_T,  DEFAULT_LOG_LEVEL);   // play task
     esp_log_level_set(MEM_T,   DEFAULT_LOG_LEVEL);   // memory task
     esp_log_level_set(SELF_T,  DEFAULT_LOG_LEVEL);   // selftest task
     esp_log_level_set(BUT_T,   DEFAULT_LOG_LEVEL);   // button task
@@ -62,16 +62,19 @@ void setup() {
   dispatch_start(7);
   program_start(6, 5);
   player_start(4);
-  display_start(3); 
+  display_start(9); 
+#ifndef DISABLE_WIFI
   wifi_start(8);
+#endif
   uart_start(5);
 
   // send wifi start command to central dispatch queue after everything is set up
+#ifndef DISABLE_WIFI
   if (getIpIncrement() != NO_CONNECTION_IPINCR) {
     PoiCommand cmdStartWifi ({CONNECT, 0, 0, 0, 0, 0});
     sendToDispatch(cmdStartWifi, WIFI_T); 
   }
-
+#endif
 
 	// start selftest
   // selftest_start(5);

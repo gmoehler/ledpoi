@@ -26,10 +26,16 @@ void InteractionState::_triggerStateTransition(PoiCommand cmd) {
             if (isDisplayActive) {
 			    nextState = NO_INTERACTION;
             }
+#ifdef DISABLE_WIFI
+            else {
+                nextState = WAIT_FOR_PROGSTART;
+            }
+#else 
             else {
                 nextState = IP_CONFIG;
                 _ipIncr = getIpIncrement(); // sync initially
             }
+#endif
 		}
 		else if (_state == IP_CONFIG) {
 			// end of ip conf
@@ -75,6 +81,7 @@ void InteractionState::_triggerStateTransition(PoiCommand cmd) {
              sendRawToDispatch( {DISPLAY_IP, _ipIncr, 1, 0, 0, 0}, INTS );
         }
         else {
+            // program interrupted or prepare for start
             sendRawToDispatch( {ANIMATE, PALE_WHITE, 1, 15, 0, 50}, PROG_T );
         } 
         break;
