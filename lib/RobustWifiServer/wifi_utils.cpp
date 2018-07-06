@@ -133,7 +133,7 @@ bool wifi_start_sta(String ssid, String password,
       return false;
   }
 
-  LOGI(WIFI_U, "End of wifi_start_sta.");
+  LOGD(WIFI_U, "End of wifi_start_sta.");
   return true;
 }
 
