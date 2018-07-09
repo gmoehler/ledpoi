@@ -30,8 +30,10 @@ void RobustWiFiServer::connect(IPAddress ip, uint16_t port){
   if (ip == _ip && port == _initialServerPort) {
     LOGI(RWIFIS, "Connection request with ip %s:%d received...", 
       ip.toString().c_str(), port);
-    _targetState = DATA_AVAILABLE;
-    _targetState2 = _targetState; // no second target
+    if (_targetState != DATA_AVAILABLE) { // TODO: solve this in getNextTransition
+      _targetState = DATA_AVAILABLE;
+      _targetState2 = _targetState; // no second target
+    }
   }
   else {
     LOGI(RWIFIS, "Connection request with new ip %s:%d received...", 
@@ -41,15 +43,18 @@ void RobustWiFiServer::connect(IPAddress ip, uint16_t port){
     _serverPort = port;
     _initialServerPort = port;
     _targetState2 = DATA_AVAILABLE;
+    _targetUpdated = true;
   }
-  _targetUpdated = true;
+  
 }
 
 void RobustWiFiServer:: disconnect(){
   LOGI(RWIFIS, "Disconnect request received...");
-  _targetState = UNCONFIGURED;
-  _targetState2 = _targetState; // no second target
-  _targetUpdated = true;
+  if (_targetState != UNCONFIGURED) { // TODO: solve this in getNextTransition
+    _targetState = UNCONFIGURED;
+    _targetState2 = _targetState; // no second target
+    _targetUpdated = true;
+  }
 }
 
 void RobustWiFiServer::clientDisconnect(){

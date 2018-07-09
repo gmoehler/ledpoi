@@ -33,6 +33,11 @@ void PoiTimer::disable(){
   timerAlarmDisable(_timer);
 }
 
+void PoiTimer::reset() {
+  LOGI(TIMER, "Timer reset." );
+  timerRestart(_timer);
+}
+
 PoiTimer::~PoiTimer(){
   //timerDetachInterrupt(_timer);
   timerEnd(_timer);

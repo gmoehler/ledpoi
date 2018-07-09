@@ -16,10 +16,11 @@
 
 void logging_setup(){
 
-    esp_log_level_set(DSPCH_T, DEFAULT_LOG_LEVEL);       // dispatch task
+    esp_log_level_set(MAIN_T,  DEFAULT_LOG_LEVEL);   // main program task
+    esp_log_level_set(DSPCH_T, DEFAULT_LOG_LEVEL);   // dispatch task
     esp_log_level_set(DISP_T,  DEFAULT_LOG_LEVEL);   // display task
-    esp_log_level_set(WIFI_T,  DEFAULT_LOG_LEVEL);       // wifi task
-    esp_log_level_set(UART_T,  DEFAULT_LOG_LEVEL);       // uart task
+    esp_log_level_set(WIFI_T,  ESP_LOG_DEBUG);       // wifi task
+    esp_log_level_set(UART_T,  DEFAULT_LOG_LEVEL);   // uart task
     esp_log_level_set(PROG_T,  DEFAULT_LOG_LEVEL);   // program task
     esp_log_level_set(PLAY_T,  DEFAULT_LOG_LEVEL);   // play task
     esp_log_level_set(MEM_T,   DEFAULT_LOG_LEVEL);   // memory task
@@ -35,8 +36,8 @@ void logging_setup(){
     esp_log_level_set(POICMD,  DEFAULT_LOG_LEVEL);   // poi command util  
     esp_log_level_set(ICACHE,  DEFAULT_LOG_LEVEL);   // image cache util  
     esp_log_level_set(PCACHE,  DEFAULT_LOG_LEVEL);   // program cache util 
-    esp_log_level_set(RWIFIS,  DEFAULT_LOG_LEVEL);   // Robust wifi server
-    esp_log_level_set(WIFI_U,  DEFAULT_LOG_LEVEL);   // Robust wifi server utils
+    esp_log_level_set(RWIFIS,  ESP_LOG_DEBUG);   // Robust wifi server
+    esp_log_level_set(WIFI_U,  ESP_LOG_DEBUG);   // Robust wifi server utils
     esp_log_level_set(FLASH,   DEFAULT_LOG_LEVEL);   // flash memory
     esp_log_level_set(PROGH,   DEFAULT_LOG_LEVEL);   // program handler
     esp_log_level_set(INTS,    DEFAULT_LOG_LEVEL);   // interaction state
@@ -67,23 +68,16 @@ void setup() {
   wifi_start(8);
 #endif
   uart_start(5);
-
-  // send wifi start command to central dispatch queue after everything is set up
-#ifndef DISABLE_WIFI
-  if (getIpIncrement() != NO_CONNECTION_IPINCR) {
-    PoiCommand cmdStartWifi ({CONNECT, 0, 0, 0, 0, 0});
-    sendToDispatch(cmdStartWifi, WIFI_T); 
-  }
-#endif
-
-	// start selftest
-  // selftest_start(5);
    
-  // fill queues with example values
-  PoiCommand cmdWorm ( {ANIMATE, RAINBOW, 1, 5, 0, 100} ); 
-  sendToDispatch(cmdWorm, WIFI_T);
-  PoiCommand cmdBlack ( {SHOW_RGB, 0, 0, 0, 0, 0} ); // black
-  sendToDispatch(cmdBlack, WIFI_T);
+  // animate a welcome worm
+  sendRawToDispatch({ANIMATE, RAINBOW, 1, 5, 0, 100}, MAIN_T);
+  sendRawToDispatch({SHOW_RGB, 0, 0, 0, 2, 254}, MAIN_T); // black
+
+#ifndef DISABLE_WIFI
+  // start ip configuration when everything is set up
+  PoiCommand cmdStartWifiConfig ({START_IP_CONFIG, 0, 0, 0, 0, 0});
+  sendToDispatch(cmdStartWifiConfig, MAIN_T); 
+#endif
 }
 
 // everything works with tasks, we dont need the loop...

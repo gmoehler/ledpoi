@@ -26,7 +26,7 @@
 
 // whether or not we should enable the wifi module
 // comment out this line if you want wifi
-#define DISABLE_WIFI
+// #define DISABLE_WIFI
 
 // maximum number of pois that can be configured
 #define N_POIS 10
@@ -63,6 +63,9 @@
 // ip increment which means: not connected
 #define NO_CONNECTION_IPINCR 254
 
+// timeout for ip configuration in sec
+#define IP_CONFIG_TIMEOUT 20
+
 
 enum Color {       WHITE,   // 0
                    BLACK,   // 1
@@ -77,9 +80,9 @@ enum Color {       WHITE,   // 0
                    PALE_WHITE
                    };
 
-// setup file tags for tagger
-
-#define DSPCH_T "DIPT"  // dispatch task
+// setup file tags for logger
+#define MAIN_T  "MAIN"   // main program task
+#define DSPCH_T "DIPT"   // dispatch task
 #define DISP_T  "DIST"   // display task
 #define MEM_T   "MEMT"   // memory task
 #define WIFI_T  "WIFT"   // wifi task

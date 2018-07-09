@@ -24,6 +24,7 @@ public:
   void setInterval(uint16_t intervalMs);
   void enable();
   void disable();
+  void reset();
 
 private:
   void _setInterval(uint16_t intervalMs);
