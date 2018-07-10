@@ -5,15 +5,18 @@ RobustWiFiServer::RobustWiFiServer():
   _currentState(UNCONFIGURED),
   _targetState(UNCONFIGURED),
   _condition(NO_ERROR),
-  _targetUpdated(false)
+  _targetUpdated(false),
+  _numRouters(0),
+  _currentRouterId(0)
 {};
 
 void RobustWiFiServer::init(IPAddress gateway, IPAddress subnet, 
-  String ssid, String wifiPassword, 
+  uint8_t numRouters, const String* ssid, const String* wifiPassword, 
   uint8_t serverPortVarsOnError, uint8_t numPortVarsOnError) {  
 
   _gateway = gateway;
   _subnet = subnet;
+  _numRouters = numRouters;
   _ssid = ssid;
   _wifiPassword = wifiPassword;
   _serverPortVarsOnError = serverPortVarsOnError;
@@ -100,6 +103,13 @@ Transition RobustWiFiServer::_getStepBackTransition(){
   return Transition(fromState, toState);
 }
 
+void RobustWiFiServer::_updateCurrentRouter(){
+  _currentRouterId++;
+  if (_currentRouterId > _numRouters-1) {
+    _currentRouterId = 0;
+  }
+}
+
 void RobustWiFiServer::_invokeAction(Transition& trans){
 
     // actions are only invoked once
@@ -110,9 +120,10 @@ void RobustWiFiServer::_invokeAction(Transition& trans){
     }
     // connecting actions...
     else if (Transition(UNCONFIGURED, CONNECTED) == trans){
+      _updateCurrentRouter();
       LOGI(RWIFIS, "-> Connecting to wifi with SSID %s & ip %s:%d...", 
-        _ssid.c_str(), _ip.toString().c_str(), _serverPort);
-      wifi_start_sta(_ssid, _wifiPassword, _ip, _gateway, _subnet);
+        _ssid[_currentRouterId].c_str(), _ip.toString().c_str(), _serverPort);
+      wifi_start_sta(_ssid[_currentRouterId], _wifiPassword[_currentRouterId], _ip, _gateway, _subnet);
     }
     else if (Transition(CONNECTED, SERVER_LISTENING) == trans){
       LOGI(RWIFIS, "-> Starting server...");

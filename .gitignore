@@ -49,5 +49,8 @@ nodejs/node_modules/
 **/node_modules/**
 nodejs/poi-mobile/package-lock.json
 
-src_legacy/WiFiCredentials.h
 bin/
+
+# Files with credentials
+src/wifi/RouterConfig.h
+src_legacy/WiFiCredentials.h

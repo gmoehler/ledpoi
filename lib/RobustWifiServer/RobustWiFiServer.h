@@ -33,8 +33,8 @@ class RobustWiFiServer
 public:
   RobustWiFiServer();
   void init(IPAddress gateway, IPAddress subnet, 
-    String ssid, String wifiPassword, 
-    uint8_t serverPortIncrOnError, uint8_t numPortVarOnError); // call once
+  uint8_t numRouter, const String* ssid, const String* wifiPassword, 
+  uint8_t serverPortVarsOnError, uint8_t numPortVarsOnError); // call once
 
   void connect();
   // connect to a different ip (only when being disconnected)
@@ -68,8 +68,10 @@ private:
   uint16_t _initialServerPort;
   uint8_t _serverPortVarsOnError;
   uint8_t _numPortVarsOnError;
-  String _ssid; 
-  String _wifiPassword;
+  uint8_t _numRouters;
+  uint8_t _currentRouterId;
+  const String* _ssid; 
+  const String* _wifiPassword;
 
   WiFiServer2 _server;
   WiFiClient _client;
@@ -81,6 +83,7 @@ private:
   bool _wasTransitionSuccessful(Transition trans);
   bool _checkState(ServerState state, bool debug=false);
   bool _timeoutReached();
+  void _updateCurrentRouter();
 
 #ifdef WITHIN_UNITTEST  
 public:  

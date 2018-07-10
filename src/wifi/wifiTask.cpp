@@ -1,7 +1,12 @@
 #include "wifiTask.h"
 
-const String ssid     = "MY_SSID7";
-const String password = "my_password";
+#ifdef EXTERNAL_ROUTER_CONFIG
+#include "routerConfig.h"
+#else
+const uint8_t numRouters = 1;
+const String ssid[]     = {"MY_SSID7"};
+const String password[] = {"my_password"};
+#endif
 
 uint8_t baseIp[] = {
 	192, 168, 1, 127};
@@ -107,7 +112,7 @@ void setControlLedState(ServerState state) {
 
 void wifiTask(void* arg) {
 
-  wifiServer.init(gateway, subnet, ssid, password, N_POIS, N_PORT_VARS_ON_ERROR);
+  wifiServer.init(gateway, subnet, numRouters, ssid, password, N_POIS, N_PORT_VARS_ON_ERROR);
 
   RawPoiCommand rawCmd;
   int i = 0;
