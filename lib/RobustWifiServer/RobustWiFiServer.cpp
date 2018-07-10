@@ -275,7 +275,7 @@ void RobustWiFiServer::loop(){
     if (_currentState == _targetState) { 
       // dont show message for keepAlive signal
       if (_currentState == DATA_AVAILABLE && _lastDataAvailableCount != 1) {
-        LOGI(RWIFIS, "Data available: %d bytes.", _lastDataAvailableCount);
+        LOGD(RWIFIS, "Data available: %d bytes.", _lastDataAvailableCount);
       }
       if (_targetState2 == _targetState) {
         // final target reached: create no-action transition

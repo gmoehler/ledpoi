@@ -29,7 +29,7 @@
 // #define DISABLE_WIFI
 
 // maximum number of pois that can be configured
-#define N_POIS 10
+#define N_POIS 12
 
 // on flash image must fit into a multiple of SPI_FLASH_SEC_SIZE (4096)
 // in 2MB there are 256 sections available
@@ -73,11 +73,11 @@ enum Color {       WHITE,   // 0
                    GREEN,   // 3
                    BLUE,    // 4
                    YELLOW,  // 5
-                   LILA,
-                   CYAN,
-                   ORANGE,
-                   RAINBOW,  // 8
-                   PALE_WHITE
+                   LILA,    // 6
+                   CYAN,    // 7
+                   ORANGE,  // 8
+                   RAINBOW, // 9
+                   PALE_WHITE // 10
                    };
 
 // setup file tags for logger

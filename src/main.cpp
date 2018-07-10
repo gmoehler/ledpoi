@@ -1,5 +1,7 @@
 #include "ledpoi.h"
 #include "ledpoi_utils.h"
+#include "soc/soc.h"
+#include "soc/rtc_cntl_reg.h"
 
 #include "memory/memoryTask.h"
 #include "dispatch/dispatchTask.h"
@@ -36,15 +38,22 @@ void logging_setup(){
     esp_log_level_set(POICMD,  DEFAULT_LOG_LEVEL);   // poi command util  
     esp_log_level_set(ICACHE,  DEFAULT_LOG_LEVEL);   // image cache util  
     esp_log_level_set(PCACHE,  DEFAULT_LOG_LEVEL);   // program cache util 
-    esp_log_level_set(RWIFIS,  ESP_LOG_DEBUG);   // Robust wifi server
-    esp_log_level_set(WIFI_U,  ESP_LOG_DEBUG);   // Robust wifi server utils
+    esp_log_level_set(RWIFIS,  DEFAULT_LOG_LEVEL);   // Robust wifi server
+    esp_log_level_set(WIFI_U,  DEFAULT_LOG_LEVEL);   // Robust wifi server utils
     esp_log_level_set(FLASH,   DEFAULT_LOG_LEVEL);   // flash memory
     esp_log_level_set(PROGH,   DEFAULT_LOG_LEVEL);   // program handler
     esp_log_level_set(INTS,    DEFAULT_LOG_LEVEL);   // interaction state
     esp_log_level_set(SELF_H,  DEFAULT_LOG_LEVEL);   // selftest helper
 }
 
+void disableBrownOut() {
+  WRITE_PERI_REG(RTC_CNTL_BROWN_OUT_REG, 0); 
+}
+
 void setup() {
+
+  disableBrownOut();
+
   uart_setup(); // first one because this sets serial baudrate
   logging_setup();
 
