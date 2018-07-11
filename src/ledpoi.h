@@ -28,6 +28,9 @@
 // comment out this line if you want wifi
 // #define DISABLE_WIFI
 
+// option to not reconnect when display is running and wifi connection is down
+#define DO_NOT_RECONNECT_ON_ACTIVE_DISPLAY 1
+
 // maximum number of pois that can be configured
 #define N_POIS 12
 

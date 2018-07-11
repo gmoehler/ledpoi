@@ -151,7 +151,6 @@
                 "MBEDTLS_CONFIG_FILE=\"mbedtls/esp_config.h\"",
                 "PLATFORMIO=30600",
                 "ARDUINO_ESP32_DEV",
-                "EXTERNAL_ROUTER_CONFIG",
                 ""
             ],
             "intelliSenseMode": "clang-x64",

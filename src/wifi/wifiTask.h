@@ -7,6 +7,7 @@
 #include "RobustWiFiServer.h"
 
 #include "memory/memoryTask.h" // for ip increment loading
+#include "dispatch/PoiMonitor.h"
 
 extern xQueueHandle wifiControlQueue;
 

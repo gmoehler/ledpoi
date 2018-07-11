@@ -61,7 +61,7 @@ void setup() {
   button_setup();
   memory_setup(10); 
   dispatch_setup(10);
-  display_setup(5);       
+  display_setup(10);       
   player_setup(5);
   program_setup(3);
   wifi_setup(3);

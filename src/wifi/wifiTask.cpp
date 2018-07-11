@@ -22,6 +22,8 @@ TaskHandle_t controlLedBlinkTaskHandle = NULL;
 bool withinProgram = false;
 bool controlLedBlinkActive = false;
 
+PoiMonitor monitor2;
+
 // queue to receive wifi control commands
 xQueueHandle wifiControlQueue = NULL;
 
@@ -154,6 +156,14 @@ void wifiTask(void* arg) {
     
     // no data available: check control queue, no blocking
     else {
+      // when the show is running do not try to reconnect when wifi connection is down
+      if (DO_NOT_RECONNECT_ON_ACTIVE_DISPLAY && monitor2.isDisplayActive()){
+        wifiServer.setDoNotReconnect(true);
+      }
+      else {
+        wifiServer.setDoNotReconnect(false);
+      }
+
       if(xQueueReceive(wifiControlQueue, &( rawCmd ), 0)) {
         PoiCommand cmd(rawCmd);
         

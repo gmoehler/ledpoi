@@ -26,5 +26,5 @@ void PoiMonitor::logStatus() {
 
 bool PoiMonitor::isDisplayActive() {
 	uint8_t numDisplayMsg = getQueueSize(DISPLAY_QUEUE);
-	return numDisplayMsg > 4;
+	return numDisplayMsg > 8;
 }

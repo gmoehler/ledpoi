@@ -40,6 +40,7 @@ public:
   // connect to a different ip (only when being disconnected)
   void connect(IPAddress ip, uint16_t port);
   void disconnect();
+  void setDoNotReconnect(bool noReconnect);
   
   void clientDisconnect();
 
@@ -72,6 +73,7 @@ private:
   uint8_t _currentRouterId;
   const String* _ssid; 
   const String* _wifiPassword;
+  bool _doNotReconnect;
 
   WiFiServer2 _server;
   WiFiClient _client;

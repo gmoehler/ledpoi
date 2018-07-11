@@ -25,6 +25,7 @@ void RobustWiFiServer::init(IPAddress gateway, IPAddress subnet,
   _targetState2 = UNCONFIGURED;
   _currentState = UNCONFIGURED;
   _lastDataAvailableCount = 0;
+  _doNotReconnect = false;
 
   wifi_init();
   }
@@ -65,6 +66,10 @@ void RobustWiFiServer::clientDisconnect(){
   _targetState = SERVER_LISTENING;
   _targetState2 = DATA_AVAILABLE;
   _targetUpdated = true;
+}
+
+void RobustWiFiServer::setDoNotReconnect(bool noReconnect) {
+  _doNotReconnect = noReconnect;
 }
 
 ServerState RobustWiFiServer::getState() {
@@ -120,10 +125,15 @@ void RobustWiFiServer::_invokeAction(Transition& trans){
     }
     // connecting actions...
     else if (Transition(UNCONFIGURED, CONNECTED) == trans){
-      _updateCurrentRouter();
-      LOGI(RWIFIS, "-> Connecting to wifi with SSID %s & ip %s:%d...", 
-        _ssid[_currentRouterId].c_str(), _ip.toString().c_str(), _serverPort);
-      wifi_start_sta(_ssid[_currentRouterId], _wifiPassword[_currentRouterId], _ip, _gateway, _subnet);
+      if (_doNotReconnect) {
+        LOGW(RWIFIS, "We were asked not to reconnect.");
+      }
+      else {
+        _updateCurrentRouter();
+        LOGI(RWIFIS, "-> Connecting to wifi with SSID %s & ip %s:%d...", 
+          _ssid[_currentRouterId].c_str(), _ip.toString().c_str(), _serverPort);
+        wifi_start_sta(_ssid[_currentRouterId], _wifiPassword[_currentRouterId], _ip, _gateway, _subnet);
+      }
     }
     else if (Transition(CONNECTED, SERVER_LISTENING) == trans){
       LOGI(RWIFIS, "-> Starting server...");
@@ -308,6 +318,7 @@ void RobustWiFiServer::loop(){
   }
 
   // we stayed too long in this state, step back one level and re-try
+  // will not happen when keep-alive signal is active
   else if (!_currentTransition.isEmptyTransition() && _timeoutReached()){
     _condition.error = TRANSITION_TIMEOUT_REACHED;
     _condition.numberOfTimeouts++;
