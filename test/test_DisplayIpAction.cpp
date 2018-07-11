@@ -73,7 +73,7 @@ TEST(displayIpAction_tests, afterInitWithBackground){
       EXPECT_EQ(sframe.pixel[i].g, 0);
       EXPECT_EQ(sframe.pixel[i].b, 64);
     }
-    else if (i<10) {
+    else if (i<N_POIS) {
       // palewhite background
       EXPECT_EQ(sframe.pixel[i].r, 8);
       EXPECT_EQ(sframe.pixel[i].g, 8);
