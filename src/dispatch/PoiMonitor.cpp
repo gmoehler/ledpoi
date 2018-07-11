@@ -15,7 +15,7 @@ void PoiMonitor::logStatus() {
 	uint8_t numProgramMsg = getQueueSize(PROGRAM_QUEUE);
 	uint8_t numWifiControlMsg = getQueueSize(WIFI_CONTROL_QUEUE);
 	
-	LOGD(DSPCH_T,  "Queues: DIP:%d DIS:%d MEM:%d PLA:%d PRG:%d WIF:%d", 
+	LOGI(DSPCH_T,  "Queues: DIP:%d DIS:%d MEM:%d PLA:%d PRG:%d WIF:%d", 
 		numDispatchMsg,
 		numDisplayMsg,
 		numMemoryMsg,
@@ -26,5 +26,5 @@ void PoiMonitor::logStatus() {
 
 bool PoiMonitor::isDisplayActive() {
 	uint8_t numDisplayMsg = getQueueSize(DISPLAY_QUEUE);
-	return numDisplayMsg > 0;
+	return numDisplayMsg > 4;
 }

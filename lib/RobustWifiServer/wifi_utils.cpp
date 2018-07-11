@@ -162,7 +162,7 @@ void wifi_stop_sta() {
   } */
 
   wifiState = WIFI_DISCONNECTED;
-  LOGI(WIFI_U, "End of wifi_stop_sta.");
+  LOGD(WIFI_U, "End of wifi_stop_sta.");
 }
 
 String wiFiStateToString(){
