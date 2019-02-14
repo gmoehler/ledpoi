@@ -199,6 +199,12 @@ bool PoiCommand::isMemoryControlCommand() {
             _type == SET_IP;
 }
 
+bool PoiCommand::isSpiffsControlCommand() {
+	return 
+            _type == LOAD_CHAN;
+}
+
+
 bool PoiCommand::isInternalCommand() {
 	return 
 		static_cast<int>(_type) > static_cast<int>(START_INTERNAL_COMMANDS);

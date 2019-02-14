@@ -95,6 +95,7 @@ enum Color {       WHITE,   // 0
 #define SELF_T  "SELT"   // selftest task
 #define BUT_T   "BUTT"   // button task
 #define EXPL_T  "EXPT"   // example task
+#define SPIF_T  "SPIT"   // SPIFFS task
 
 #define NOACT_A "NOAA"   // void ("no") action
 #define PLAYF_A "PLFA"   // play frames action

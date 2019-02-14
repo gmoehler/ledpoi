@@ -29,6 +29,7 @@ void logging_setup(){
     esp_log_level_set(SELF_T,  DEFAULT_LOG_LEVEL);   // selftest task
     esp_log_level_set(BUT_T,   DEFAULT_LOG_LEVEL);   // button task
     esp_log_level_set(EXPL_T,  DEFAULT_LOG_LEVEL);   // example task
+    esp_log_level_set(SPIF_T,  DEFAULT_LOG_LEVEL);   // spiffs task
 
     esp_log_level_set(PLAYF_A, DEFAULT_LOG_LEVEL);   // play frames action
     esp_log_level_set(NOACT_A, DEFAULT_LOG_LEVEL);   // void ("no") action
@@ -44,6 +45,8 @@ void logging_setup(){
     esp_log_level_set(PROGH,   DEFAULT_LOG_LEVEL);   // program handler
     esp_log_level_set(INTS,    DEFAULT_LOG_LEVEL);   // interaction state
     esp_log_level_set(SELF_H,  DEFAULT_LOG_LEVEL);   // selftest helper
+
+
 }
 
 void disableBrownOut() {

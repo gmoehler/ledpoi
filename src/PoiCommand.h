@@ -30,6 +30,7 @@ enum PoiCommandType {
     LOOP_START,
     SYNC_POINT,
     LOOP_END=216,
+    LOAD_CHAN=217,
     END_PREDEF_COMMANDS,
 
     START_INTERNAL_COMMANDS=230,// internal commands/events follow
@@ -73,6 +74,7 @@ public:
     bool isProgramControlCommand(); // control cmds for program task
     bool isWifiControlCommand(); // control cmds for wifi task
     bool isMemoryControlCommand(); // control cmds for memory task
+    bool isSpiffsControlCommand(); // control cmds for spiffs task
     bool isInternalCommand(); // commands/events issued intetnally
     
 private:
