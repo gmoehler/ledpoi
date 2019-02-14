@@ -1,0 +1,14 @@
+think about where to put load scenes cmd (not player task)
+implement gate for direct play command (new command or when program is active)
+button actions cont'd
+test init flash
+test client disconnect
+test connect to ipIncr > 0
+write test for animation
+
+replace portMAX_DELAY by smaller value (?)
+think about first fast pixel of worm
+update loader
+
+wrap pixelframe.pixel[] with setPixel func that does a constrain
+block intetnsl cmds from outside...
