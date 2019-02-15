@@ -1,15 +1,19 @@
+#include "ledpoi_utils.h"
+
 #include "spiffsTask.h"
 #include "spiffsUtils.h"
+
 
 SpiffsUtils spiffsUtils;
 
 xQueueHandle spiffsQueue = NULL;
+PixelFrame imageFrame;
 
 bool loadChannel() {
-  // for (int i=0; i< numFrames; i++){
-    // get frame from channel file
-    // sendFrameToDisplay(&frame, portMAX_DELAY);
-  // }
+  while(spiffsUtils.hasNextFrame()) {
+    spiffsUtils.getNextFrame(&imageFrame);
+    sendFrameToDisplay(&imageFrame, portMAX_DELAY);
+  }
   return true;
 }
 

@@ -78,6 +78,14 @@ void SpiffsUtils::readFile(fs::FS &fs, const char * path){
     file.close();
 }
 
+void SpiffsUtils::getNextFrame(PixelFrame* pFrame) {
+
+}
+
+ bool SpiffsUtils::hasNextFrame() {
+     return false;
+ }
+
 void SpiffsUtils::writeFile(fs::FS &fs, const char * path, const char * message){
     Serial.printf("Writing file: %s\n", path);
 

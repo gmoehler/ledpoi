@@ -1,7 +1,11 @@
+#include "ledpoi_utils.h"
+
 class SpiffsUtils
 {
 public:
   void setup();
+  void getNextFrame(PixelFrame* pFrame);
+  bool hasNextFrame();
   void listDir(fs::FS &fs, const char * dirname, uint8_t levels);
   void createDir(fs::FS &fs, const char * path);
   void removeDir(fs::FS &fs, const char * path);
