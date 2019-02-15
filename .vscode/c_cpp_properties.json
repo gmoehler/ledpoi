@@ -160,7 +160,6 @@
             "defines": [
                 "PLATFORMIO=30604",
                 "ARDUINO_ESP32_DEV",
-                "EXTERNAL_ROUTER_CONFIG",
                 "ESP32",
                 "ESP_PLATFORM",
                 "F_CPU=240000000L",
