@@ -1,30 +1,20 @@
-#include "ledpoi_utils.h"
-
 #include "spiffsTask.h"
-#include "spiffsUtils.h"
-
 
 SpiffsUtils spiffsUtils;
 
 xQueueHandle spiffsQueue = NULL;
 PixelFrame imageFrame;
 
-bool loadChannel() {
-  while(spiffsUtils.hasNextFrame()) {
-    spiffsUtils.getNextFrame(&imageFrame);
+
+void _loadChannelFromSpiffs() {
+  spiffsUtils.openFile("channel.poi");
+  int numFrames=0;
+  while(spiffsUtils.getNextFrame(&imageFrame)) {
+    numFrames++;
     sendFrameToDisplay(&imageFrame, portMAX_DELAY);
   }
-  return true;
-}
 
-// load channel from spiffs file to memory
-void _loadChannelFromSpiffs(){
-  if (loadChannel()){
-   LOGI(MEM_T,  "Channel loaded from spiffs.");
-  }
-  else{
-    LOGE(MEM_T, "Error. Cannot load channel from spiffs");
-  }
+  LOGI(MEM_T,  "Channel with %d frames loaded from spiffs.", numFrames);
 }
 
 void spiffsTask(void* arg)

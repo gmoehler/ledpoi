@@ -79,6 +79,9 @@ void shiftPixelframe(PixelFrame *pFrame, uint8_t shiftRegisterLength, bool cycli
 
 const char* _getQueueName(QueueType q) {
 	switch(q) {
+    case SPIFFS_QUEUE:
+    return "spiffsQueue";
+    
 		case MEMORY_QUEUE:
 		return "memoryQueue";
 		
@@ -102,6 +105,10 @@ const char* _getQueueName(QueueType q) {
 
 xQueueHandle _getQueue(QueueType q) {
 	switch(q) {
+
+		case SPIFFS_QUEUE:
+		return spiffsQueue;
+
 		case MEMORY_QUEUE:
 		return memoryQueue;
 		

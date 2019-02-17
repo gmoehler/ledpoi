@@ -1,13 +1,14 @@
-#ifndef MEMORY_TASK_H
-#define MEMORY_TASK_H
+#ifndef SPIFFS_TASK_H
+#define SPIFFS_TASK_H
 
-#include "ledpoi.h"
-#include "FS.h"
-#include "SPIFFS.h"
-#include <time.h> 
 #include <esp_system.h>
 #include <esp_partition.h>
 
+#include "ledpoi.h"
+#include "ledpoi_utils.h"
+#include "FS.h"
+#include "SPIFFS.h"
+#include "spiffsUtils.h"
 
 #include "PoiCommand.h"
 

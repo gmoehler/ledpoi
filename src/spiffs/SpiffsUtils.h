@@ -4,8 +4,11 @@ class SpiffsUtils
 {
 public:
   void setup();
-  void getNextFrame(PixelFrame* pFrame);
+  bool getNextFrame(PixelFrame* pFrame);
   bool hasNextFrame();
+  void openFile(const char * path);
+  void closeFile();
+  
   void listDir(fs::FS &fs, const char * dirname, uint8_t levels);
   void createDir(fs::FS &fs, const char * path);
   void removeDir(fs::FS &fs, const char * path);
@@ -16,4 +19,7 @@ public:
   void deleteFile(fs::FS &fs, const char * path);
   void listPartitions();
   void example();
+
+private: 
+  File file;
 };

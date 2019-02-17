@@ -9,9 +9,14 @@ InteractionState uiState;
 void dispatchCommand(PoiCommand cmd){
 
   PoiCommandType type = cmd.getType();
+  	LOGD(MEM_T, "Cmd: %s", cmd.toString().c_str());
 
   // choose correct queue based on cmd type
-  if (cmd.isMemoryControlCommand()) {
+  if (cmd.isSpiffsControlCommand()) {
+      sendToQueue(SPIFFS_QUEUE, cmd, DSPCH_T);
+   }
+
+  else if (cmd.isMemoryControlCommand()) {
   	if (type == HEAD_PROG){
         LOGD(DSPCH_T,  "Head of program.");
         programTransmitting = true;

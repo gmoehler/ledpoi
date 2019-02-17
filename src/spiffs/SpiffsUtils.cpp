@@ -7,6 +7,64 @@
 #include "SpiffsUtils.h"
 #include "ledpoi.h"
 
+void SpiffsUtils::setup(){
+
+    if(!SPIFFS.begin()){
+        LOGW(SPIF_T, "SPIFFS partition unusable, will create new one");
+        if(!SPIFFS.begin(true)){
+            Serial.println("SPIFFS partition mount failed");
+        return;
+        }
+    }
+}
+
+void SpiffsUtils::openFile(const char * path){
+    LOGI(SPIF_T, "Opening file: %s\n", path);
+
+    File file = SPIFFS.open(path);
+    if(!file){
+        LOGE(SPIF_T,"Failed to open file for reading");
+        return;
+    }
+}
+
+void SpiffsUtils::closeFile(){
+    LOGI(SPIF_T, "Closing file\n");
+
+    file.close();
+}
+
+
+bool SpiffsUtils::getNextFrame(PixelFrame* pframe) {
+
+    if (!file) {
+        LOGE(SPIF_T, "Cannot read from closed file.")
+    }
+
+    uint8_t rgbArray[3];
+    for (int i = 0; i< N_PIXELS/2; i++) {
+        for (int j = 0; j<3; j++) {
+            if (file.available()) {
+                rgbArray[j] = file.read();
+            }
+            else {
+                LOGD(SPIF_T, "pixel %d is not complete\n", i)
+                return false;
+            }
+        } 
+        LOGD(SPIF_T, "pixel %d: %u %u %u\n", i, rgbArray[0], rgbArray[1], rgbArray[2]);
+        pframe->pixel[i] =  makeRGBValue(rgbArray);
+    }
+
+    return true;
+}
+
+ bool SpiffsUtils::hasNextFrame() {
+     return file.available();
+ }
+
+// other general util functions
+
 void SpiffsUtils::listDir(fs::FS &fs, const char * dirname, uint8_t levels){
     Serial.printf("Listing directory: %s\n", dirname);
 
@@ -77,14 +135,6 @@ void SpiffsUtils::readFile(fs::FS &fs, const char * path){
     }
     file.close();
 }
-
-void SpiffsUtils::getNextFrame(PixelFrame* pFrame) {
-
-}
-
- bool SpiffsUtils::hasNextFrame() {
-     return false;
- }
 
 void SpiffsUtils::writeFile(fs::FS &fs, const char * path, const char * message){
     Serial.printf("Writing file: %s\n", path);
@@ -174,16 +224,4 @@ void SpiffsUtils::example(){
 	listDir(SPIFFS, "/", 2);
     listDir(SPIFFS, "/mydir3", 0);
 }
-
-void SpiffsUtils::setup(){
-
-    if(!SPIFFS.begin()){
-        LOGW(SPIF_T, "SPIFFS partition unusable, will create new one");
-        if(!SPIFFS.begin(true)){
-            Serial.println("SPIFFS partition mount failed");
-        return;
-        }
-    }
-}
-
 
