@@ -21,10 +21,6 @@ struct PixelFrame {
 
 extern xQueueHandle dispatchQueue;
 extern xQueueHandle spiffsQueue;
-extern xQueueHandle memoryQueue;                                        
-extern xQueueHandle playerQueue;
-extern xQueueHandle wifiControlQueue;
-extern xQueueHandle programQueue;
 extern xQueueHandle displayQueue;
 
 enum QueueType { 

@@ -4,7 +4,7 @@
 #include "PoiCommand.h"
 #include "PoiMonitor.h"
 #include "selftest/selftestTask.h"  // to start self test
-#include "memory/memoryTask.h"      // for ip increment loading
+// #include "memory/memoryTask.h"      // for ip increment loading
 
 enum PoiState {
     NO_INTERACTION, // currently not used
@@ -26,7 +26,7 @@ private:
     hw_timer_t *_timeoutTimer = NULL;
 
     void _triggerStateTransition(PoiCommand cmd);
-    void _incrementIp();
+    // void _incrementIp();
 };
 
 #endif

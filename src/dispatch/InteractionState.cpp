@@ -69,7 +69,7 @@ void InteractionState::_triggerStateTransition(PoiCommand cmd) {
 		
 		case BUTTON0_CLICK:
         if (_state == IP_CONFIG) {
-    	    _incrementIp();
+    	    // _incrementIp();
    	        sendRawToDispatch( {DISPLAY_IP, _ipIncr, 1, 0, 0, 0}, INTS );
             timerWrite(_timeoutTimer, 0); //reset timer (feed watchdog)
      	   // state does not change
@@ -121,6 +121,7 @@ void InteractionState::_triggerStateTransition(PoiCommand cmd) {
     }
 }
 
+/*
 void InteractionState::_incrementIp() {
 	
 	if (_ipIncr == NO_CONNECTION_IPINCR) {
@@ -133,7 +134,7 @@ void InteractionState::_incrementIp() {
 	else {
 		_ipIncr++;
 	}
-}
+} */
 
 String InteractionState::toString(){
 

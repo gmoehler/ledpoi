@@ -81,21 +81,9 @@ const char* _getQueueName(QueueType q) {
 	switch(q) {
     case SPIFFS_QUEUE:
     return "spiffsQueue";
-    
-		case MEMORY_QUEUE:
-		return "memoryQueue";
-		
-		case PLAYER_QUEUE:
-		return "playerQueue";
-		
-		case WIFI_CONTROL_QUEUE:
-		return "wifiControlQueue";
 		
 		case DISPLAY_QUEUE:
 		return "displayQueue";
-		
-		case PROGRAM_QUEUE:
-		return "programQueue";
 
     case DISPATCH_QUEUE:
 		return "dispaytchQueue";
@@ -108,21 +96,9 @@ xQueueHandle _getQueue(QueueType q) {
 
 		case SPIFFS_QUEUE:
 		return spiffsQueue;
-
-		case MEMORY_QUEUE:
-		return memoryQueue;
-		
-		case PLAYER_QUEUE:
-		return playerQueue;
-		
-		case WIFI_CONTROL_QUEUE:
-		return wifiControlQueue;
 		
 		case DISPLAY_QUEUE:
 		return displayQueue;
-		
-		case PROGRAM_QUEUE:
-		return programQueue;
 
     case DISPATCH_QUEUE:
     return dispatchQueue;
