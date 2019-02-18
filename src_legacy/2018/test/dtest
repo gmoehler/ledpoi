@@ -1,0 +1,3 @@
+cp  ~/ledpoi/bin/dotest ~/bin/
+chmod a+x ~/bin/dotest
+~/bin/dotest
