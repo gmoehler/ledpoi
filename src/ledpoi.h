@@ -2,7 +2,9 @@
 #define LEDPOI_H
 
 // default compile time logging level need to be defined
+#ifndef LOG_LOCAL_LEVEL
 #define LOG_LOCAL_LEVEL ESP_LOG_DEBUG
+#endif
 //#define CONFIG_LOG_COLORS 1 // does not work in VSC terminal
 
 #ifndef WITHIN_UNITTEST
