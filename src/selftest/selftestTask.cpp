@@ -43,14 +43,6 @@ static void selftestTask(void* arg){
 	numFramesChecked = 0;
 	_endofTestSemaphore = xSemaphoreCreateBinary();
 
-	LOGI(SELF_T, "Sending image...");
-	stHelper.sendImage();
-	LOGI(SELF_T, "Sending program...");
-	stHelper.sendProgram();
-	LOGI(SELF_T, "Starting program...");
-	stHelper.startProgram();
-	LOGI(SELF_T, "Program started...");
-
 	// wait for success, error or timeout (1.2 times the expected runtime)
 	uint32_t timeoutMs =  12 * stHelper.getExpectedRuntime() / 10;
 	const TickType_t xDelay = timeoutMs / portTICK_PERIOD_MS;

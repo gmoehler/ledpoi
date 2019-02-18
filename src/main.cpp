@@ -1,5 +1,6 @@
 #include "ledpoi.h"
 #include "ledpoi_utils.h"
+
 #include "soc/soc.h"
 #include "soc/rtc_cntl_reg.h"
 
@@ -28,8 +29,6 @@ void logging_setup(){
     esp_log_level_set(POICMD,  DEFAULT_LOG_LEVEL);   // poi command util  
     esp_log_level_set(INTS,    DEFAULT_LOG_LEVEL);   // interaction state
     // esp_log_level_set(SELF_H,  DEFAULT_LOG_LEVEL);   // selftest helper
-
-
 }
 
 void disableBrownOut() {

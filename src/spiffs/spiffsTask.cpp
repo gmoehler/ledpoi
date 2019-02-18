@@ -5,7 +5,6 @@ SpiffsUtils spiffsUtils;
 xQueueHandle spiffsQueue = NULL;
 PixelFrame imageFrame;
 
-
 void _loadChannelFromSpiffs() {
   spiffsUtils.openFile("/channel.poi");
   int numFrames=0;

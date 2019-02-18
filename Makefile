@@ -44,10 +44,8 @@ TESTSOURCES  := $(TESTDIR)/test.cpp \
 								$(TESTDIR)/WString.cpp \
 								$(TESTDIR)/PoiCommand.cpp \
 								$(TESTDIR)/mock_Arduino.cpp \
-								$(TESTDIR)/mock_memory.cpp \
 								$(TESTDIR)/mock_ws2812.cpp \
 								$(TESTDIR)/mock_esp.cpp \
-								$(TESTDIR)/mock_PoiFlashMemory.cpp \
 #								$(TESTDIR)/test_xxx \
 
 EXSOURCES    :=

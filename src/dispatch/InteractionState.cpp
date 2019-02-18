@@ -34,13 +34,7 @@ void InteractionState::_triggerStateTransition(PoiCommand cmd) {
     // state changes based on click events and current state
 	switch(type) {
         case START_IP_CONFIG:
-#ifndef DISABLE_WIFI
-        _ipIncr = getIpIncrement(); // initial ip incr from flash or current one
-        sendRawToDispatch( {DISPLAY_IP, _ipIncr, 1, 0, 0, 0}, INTS );
-        timerAlarmEnable(_timeoutTimer); //enable interrupt
-        // now user can configure with button click
-        nextState = IP_CONFIG;
-#endif
+        // not implemented without wifi
         break;
 
 		case BUTTON0_LONGCLICK:

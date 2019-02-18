@@ -86,7 +86,7 @@ const char* _getQueueName(QueueType q) {
 		return "displayQueue";
 
     case DISPATCH_QUEUE:
-		return "dispaytchQueue";
+		return "dispatchQueue";
 	}
 	return "dispatchQueue";
 }
