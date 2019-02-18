@@ -34,13 +34,7 @@ void InteractionState::_triggerStateTransition(PoiCommand cmd) {
     // state changes based on click events and current state
 	switch(type) {
         case START_IP_CONFIG:
-#ifndef DISABLE_WIFI
-        _ipIncr = getIpIncrement(); // initial ip incr from flash or current one
-        sendRawToDispatch( {DISPLAY_IP, _ipIncr, 1, 0, 0, 0}, INTS );
-        timerAlarmEnable(_timeoutTimer); //enable interrupt
-        // now user can configure with button click
-        nextState = IP_CONFIG;
-#endif
+        // not implemented without wifi
         break;
 
 		case BUTTON0_LONGCLICK:
@@ -69,7 +63,7 @@ void InteractionState::_triggerStateTransition(PoiCommand cmd) {
 		
 		case BUTTON0_CLICK:
         if (_state == IP_CONFIG) {
-    	    _incrementIp();
+    	    // _incrementIp();
    	        sendRawToDispatch( {DISPLAY_IP, _ipIncr, 1, 0, 0, 0}, INTS );
             timerWrite(_timeoutTimer, 0); //reset timer (feed watchdog)
      	   // state does not change
@@ -121,6 +115,7 @@ void InteractionState::_triggerStateTransition(PoiCommand cmd) {
     }
 }
 
+/*
 void InteractionState::_incrementIp() {
 	
 	if (_ipIncr == NO_CONNECTION_IPINCR) {
@@ -133,7 +128,7 @@ void InteractionState::_incrementIp() {
 	else {
 		_ipIncr++;
 	}
-}
+} */
 
 String InteractionState::toString(){
 

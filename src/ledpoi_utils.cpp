@@ -79,43 +79,26 @@ void shiftPixelframe(PixelFrame *pFrame, uint8_t shiftRegisterLength, bool cycli
 
 const char* _getQueueName(QueueType q) {
 	switch(q) {
-		case MEMORY_QUEUE:
-		return "memoryQueue";
-		
-		case PLAYER_QUEUE:
-		return "playerQueue";
-		
-		case WIFI_CONTROL_QUEUE:
-		return "wifiControlQueue";
+    case SPIFFS_QUEUE:
+    return "spiffsQueue";
 		
 		case DISPLAY_QUEUE:
 		return "displayQueue";
-		
-		case PROGRAM_QUEUE:
-		return "programQueue";
 
     case DISPATCH_QUEUE:
-		return "dispaytchQueue";
+		return "dispatchQueue";
 	}
 	return "dispatchQueue";
 }
 
 xQueueHandle _getQueue(QueueType q) {
 	switch(q) {
-		case MEMORY_QUEUE:
-		return memoryQueue;
-		
-		case PLAYER_QUEUE:
-		return playerQueue;
-		
-		case WIFI_CONTROL_QUEUE:
-		return wifiControlQueue;
+
+		case SPIFFS_QUEUE:
+		return spiffsQueue;
 		
 		case DISPLAY_QUEUE:
 		return displayQueue;
-		
-		case PROGRAM_QUEUE:
-		return programQueue;
 
     case DISPATCH_QUEUE:
     return dispatchQueue;

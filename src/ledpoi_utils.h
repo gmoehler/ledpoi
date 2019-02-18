@@ -20,19 +20,13 @@ struct PixelFrame {
 }; 
 
 extern xQueueHandle dispatchQueue;
-extern xQueueHandle memoryQueue;                                        
-extern xQueueHandle playerQueue;
-extern xQueueHandle wifiControlQueue;
-extern xQueueHandle programQueue;
+extern xQueueHandle spiffsQueue;
 extern xQueueHandle displayQueue;
 
 enum QueueType { 
 	DISPATCH_QUEUE,
-	MEMORY_QUEUE,
-	PLAYER_QUEUE,
-	WIFI_CONTROL_QUEUE,
+	SPIFFS_QUEUE,
 	DISPLAY_QUEUE,
-	PROGRAM_QUEUE,
 };
 
 // some utils

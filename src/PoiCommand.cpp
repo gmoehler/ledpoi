@@ -25,7 +25,8 @@ const char *commandNames [] = {
     "SET_IP",
     "LOOP_START",
     "SYNC_POINT",
-    "LOOP_END"
+    "LOOP_END",
+    "LOAD_CHAN"
 };
 
 const char *internalCommandNames [] = {
@@ -198,6 +199,12 @@ bool PoiCommand::isMemoryControlCommand() {
             _type == INIT_FLASH || 
             _type == SET_IP;
 }
+
+bool PoiCommand::isSpiffsControlCommand() {
+	return 
+            _type == LOAD_CHAN;
+}
+
 
 bool PoiCommand::isInternalCommand() {
 	return 

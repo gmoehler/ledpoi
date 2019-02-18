@@ -1,10 +1,7 @@
 #include "mock_esp.h"
 
 xQueueHandle dispatchQueue;
-xQueueHandle memoryQueue;                                        
-xQueueHandle playerQueue;
-xQueueHandle wifiControlQueue;
-xQueueHandle programQueue;
+xQueueHandle spiffsQueue;
 xQueueHandle displayQueue;
 
 void esp_log_write(esp_log_level_t level, const char* tag, const char* format, ...)
