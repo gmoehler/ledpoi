@@ -6,8 +6,8 @@
 #include "dispatch/dispatchTask.h"
 #include "display/displayTask.h"
 #include "spiffs/spiffsTask.h"
-// #include "uart/uartTask.h"
-// #include "ui/button.h"
+#include "uart/uartTask.h"
+#include "ui/button.h"
 // #include "selftest/selftestTask.h"
 
 // unless defined differently below this is the default log level
@@ -15,14 +15,14 @@
 
 void logging_setup(){
 
-    esp_log_level_set(MAIN_T,  DEFAULT_LOG_LEVEL);   // main program task
-    esp_log_level_set(DSPCH_T, DEFAULT_LOG_LEVEL);   // dispatch task
+    esp_log_level_set(MAIN_T,  ESP_LOG_DEBUG);   // main program task
+    esp_log_level_set(DSPCH_T, ESP_LOG_DEBUG);   // dispatch task
     esp_log_level_set(DISP_T,  DEFAULT_LOG_LEVEL);   // display task
-    // esp_log_level_set(UART_T,  DEFAULT_LOG_LEVEL);   // uart task
+    esp_log_level_set(UART_T,  DEFAULT_LOG_LEVEL);   // uart task
     // esp_log_level_set(SELF_T,  DEFAULT_LOG_LEVEL);   // selftest task
-    // esp_log_level_set(BUT_T,   DEFAULT_LOG_LEVEL);   // button task
-    // esp_log_level_set(EXPL_T,  DEFAULT_LOG_LEVEL);   // example task
-    esp_log_level_set(SPIF_T,  DEFAULT_LOG_LEVEL);   // spiffs task
+    esp_log_level_set(BUT_T,   DEFAULT_LOG_LEVEL);   // button task
+    esp_log_level_set(EXPL_T,  DEFAULT_LOG_LEVEL);   // example task
+    esp_log_level_set(SPIF_T,  ESP_LOG_DEBUG);   // spiffs task
 
     esp_log_level_set(TIMER,   DEFAULT_LOG_LEVEL);   // timer util
     esp_log_level_set(POICMD,  DEFAULT_LOG_LEVEL);   // poi command util  
@@ -41,7 +41,7 @@ void setup() {
   disableBrownOut();
 
   // uart_setup(); // first one because this sets serial baudrate
-  // logging_setup();
+  logging_setup();
 
   // setup tasks and queues with sizes
   // button_setup();
@@ -55,9 +55,8 @@ void setup() {
   spiffs_start(6);
   display_start(9); 
 
-  sendRawToDispatch({LOAD_CHAN, 0, 0, 0, 0, 0}, MAIN_T); // black
-  // PoiCommand cmd({LOAD_CHAN, 0, 0, 0, 0, 0});
-  // sendToQueue(SPIFFS_QUEUE, cmd, MAIN_T);
+  // display loaded image
+  sendRawToDispatch({LOAD_CHAN, 0, 0, 0, 0, 0}, MAIN_T); 
 }
 
 // everything works with tasks, we dont need the loop...

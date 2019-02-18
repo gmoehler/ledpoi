@@ -26,11 +26,7 @@ extern xQueueHandle displayQueue;
 enum QueueType { 
 	DISPATCH_QUEUE,
 	SPIFFS_QUEUE,
-	MEMORY_QUEUE,
-	PLAYER_QUEUE,
-	WIFI_CONTROL_QUEUE,
 	DISPLAY_QUEUE,
-	PROGRAM_QUEUE,
 };
 
 // some utils

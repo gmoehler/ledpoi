@@ -7,8 +7,9 @@ PixelFrame imageFrame;
 
 
 void _loadChannelFromSpiffs() {
-  spiffsUtils.openFile("channel.poi");
+  spiffsUtils.openFile("/channel.poi");
   int numFrames=0;
+  imageFrame.delay = 10; // in ms
   while(spiffsUtils.getNextFrame(&imageFrame)) {
     numFrames++;
     sendFrameToDisplay(&imageFrame, portMAX_DELAY);

@@ -12,55 +12,58 @@ void SpiffsUtils::setup(){
     if(!SPIFFS.begin()){
         LOGW(SPIF_T, "SPIFFS partition unusable, will create new one");
         if(!SPIFFS.begin(true)){
-            Serial.println("SPIFFS partition mount failed");
+            LOGE(SPIF_T, "SPIFFS partition mount failed");
         return;
         }
     }
+    LOGI(SPIF_T, "SPIFFS partition setup done.");
 }
 
 void SpiffsUtils::openFile(const char * path){
     LOGI(SPIF_T, "Opening file: %s\n", path);
 
-    File file = SPIFFS.open(path);
-    if(!file){
+    _file = SPIFFS.open(path);
+    if(!_file){
         LOGE(SPIF_T,"Failed to open file for reading");
         return;
     }
+    _curFrame = 0;
 }
 
 void SpiffsUtils::closeFile(){
     LOGI(SPIF_T, "Closing file\n");
 
-    file.close();
+    _file.close();
 }
-
 
 bool SpiffsUtils::getNextFrame(PixelFrame* pframe) {
 
-    if (!file) {
+    if (!_file) {
         LOGE(SPIF_T, "Cannot read from closed file.")
     }
 
+    _curFrame++;
     uint8_t rgbArray[3];
     for (int i = 0; i< N_PIXELS/2; i++) {
         for (int j = 0; j<3; j++) {
-            if (file.available()) {
-                rgbArray[j] = file.read();
+            if (_file.available()) {
+                rgbArray[j] = _file.read();
             }
             else {
-                LOGD(SPIF_T, "pixel %d is not complete\n", i)
+                LOGW(SPIF_T, "frame %d pixel %d is not complete\n", _curFrame, i)
                 return false;
             }
         } 
-        LOGD(SPIF_T, "pixel %d: %u %u %u\n", i, rgbArray[0], rgbArray[1], rgbArray[2]);
+        LOGV(SPIF_T, "pixel %d: %u %u %u\n", i, rgbArray[0], rgbArray[1], rgbArray[2]);
         pframe->pixel[i] =  makeRGBValue(rgbArray);
+        pframe-> idx = _curFrame;
     }
 
     return true;
 }
 
  bool SpiffsUtils::hasNextFrame() {
-     return file.available();
+     return _file.available();
  }
 
 // other general util functions

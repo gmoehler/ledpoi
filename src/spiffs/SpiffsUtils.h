@@ -21,5 +21,6 @@ public:
   void example();
 
 private: 
-  File file;
+  File _file;
+  uint16_t _curFrame = 0;
 };

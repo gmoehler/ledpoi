@@ -25,7 +25,8 @@ const char *commandNames [] = {
     "SET_IP",
     "LOOP_START",
     "SYNC_POINT",
-    "LOOP_END"
+    "LOOP_END",
+    "LOAD_CHAN"
 };
 
 const char *internalCommandNames [] = {
