@@ -27,6 +27,9 @@
 #define N_PIXELS 60
 #define N_CMD_FIELDS 6
 
+// default frame delay (in ms)
+#define DEFAULT_DELAY 10
+
 // serial baud rate
 //#define UART_BAUD 115200
 #define UART_BAUD 921600
