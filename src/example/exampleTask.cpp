@@ -51,6 +51,150 @@ static void displayExampleStart(){
     frameToDisplayQueue(&sframe, portMAX_DELAY);
 }
 
+void playerExampleStart(){
+  RawPoiCommand rawCmd[] = {
+    {ANIMATE,     0,  0,  0,  0,  20}, // animate with sample action
+    {DISPLAY_IP,  0,  0,  0,  1, 254}, // display ip
+    {DISPLAY_IP,  1,  0,  0,  1, 254}, 
+    {DISPLAY_IP,  2,  0,  0,  1, 254},
+    {DISPLAY_IP,  3,  0,  0,  1, 254}, 
+    {DISPLAY_IP,  4,  1,  0, 10, 254}, // display ip with background
+    {DISPLAY_IP,  5,  1,  0, 10, 254},
+    {DISPLAY_IP,  6,  1,  0, 10, 254}, 
+    {DISPLAY_IP,  7,  1,  0, 10, 254}
+  };
+
+  uint8_t numCommands = 9;
+  sendCommandsTo(dispatchQueue, rawCmd, numCommands);
+}
+
+void wormExampleStart(){
+  RawPoiCommand rawCmd[] = {
+   {ANIMATE,      8,  1,  14, 0, 100}  // animate rainbow worm
+  };
+
+  uint8_t numCommands = 1;
+  sendCommandsTo(dispatchQueue, rawCmd, numCommands);
+}
+
+void setPixelExampleStart1(uint8_t scene){
+
+  // start set_pixels
+  RawPoiCommand rawCmd0 =
+    {HEAD_SCENE, scene, 0, 0, 0, 0}; // head scene 0
+  sendCommandTo(dispatchQueue, rawCmd0);
+
+  RawPoiCommand rawCmd;
+  rawCmd.field[2]=0; // (scene)
+
+  for (int f=0; f<2; f++){
+    rawCmd.field[1]=f; // frame
+
+    for (int i=0; i<30; i++){
+      rawCmd.field[0]=i; // pixel
+
+      if (f == 0){
+        rawCmd.field[3]=32;
+        rawCmd.field[4]=32;
+        rawCmd.field[5]=32;
+      }
+      else { //f==1
+        if (i<10){
+          rawCmd.field[3]=32; // r
+          rawCmd.field[4]=0;  // g
+          rawCmd.field[5]=0;  // b
+        }
+        else if (i<20){
+          rawCmd.field[3]=0;
+          rawCmd.field[4]=32;
+          rawCmd.field[5]=0;
+        }
+        else{
+          rawCmd.field[3]=0;
+          rawCmd.field[4]=0;
+          rawCmd.field[5]=32;
+        }
+      }
+
+      sendCommandTo(dispatchQueue, rawCmd);
+    }
+  }
+
+  // end of set pixels
+  RawPoiCommand rawCmd9 =
+    {TAIL_SCENE, 0, 0, 0, 0, 0}; 
+  sendCommandTo(dispatchQueue, rawCmd9);
+}
+
+void setPixelExampleStart2(uint8_t scene){
+
+  // start set_pixels
+  RawPoiCommand rawCmd0 =
+    {HEAD_SCENE, scene, 0, 0, 0, 0}; // head scene 2
+  sendCommandTo(dispatchQueue, rawCmd0);
+
+  RawPoiCommand rawCmd;
+  rawCmd.field[2]=2; // (scene)
+
+  for (int f=0; f<2; f++){
+    rawCmd.field[1]=f; // frame
+
+    for (int i=0; i<30; i++){
+      rawCmd.field[0]=i; // pixel
+
+      if (f == 0){
+        rawCmd.field[3]=32;
+        rawCmd.field[4]=0;
+        rawCmd.field[5]=0;
+      }
+      else { 
+      	rawCmd.field[3]=0;
+        rawCmd.field[4]=0;
+        rawCmd.field[5]=32;
+      }
+
+      sendCommandTo(dispatchQueue, rawCmd);
+    }
+  }
+
+  // end of set pixels
+  RawPoiCommand rawCmd9 =
+    {TAIL_SCENE, 0, 0, 0, 0, 0}; 
+  sendCommandTo(dispatchQueue, rawCmd9);
+}
+
+void playFramesExampleStart(uint8_t scene){
+
+  RawPoiCommand rawCmd =
+    {PLAY_FRAMES,  scene,  1,  2,  4, 254}; // play frames
+
+  sendCommandTo(dispatchQueue, rawCmd);
+}
+
+void setPixelSaveAndPlayStart(){
+  setPixelExampleStart1(0);
+  RawPoiCommand rawCmd =
+    {SAVE_SCENE,  0,  0,  0,  0,  0}; // save current Scene (0)
+  sendCommandTo(dispatchQueue, rawCmd);
+  LOGI(EXPL_T, "Playing scene 0");
+  playFramesExampleStart(0);
+  delay(1000);
+
+  setPixelExampleStart2(2);
+  rawCmd =
+    {SAVE_SCENE,  0,  0,  0,  0,  0}; // save current Scene (2)
+  sendCommandTo(dispatchQueue, rawCmd);
+  LOGI(EXPL_T, "Playing scene 2");
+  playFramesExampleStart(2);
+
+  delay(1000); // delay because we need to wait until things are saved
+  
+  rawCmd =
+    {LOAD_SCENE,  0,  0,  0,  0,  0}; // load scene 0
+  sendCommandTo(dispatchQueue, rawCmd);
+  LOGI(EXPL_T, "Playing scene 0");
+  playFramesExampleStart(0);
+}
 static void exampleTask(void* arg){
 
   switch (exampleToRun){
@@ -59,6 +203,27 @@ static void exampleTask(void* arg){
     LOGI(EXPL_T, "Starting display example");
     displayExampleStart();
     break;
+
+    case PLAYER_EXAMPLE:
+    LOGI(EXPL_T, "Starting player example");
+    playerExampleStart();
+    break;
+
+    case SET_PIXEL_AND_PLAY_EXAMPLE:
+    LOGI(EXPL_T, "Starting set pixel and play example");
+    setPixelExampleStart1(0);
+    playFramesExampleStart(0);
+    break;
+
+    case SET_PIXEL_SAVE_AND_PLAY_EXAMPLE:
+    LOGI(EXPL_T, "Starting set pixel, save and play example");
+    setPixelSaveAndPlayStart();
+    break;
+    case WORM_EXAMPLE:
+    LOGI(EXPL_T, "Starting player example");
+    wormExampleStart();
+    break;
+
 
     default:
     LOGE(EXPL_T, "No example to start");

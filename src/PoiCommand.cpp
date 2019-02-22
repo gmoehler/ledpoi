@@ -26,7 +26,7 @@ const char *commandNames [] = {
     "LOOP_START",
     "SYNC_POINT",
     "LOOP_END",
-    "LOAD_CHAN"
+    "PLAY_SPIFFS_IMAGE"
 };
 
 const char *internalCommandNames [] = {
@@ -151,33 +151,16 @@ uint16_t PoiCommand::getCombinedField(int idx1, int idx2) {
 bool PoiCommand::isActionCommand() {
 	return 
             _type == SHOW_RGB ||
-            _type == PLAY_FRAMES ||
+            _type == PLAY_SPIFFS_IMAGE ||
             _type == ANIMATE ||
             _type == DISPLAY_IP || 
-            _type == FADE2FRAME;
+            _type == FADE2FRAME ;
 }
 	
 bool PoiCommand::isPlayableCommand() {
     return 
-            _type == LOAD_SCENE ||
             _type == DIM ||
             isActionCommand();
-}
-
-bool PoiCommand::isProgramStatement() {
-    return  
-            _type == LOOP_START || 
-            _type == LOOP_END || 
-            _type == SYNC_POINT ||
-	        isPlayableCommand();
-}
-
-bool PoiCommand::isProgramControlCommand() {
-	return
-            _type == START_PROG || 
-            _type == STOP_PROC || 
-            _type == PAUSE_PROC || 
-            _type == JUMP2SYNC;
 }
 
 bool PoiCommand::isWifiControlCommand() {
@@ -186,25 +169,6 @@ bool PoiCommand::isWifiControlCommand() {
             _type == DISCONNECT || 
             _type == CLIENT_DISCON;
 }
-
-bool PoiCommand::isMemoryControlCommand() {
-	return 
-            _type == SET_PIXEL || 
-            _type == HEAD_SCENE || 
-            _type == TAIL_SCENE || 
-            _type == SAVE_SCENE || 
-            _type == HEAD_PROG || 
-            _type == TAIL_PROG || 
-            _type == SAVE_PROG || 
-            _type == INIT_FLASH || 
-            _type == SET_IP;
-}
-
-bool PoiCommand::isSpiffsControlCommand() {
-	return 
-            _type == LOAD_CHAN;
-}
-
 
 bool PoiCommand::isInternalCommand() {
 	return 

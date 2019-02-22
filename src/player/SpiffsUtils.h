@@ -1,3 +1,14 @@
+#ifndef SPIFFS_UTILS
+#define SPIFFS_UTILS
+
+#include "FS.h"
+#include "SPIFFS.h"
+#include <time.h> 
+#include <WiFi.h>
+#include <esp_system.h>
+#include <esp_partition.h>
+
+#include "ledpoi.h"
 #include "ledpoi_utils.h"
 
 class SpiffsUtils
@@ -24,3 +35,5 @@ private:
   File _file;
   uint16_t _curFrame = 0;
 };
+
+#endif

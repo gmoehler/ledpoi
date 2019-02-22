@@ -70,7 +70,7 @@ void InteractionState::_triggerStateTransition(PoiCommand cmd) {
         }
         // at any other time a button click starts the program
         else {
-        	sendRawToDispatch( {START_PROG, 0, 0, 0, 0, 0}, INTS );
+        	sendRawToDispatch( {PLAY_SPIFFS_IMAGE, 0, 0, 0, 0, 0}, INTS );
             nextState = WAIT_FOR_PROGSTART;
         }
         break;

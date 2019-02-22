@@ -76,26 +76,25 @@ void shiftPixelframe(PixelFrame *pFrame, uint8_t shiftRegisterLength, bool cycli
   pFrame->pixel[0] = valLast;
 }
 
+const char *_getQueueName(QueueType q) {
+  switch (q) {
+    case PLAYER_QUEUE:
+      return "playerQueue";
 
-const char* _getQueueName(QueueType q) {
-	switch(q) {
-    case SPIFFS_QUEUE:
-    return "spiffsQueue";
-		
-		case DISPLAY_QUEUE:
-		return "displayQueue";
+    case DISPLAY_QUEUE:
+      return "displayQueue";
 
     case DISPATCH_QUEUE:
-		return "dispatchQueue";
-	}
-	return "dispatchQueue";
+      return "dispatchQueue";
+  }
+  return "dispatchQueue";
 }
 
 xQueueHandle _getQueue(QueueType q) {
 	switch(q) {
-
-		case SPIFFS_QUEUE:
-		return spiffsQueue;
+	
+		case PLAYER_QUEUE:
+		return playerQueue;
 		
 		case DISPLAY_QUEUE:
 		return displayQueue;

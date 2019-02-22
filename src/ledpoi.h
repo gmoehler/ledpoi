@@ -26,6 +26,9 @@
 #define LOGV( tag, format, ... )  if (LOG_LOCAL_LEVEL >= ESP_LOG_VERBOSE) { esp_log_write(ESP_LOG_VERBOSE, tag, LOG_FORMAT(V, format), esp_log_timestamp(), tag, ##__VA_ARGS__); }
 #endif
 
+// maximum number of pois that can be configured
+#define N_POIS 12
+
 #define N_PIXELS 60
 #define N_CMD_FIELDS 6
 
@@ -72,7 +75,7 @@ enum Color {       WHITE,   // 0
 #define SPIF_T  "SPIT"   // SPIFFS task
 
 #define NOACT_A "NOAA"   // void ("no") action
-#define PLAYF_A "PLFA"   // play frames action
+#define SPIFF_A "SPIA"   // play spiffs image action
 #define SRGB_A  "SRGA"   // show rgb action
 #define ANIM_A  "ANIA"   // animation action
 

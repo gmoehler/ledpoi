@@ -1,11 +1,4 @@
-#include "FS.h"
-#include "SPIFFS.h"
-#include <time.h> 
-#include <WiFi.h>
-#include <esp_system.h>
-#include <esp_partition.h>
 #include "SpiffsUtils.h"
-#include "ledpoi.h"
 
 void SpiffsUtils::setup(){
 

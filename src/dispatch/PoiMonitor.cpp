@@ -7,10 +7,12 @@ extern xQueueHandle playerQueue;
 void PoiMonitor::logStatus() {
 	uint8_t numDispatchMsg = getQueueSize(DISPATCH_QUEUE);
 	uint8_t numDisplayMsg = getQueueSize(DISPLAY_QUEUE);
+	uint8_t numPlayerMsg = getQueueSize(PLAYER_QUEUE);
 	
 	LOGI(DSPCH_T,  "Queues: DIP:%d DIS:%d MEM:%d PLA:%d PRG:%d WIF:%d", 
 		numDispatchMsg,
-		numDisplayMsg);
+		numDisplayMsg,
+		numPlayerMsg);
 }
 
 bool PoiMonitor::isDisplayActive() {

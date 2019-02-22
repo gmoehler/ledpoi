@@ -1,6 +1,7 @@
 #include "mock_esp.h"
 
 xQueueHandle dispatchQueue;
+xQueueHandle playerQueue;
 xQueueHandle spiffsQueue;
 xQueueHandle displayQueue;
 
