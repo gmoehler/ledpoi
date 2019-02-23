@@ -14,6 +14,8 @@ class PlaySpiffsImageAction: public AbstractAction
 public:
   PlaySpiffsImageAction();
   const char* getActionName();
+
+  void setup();
   
   void init(PoiCommand cmd, PixelFrame* frame, ActionOptions options);
 

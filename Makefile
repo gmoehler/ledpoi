@@ -38,7 +38,12 @@ INCDEP      := -I$(INCDIR) -I$(TESTINCDIR) -I$(GOOGLETEST_DIR)/include
 #---------------------------------------------------------------------------------
 #SOURCES     := $(shell find $(SRCDIR) -type f -name *.$(SRCEXT))
 # includes all sources that are not tasks
-SOURCES      := $(SRCDIR)/ledpoi_utils.cpp 
+SOURCES      := $(SRCDIR)/ledpoi_utils.cpp \
+								$(SRCDIR)/player/NoAction.cpp \
+								$(SRCDIR)/player/ShowRgbAction.cpp \
+								$(SRCDIR)/player/DisplayIpAction.cpp \
+								$(SRCDIR)/player/AnimationAction.cpp \
+#								$(SRCDIR)/player/PlaySpiffsImageAction.cpp 
 
 TESTSOURCES  := $(TESTDIR)/test.cpp \
 								$(TESTDIR)/WString.cpp \
@@ -46,7 +51,10 @@ TESTSOURCES  := $(TESTDIR)/test.cpp \
 								$(TESTDIR)/mock_Arduino.cpp \
 								$(TESTDIR)/mock_ws2812.cpp \
 								$(TESTDIR)/mock_esp.cpp \
-#								$(TESTDIR)/test_xxx \
+								$(TESTDIR)/test_NoAction.cpp \
+								$(TESTDIR)/test_ShowRgbAction.cpp \
+								$(TESTDIR)/test_DisplayIpAction.cpp \
+#								$(TESTDIR)/test_PlaySpiffsImageAction.cpp 
 
 EXSOURCES    :=
 

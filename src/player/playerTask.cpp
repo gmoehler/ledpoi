@@ -95,6 +95,7 @@ void playerTask(void* arg)
 
 void player_setup(uint8_t queueSize){
   playerQueue = xQueueCreate(queueSize, sizeof( RawPoiCommand ));
+  playSpiffsImageAction.setup();
 }
 
 void player_start(uint8_t prio){ 

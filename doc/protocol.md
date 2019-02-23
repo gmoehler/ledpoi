@@ -107,7 +107,7 @@ Direct commands are carried out instantly cleaning the current program and play 
 |*|syncPoint |215|sequenceId|stopAtSync||||define sync point for jumpTo action, if stopAtSync is > 0 then the show stops at the sync point until sync is received|P|
 |*|loopEnd   |216|loopId     |||||end of loop|P|
 |**SPIFFS**|
-|*|loadChan  |217|          |||||load channel from file in spiffs to memory|P|
+|*|plSpiffsImg|217|          |||delay/to MSB|delay/to LSB|play channel from file in spiffs to memory|P|
 | |          |_218...230_| |||||_reserved address space_||
 |**Internal**|
 |*|poistatus |231|          |||||print queue status to log|A|

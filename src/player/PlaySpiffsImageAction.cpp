@@ -3,7 +3,13 @@
 SpiffsUtils spiffsUtil;
 
 PlaySpiffsImageAction::PlaySpiffsImageAction() :
- _delayMs(0), _currentFrame (0),  _active(false){ }
+  _delayMs(0), _currentFrame (0),  _active(false){ 
+  
+ }
+
+void PlaySpiffsImageAction::setup() {
+ spiffsUtil.setup();
+}
 
 void PlaySpiffsImageAction::init(PoiCommand cmd, PixelFrame* pframe, ActionOptions options) {
   
@@ -22,7 +28,6 @@ void PlaySpiffsImageAction::init(PoiCommand cmd, PixelFrame* pframe, ActionOptio
   _delayMs = cmd.getCombinedField(4, 5);
   _pframe->delay = (_delayMs == 0) ? DEFAULT_DELAY : _delayMs;
 
-  spiffsUtil.setup();
   spiffsUtil.openFile("/channel.poi");
 
   _currentFrame = 0;

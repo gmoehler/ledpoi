@@ -30,10 +30,10 @@ void logging_setup(){
     esp_log_level_set(NOACT_A, DEFAULT_LOG_LEVEL);   // void ("no") action
     esp_log_level_set(ANIM_A,  DEFAULT_LOG_LEVEL);   // animation action
 
-
     esp_log_level_set(TIMER,   DEFAULT_LOG_LEVEL);   // timer util
     esp_log_level_set(POICMD,  DEFAULT_LOG_LEVEL);   // poi command util  
     esp_log_level_set(INTS,    DEFAULT_LOG_LEVEL);   // interaction state
+    esp_log_level_set(SPIF_U,  ESP_LOG_DEBUG);   // spiffs utils
     // esp_log_level_set(SELF_H,  DEFAULT_LOG_LEVEL);   // selftest helper
 }
 
