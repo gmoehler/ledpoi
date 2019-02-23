@@ -9,7 +9,7 @@ void PoiMonitor::logStatus() {
 	uint8_t numDisplayMsg = getQueueSize(DISPLAY_QUEUE);
 	uint8_t numPlayerMsg = getQueueSize(PLAYER_QUEUE);
 	
-	LOGI(DSPCH_T,  "Queues: DIP:%d DIS:%d MEM:%d PLA:%d PRG:%d WIF:%d", 
+	LOGI(DSPCH_T,  "Queues: DIP:%d DIS:%d PLA:%d", 
 		numDispatchMsg,
 		numDisplayMsg,
 		numPlayerMsg);
