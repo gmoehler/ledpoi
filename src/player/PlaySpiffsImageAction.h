@@ -3,7 +3,7 @@
 
 #include "ledpoi.h"
 #include "AbstractAction.h"
-#include "player/spiffsUtils.h"
+#include "player/SpiffsUtils.h"
 
 /**
  * Holds the information for a play action of an image in spiffs
