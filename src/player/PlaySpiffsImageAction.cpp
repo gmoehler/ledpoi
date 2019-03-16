@@ -26,22 +26,29 @@ void PlaySpiffsImageAction::init(PoiCommand cmd, PixelFrame* pframe, ActionOptio
 
   // read params
   _delayMs = cmd.getCombinedField(4, 5);
-  _pframe->delay = (_delayMs == 0) ? DEFAULT_DELAY : _delayMs;
+  _delayMs = (_delayMs == 0) ? DEFAULT_DELAY : _delayMs;
+  _pframe->delay = _delayMs;
 
   spiffsUtil.openFile("/channel.poi");
+  _header =  spiffsUtil.getHeader();
 
   _currentFrame = 0;
-  _active = true;
+  _active = spiffsUtil.getNextFrame(_pframe);
 }
 
 void PlaySpiffsImageAction::next(){
-	
-	_active = spiffsUtil.getNextFrame(_pframe);
-    if (isActive()) {
-		_currentFrame++;
-		_pframe->idx = _currentFrame;
-		 // TODO: cannot set _pframe->isLastFrame 
-   }
+  _active = _currentFrame < _header.width-1;
+  if (_active) {
+    // if not enough data _active will be false
+    _active = spiffsUtil.getNextFrame(_pframe);
+    printf("curFrame %d width %d\n", _currentFrame, _header.width);
+
+    if (_active) {
+		  _currentFrame++;
+		  _pframe->idx = _currentFrame;
+    } 
+  }
+  _pframe->isLastFrame = !_active;
 }
 
 bool PlaySpiffsImageAction::isActive(){
@@ -65,5 +72,8 @@ const char* PlaySpiffsImageAction::getActionName(){
 #ifdef WITHIN_UNITTEST
 uint8_t PlaySpiffsImageAction::__getCurrentFrame(){
   return _currentFrame;
+}
+uint16_t PlaySpiffsImageAction::__getDelay(){
+  return _delayMs;
 }
 #endif

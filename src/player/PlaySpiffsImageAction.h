@@ -27,10 +27,12 @@ public:
 
 #ifdef WITHIN_UNITTEST
   uint8_t __getCurrentFrame();
+  uint16_t __getDelay();
 #endif
 
 private:
   PixelFrame* _pframe;
+  ImageHeader _header;
 
   uint16_t _delayMs;
   uint16_t _currentFrame;

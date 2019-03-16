@@ -4,18 +4,31 @@
 #include "ledpoi.h"
 #include "ledpoi_utils.h"
 
-#include <FS.h>
-#include <SPIFFS.h>
-#include <esp_partition.h>
+#ifndef WITHIN_UNITTEST
+  #include <FS.h>
+  #include <SPIFFS.h>
+  #include <esp_partition.h>
+#endif
+
+struct ImageHeader {   
+    uint8_t codec;       
+    uint8_t height;
+    uint8_t width; // TODO: needs to be uint16 or uint32
+};
 
 class SpiffsUtils
 {
 public:
   void setup();
   bool getNextFrame(PixelFrame* pFrame);
+  bool getNextFrameNoEncoding(PixelFrame* pFrame);
+  bool getNextFrameRuntimeEncoding(PixelFrame* pFrame);
   bool hasNextFrame();
   void openFile(const char * path);
   void closeFile();
+  bool readImageHeader();
+  void clearImageHeader();
+  ImageHeader getHeader();
   
   void listDir(const char * dirname, uint8_t levels);
   void createDir(const char * path);
@@ -29,8 +42,11 @@ public:
   void example();
 
 private: 
-  File _file;
-  uint16_t _curFrame = 0;
+  fs::File _file;
+  ImageHeader _header;
+  uint16_t _curFrameIdx = 0;
+  rgbVal _currPixel;
+  uint8_t _currPixelCnt = 0;
 };
 
 #endif

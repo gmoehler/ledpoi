@@ -158,7 +158,7 @@
                 ]
             },
             "defines": [
-                "PLATFORMIO=30604",
+                "PLATFORMIO=30605",
                 "ARDUINO_ESP32_DEV",
                 "ESP32",
                 "ESP_PLATFORM",

@@ -43,7 +43,8 @@ SOURCES      := $(SRCDIR)/ledpoi_utils.cpp \
 								$(SRCDIR)/player/ShowRgbAction.cpp \
 								$(SRCDIR)/player/DisplayIpAction.cpp \
 								$(SRCDIR)/player/AnimationAction.cpp \
-#								$(SRCDIR)/player/PlaySpiffsImageAction.cpp 
+								$(SRCDIR)/player/SpiffsUtils.cpp \
+								$(SRCDIR)/player/PlaySpiffsImageAction.cpp 
 
 TESTSOURCES  := $(TESTDIR)/test.cpp \
 								$(TESTDIR)/WString.cpp \
@@ -54,7 +55,7 @@ TESTSOURCES  := $(TESTDIR)/test.cpp \
 								$(TESTDIR)/test_NoAction.cpp \
 								$(TESTDIR)/test_ShowRgbAction.cpp \
 								$(TESTDIR)/test_DisplayIpAction.cpp \
-#								$(TESTDIR)/test_PlaySpiffsImageAction.cpp 
+								$(TESTDIR)/test_PlaySpiffsImageAction.cpp 
 
 EXSOURCES    :=
 

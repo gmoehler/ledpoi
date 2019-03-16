@@ -40,4 +40,26 @@ bool xQueueSendToBack( xQueueHandle, void * , int );
 void xQueueReset(xQueueHandle);
 uint8_t uxQueueMessagesWaiting(xQueueHandle);
 
+void setFileData(uint8_t* data, uint16_t numElem);
+
+namespace fs
+{
+
+class File {
+public:
+    void close();
+    int read();
+    int available();
+    bool operator!();
+};
+
+}
+
+class SpiffsClass {
+public:
+    bool begin();
+    bool begin(bool);
+    fs::File open(const char*);
+};
+
 #endif

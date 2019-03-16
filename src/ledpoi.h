@@ -42,6 +42,10 @@
 // pin for led strip
 #define WS2812_PIN 23 
 
+// different image codecs
+#define NO_CODEC 0
+#define RUNTIME_CODEC 1
+
 // legacy stuff ... for interactionState... 
 // ip increment which means: not connected
 #define NO_CONNECTION_IPINCR 254

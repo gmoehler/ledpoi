@@ -58,10 +58,10 @@ rgbVal fadeColor(Color color, float factor){
 
 // stuff needed for demo setup
 
-void fillFrame(PixelFrame* pFrame, uint8_t idx, uint16_t delay, uint8_t r, uint8_t g, uint8_t b){
+void fillFrame(PixelFrame* pFrame, uint8_t idx, uint16_t delay, uint8_t r, uint8_t g, uint8_t b, uint8_t fromIdx){
   pFrame->idx = idx;
   pFrame->delay = delay;
-  for(uint8_t i=0; i<N_PIXELS; i++) {
+  for(uint8_t i=fromIdx; i<N_PIXELS; i++) {
     pFrame->pixel[i] = makeRGBVal(r,g,b);
   } 
 }
