@@ -41,7 +41,7 @@ void PlaySpiffsImageAction::next(){
   if (_active) {
     // if not enough data _active will be false
     _active = spiffsUtil.getNextFrame(_pframe);
-    printf("curFrame %d width %d\n", _currentFrame, _header.width);
+    LOGD(SPIFF_A, "curFrame %d of %d (height: %d)\n", _currentFrame, _header.width, _header.height);
 
     if (_active) {
 		  _currentFrame++;
