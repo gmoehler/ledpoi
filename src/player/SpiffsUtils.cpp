@@ -115,7 +115,9 @@ bool SpiffsUtils::readImageHeader() {
         _header.height = _file.read();
     }
     if (_file.available()) {
-        _header.width = _file.read();
+    	uint8_t widthUpper = _file.read();
+        uint8_t widthLower= _file.read();
+        _header.width = widthLower + 256 * widthUpper;
     }
     if (!_file.available()) {
         LOGE(SPIF_U, "Cannot read header from image.");

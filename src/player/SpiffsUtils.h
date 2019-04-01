@@ -13,7 +13,7 @@
 struct ImageHeader {   
     uint8_t codec;       
     uint8_t height;
-    uint8_t width; // TODO: needs to be uint16 or uint32
+    uint16_t width; 
 };
 
 class SpiffsUtils
