@@ -2,7 +2,7 @@
 #include "player/PlaySpiffsImageAction.h"
 
 void setFrameDataNoCoding(int morePixels=0) {
-  uint8_t headerVals = 3;
+  uint8_t headerVals = 4;
   uint8_t nFrames = 3;
   uint16_t nPixels = nFrames * N_PIXELS/2 + morePixels;
   uint16_t nValues = headerVals + 3 * nPixels;
@@ -12,7 +12,8 @@ void setFrameDataNoCoding(int morePixels=0) {
   uint8_t* data = new uint8_t[nValues];
   data[0]=NO_CODEC; // no encoding
   data[1]=N_PIXELS/2; // height
-  data[2]=nFrames; // width
+  data[2]=0; // width upper byte
+  data[3]=nFrames; // width lower byte
 
   
   for (int p=0; p<nPixels; p++){
@@ -25,7 +26,7 @@ void setFrameDataNoCoding(int morePixels=0) {
 }
 
 void setFrameDataRuntimeCoding(int morePixels=0) {
-  uint8_t headerVals = 3;
+  uint8_t headerVals = 4;
   uint8_t nFrames = 3;
   uint16_t nPixels = nFrames+2;
   uint16_t nValues = headerVals + 4 * nPixels;
@@ -36,7 +37,8 @@ void setFrameDataRuntimeCoding(int morePixels=0) {
   uint16_t idx=0;
   data[idx++]=RUNTIME_CODEC; // no encoding
   data[idx++]=N_PIXELS/2; // height
-  data[idx++]=nFrames; // width
+  data[idx++]=0; // width upper byte
+  data[idx++]=nFrames; // width lower byte
 
   // frame 0, pixel 0
   data[idx++] = 10;
