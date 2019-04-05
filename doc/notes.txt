@@ -1,0 +1,40 @@
+platformio run --target uploadfs
+
+cd ledpoi/data
+python ..\..\esp-idf\components\spiffs\spiffsgen.py 1769472 . ../data.spiffs
+
+python C:\users\gregor\.platformio\python27\lib\site-packages\esptool.py --chip esp32 --port COM4 --baud 115200 write_flash -z  0x150000 ../data.spiffs
+
+exe:
+====
+
+esptool:
+cd C:\Users\Gregor\git\esptool\esptool_exe\dist
+pyinstaller ..\esptool.py -F
+
+mkspiffs: https://github.com/igrr/mkspiffs/releases
+
+howto upload: 
+https://github.com/me-no-dev/arduino-esp32fs-plugin/blob/master/src/ESP32FS.java
+https://docs.espressif.com/projects/esp-idf/en/latest/api-reference/storage/spiffs.html:
+
+To do that you need to obtain some parameters:
+
+    Block Size: 4096 (standard for SPI Flash)
+    Page Size: 256 (standard for SPI Flash)
+    Image Size: Size of the partition in bytes (can be obtained from partition table)
+    Partition Offset: Starting address of the partition (can be obtained from partition table)
+
+To pack a folder into 1 Megabyte image:
+
+mkspiffs -c [src_folder] -b 4096 -p 256 -s 0x100000 spiffs.bin
+mkspiffs -c ./data -b 4096 -p 256 -s 0x100000 spiffs.bin
+
+To flash the image to ESP32 at offset 0x110000:
+
+python esptool.py --chip esp32 --port [port] --baud [baud] write_flash -z 0x110000 spiffs.bin
+
+cd git/ledpoi
+mkspiffs -c ./data -b 4096 -p 256 -s 0x2B0000 spiffs.bin
+..\esptool\esptool_exe\dist\esptool.exe --chip esp32 --port COM4 --baud 115200 write_flash -z 0x150000 spiffs.bin
+
