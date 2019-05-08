@@ -33,7 +33,8 @@ matrix:
     ####################
     # platformio build #
     ####################
-    - language: python
+    - name: platform.io
+      language: python
       python:
         - "2.7"
 
@@ -48,10 +49,19 @@ matrix:
       script:
         - platformio run
 
+      deploy:
+        provider: script
+        skip_cleanup: true
+        script:
+          - nvm install lts/*
+          - npm install -g semantic-release
+          - npx semantic-release
+
     ##############################################
     # tests using plain Makefile and google test #
     ##############################################
-    - language: c++
+    - name: unit-tests
+      language: c++
       compiler:
         - gcc
       #addons:
