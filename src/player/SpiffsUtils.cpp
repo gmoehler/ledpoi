@@ -54,11 +54,11 @@ bool SpiffsUtils::getNextFrame(PixelFrame* pframe) {
 #endif
 
     if (_header.codec == NO_CODEC) {
-        LOGI(SPIF_U, "Loading unencoded image...");
+        LOGD(SPIF_U, "Loading unencoded image...");
         return getNextFrameNoEncoding(pframe);
     }
     else if (_header.codec == RUNTIME_CODEC) {
-        LOGI(SPIF_U, "Loading runtime encoded image...");
+        LOGD(SPIF_U, "Loading runtime encoded image...");
         return getNextFrameRuntimeEncoding(pframe);
     }
     LOGE(SPIF_U, "Image not encoded with known codec.");
@@ -115,14 +115,16 @@ bool SpiffsUtils::readImageHeader() {
         _header.height = _file.read();
     }
     if (_file.available()) {
-        _header.width = _file.read();
+    	uint8_t widthUpper = _file.read();
+        uint8_t widthLower= _file.read();
+        _header.width = widthLower + 256 * widthUpper;
     }
     if (!_file.available()) {
         LOGE(SPIF_U, "Cannot read header from image.");
         clearImageHeader();
 		return false;
     }
-    LOGI(SPIF_U, "Header. encoding: %d, height:%d, width: %d", _header.codec, _header.height, _header.width)
+    LOGI(SPIF_U, "Header: encoding: %d, height: %d, width: %d", _header.codec, _header.height, _header.width)
     return true;
 }
 

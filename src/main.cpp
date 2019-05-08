@@ -21,19 +21,19 @@ void logging_setup(){
     esp_log_level_set(DISP_T,  DEFAULT_LOG_LEVEL);   // display task
     esp_log_level_set(UART_T,  DEFAULT_LOG_LEVEL);   // uart task
 	  esp_log_level_set(PLAY_T,  ESP_LOG_DEBUG);   // play task
-    esp_log_level_set(SPIF_T,  ESP_LOG_DEBUG);   // spiffs task
+    esp_log_level_set(SPIF_T,  DEFAULT_LOG_LEVEL);   // spiffs task
     // esp_log_level_set(SELF_T,  DEFAULT_LOG_LEVEL);   // selftest task
     esp_log_level_set(BUT_T,   DEFAULT_LOG_LEVEL);   // button task
     esp_log_level_set(EXPL_T,  DEFAULT_LOG_LEVEL);   // example task
 	
-	  esp_log_level_set(SPIFF_A, DEFAULT_LOG_LEVEL);   // play frames action
+	  esp_log_level_set(SPIFF_A, DEFAULT_LOG_LEVEL);   // play spiffs action
     esp_log_level_set(NOACT_A, DEFAULT_LOG_LEVEL);   // void ("no") action
     esp_log_level_set(ANIM_A,  DEFAULT_LOG_LEVEL);   // animation action
 
     esp_log_level_set(TIMER,   DEFAULT_LOG_LEVEL);   // timer util
     esp_log_level_set(POICMD,  DEFAULT_LOG_LEVEL);   // poi command util  
     esp_log_level_set(INTS,    DEFAULT_LOG_LEVEL);   // interaction state
-    esp_log_level_set(SPIF_U,  ESP_LOG_DEBUG);   // spiffs utils
+    esp_log_level_set(SPIF_U,  DEFAULT_LOG_LEVEL);   // spiffs utils
     // esp_log_level_set(SELF_H,  DEFAULT_LOG_LEVEL);   // selftest helper
 }
 

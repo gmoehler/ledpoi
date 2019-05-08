@@ -43,9 +43,9 @@ bin/mkspiffs -c ./data -b 4096 -p 256 -s 0x2B0000 spiffs.bin
 bin/esptool.exe --chip esp32 --port COM4 --baud 115200 write_flash -z 0x150000 spiffs.bin
 
 # electron
-==========
 
 https://www.codementor.io/randyfindley/how-to-build-an-electron-app-using-create-react-app-and-electron-builder-ss1k0sfer
 
 yarn electron-dev
 yarn electron-pack
+
