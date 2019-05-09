@@ -1,11 +1,7 @@
 {
     "configurations": [
         {
-            "name": "!!! WARNING !!! AUTO-GENERATED FILE, PLEASE DO NOT MODIFY IT AND USE https://docs.platformio.org/page/projectconf/section_env_build.html#build-flags",
-            "intelliSenseMode": "msvc-x64",
-            "compilerPath": "/usr/bin/gcc",
-            "cStandard": "c11",
-            "cppStandard": "c++17"
+            "name": "!!! WARNING !!! AUTO-GENERATED FILE, PLEASE DO NOT MODIFY IT AND USE https://docs.platformio.org/page/projectconf/section_env_build.html#build-flags"
         },
         {
             "name": "Win32",
@@ -80,7 +76,6 @@
                 "C:/Users/Gregor/.platformio/packages/framework-arduinoespressif32/libraries/WiFiClientSecure/src",
                 "C:/Users/Gregor/.platformio/packages/framework-arduinoespressif32/libraries/Wire/src",
                 "C:/Users/Gregor/.platformio/packages/tool-unity",
-                "c:/Users/Gregor/git/ledpoi/include",
                 "c:/Users/Gregor/git/ledpoi/src",
                 ""
             ],
@@ -158,13 +153,12 @@
                     "C:/Users/Gregor/.platformio/packages/framework-arduinoespressif32/libraries/WiFiClientSecure/src",
                     "C:/Users/Gregor/.platformio/packages/framework-arduinoespressif32/libraries/Wire/src",
                     "C:/Users/Gregor/.platformio/packages/tool-unity",
-                    "c:/Users/Gregor/git/ledpoi/include",
                     "c:/Users/Gregor/git/ledpoi/src",
                     ""
                 ]
             },
             "defines": [
-                "PLATFORMIO=30606",
+                "PLATFORMIO=30607",
                 "ARDUINO_ESP32_DEV",
                 "ESP32",
                 "ESP_PLATFORM",
@@ -180,7 +174,7 @@
             "intelliSenseMode": "clang-x64",
             "cStandard": "c99",
             "cppStandard": "c++11",
-            "compilerPath": "C:/Users/Gregor/.platformio/packages/toolchain-xtensa32/bin/xtensa-esp32-elf-gcc.exe -mlongcalls"
+            "compilerPath": "\"C:/Users/Gregor/.platformio/packages/toolchain-xtensa32/bin/xtensa-esp32-elf-gcc.exe\" -mlongcalls"
         }
     ],
     "version": 4

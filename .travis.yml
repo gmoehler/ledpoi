@@ -24,9 +24,6 @@
 # Template #1: General project. Test it using existing `platformio.ini`.
 #
 
-# ruby errors on xenial
-dist: trusty
-
 branches:
   only:
   - master
@@ -48,6 +45,8 @@ matrix:
 
       install:
         - pip install -U platformio
+        - nvm install lts/*
+        - npm install -g semantic-release
 
       script:
         - platformio run
@@ -56,8 +55,6 @@ matrix:
         provider: script
         skip_cleanup: true
         script:
-          - nvm install lts/*
-          - npm install -g semantic-release
           - npx semantic-release
 
     ##############################################
