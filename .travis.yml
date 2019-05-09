@@ -24,6 +24,9 @@
 # Template #1: General project. Test it using existing `platformio.ini`.
 #
 
+# ruby errors on xenial
+dist: trusty
+
 branches:
   only:
   - master
