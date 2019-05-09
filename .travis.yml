@@ -55,6 +55,7 @@ matrix:
       deploy:
         provider: script
         skip_cleanup: true
+        api_key: $GITHUB_TOKEN
         script:
           - nvm install lts/*
           - npm install -g semantic-release
