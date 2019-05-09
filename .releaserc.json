@@ -6,7 +6,7 @@
       "prepareCmd" : "cp .pioenvs/esp32dev/firmware.bin .pioenvs/esp32dev/ledpoi-firmware.${nextRelease.version}.bin"
       }],
     ["@semantic-release/github", {
-      "assets": [".pioenvs/esp32dev/firmware.bin", "ledpoi-firmware.*.bin"]
+      "assets": [".pioenvs/esp32dev/firmware.bin", ".pioenvs/esp32dev/ledpoi-firmware.*.bin"]
     }]
   ]
 }
