@@ -53,6 +53,7 @@ matrix:
 
       deploy:
         provider: script
+        api_key: $GITHUB_TOKEN
         skip_cleanup: true
         script:
           - npx semantic-release
