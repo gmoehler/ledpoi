@@ -43,9 +43,11 @@ resources/bin/mkspiffs -c ./data -b 4096 -p 256 -s 0x2B0000 spiffs.bin
 resources/bin/esptool.exe --chip esp32 --port COM4 --baud 115200 write_flash -z 0x150000 spiffs.bin
 
 # upload firmware
+platformio run --target clean
 platformio run
 ../luminosia/resources/bin/esptool.exe --chip esp32 --port COM4 --baud 115200 write_flash -z 0x00001000 .pioenvs/esp32dev/firmware.bin
 
+-> https://github.com/gmoehler/ledpoi/releases/latest/download/firmware.bin
 
 # electron
 
