@@ -10,7 +10,15 @@ exe:
 
 esptool:
 cd C:\Users\Gregor\git\esptool\esptool_exe\dist
-pyinstaller ..\esptool.py -F
+pyinstaller ../esptool.py -F
+
+linux:
+pip install serial
+pip install pyserial
+~/.local/bin/pyinstaller ../esptool.py -F
+
+sudo usermod -a -G dialout
+sudo mount -t vboxsf -o uid=$UID,gid=$(id -g) share ~/host
 
 mkspiffs: https://github.com/igrr/mkspiffs/releases
 
@@ -40,7 +48,7 @@ mkspiffs -c ./data -b 4096 -p 256 -s 0x2B0000 spiffs.bin
 
 cd git\luminosia-win
 resources/bin/mkspiffs -c ./data -b 4096 -p 256 -s 0x2B0000 spiffs.bin
-resources/bin/esptool.exe --chip esp32 --port COM4 --baud 115200 write_flash -z 0x150000 spiffs.bin
+resources/bin/esptool --chip esp32  --baud 115200 write_flash -z 0x150000 spiffs.bin
 
 # upload firmware
 platformio run --target clean
