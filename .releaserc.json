@@ -5,15 +5,15 @@
     [
       "@semantic-release/exec",
       {
-        "prepareCmd": "cp .pio/esp32dev/firmware.bin .pio/esp32dev/ledpoi-firmware.${nextRelease.version}.bin"
+        "prepareCmd": "cp .pio/build/esp32dev/firmware.bin .pio/build/esp32dev/ledpoi-firmware.${nextRelease.version}.bin"
       }
     ],
     [
       "@semantic-release/github",
       {
         "assets": [
-          ".pio/esp32dev/firmware.bin",
-          ".pio/esp32dev/ledpoi-firmware.*.bin"
+          ".pio/build/esp32dev/firmware.bin",
+          ".pio/build/esp32dev/ledpoi-firmware.*.bin"
         ]
       }
     ]
