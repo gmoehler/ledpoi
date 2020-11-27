@@ -1,12 +1,21 @@
 {
- "plugins": [
+  "plugins": [
     "@semantic-release/commit-analyzer",
     "@semantic-release/release-notes-generator",
-    ["@semantic-release/exec", {
-      "prepareCmd" : "cp .pioenvs/esp32dev/firmware.bin .pioenvs/esp32dev/ledpoi-firmware.${nextRelease.version}.bin"
-      }],
-    ["@semantic-release/github", {
-      "assets": [".pioenvs/esp32dev/firmware.bin", ".pioenvs/esp32dev/ledpoi-firmware.*.bin"]
-    }]
+    [
+      "@semantic-release/exec",
+      {
+        "prepareCmd": "cp .pio/esp32dev/firmware.bin .pio/esp32dev/ledpoi-firmware.${nextRelease.version}.bin"
+      }
+    ],
+    [
+      "@semantic-release/github",
+      {
+        "assets": [
+          ".pio/esp32dev/firmware.bin",
+          ".pio/esp32dev/ledpoi-firmware.*.bin"
+        ]
+      }
+    ]
   ]
 }
